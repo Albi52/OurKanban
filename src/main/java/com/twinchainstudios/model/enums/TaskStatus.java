@@ -1,4 +1,4 @@
-package com.twinchainstudios.model;
+package com.twinchainstudios.model.enums;
 
 public enum TaskStatus {
     TODO,

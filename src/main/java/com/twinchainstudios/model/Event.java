@@ -2,6 +2,7 @@ package com.twinchainstudios.model;
 
 import java.time.LocalDateTime;
 
+import com.twinchainstudios.model.enums.EventType;
 
 import jakarta.persistence.*;
 

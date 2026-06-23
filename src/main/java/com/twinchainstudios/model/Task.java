@@ -3,6 +3,8 @@ package com.twinchainstudios.model;
 
 import java.time.LocalDate;
 
+import com.twinchainstudios.model.enums.TaskStatus;
+
 import jakarta.persistence.*;
 
 @Entity

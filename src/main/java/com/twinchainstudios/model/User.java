@@ -3,7 +3,8 @@ package com.twinchainstudios.model;
 import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+
+import com.twinchainstudios.model.enums.AuthProvider;
 
 import java.util.HashSet;
 
@@ -12,18 +13,24 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "users")
 @SQLDelete(sql = "UPDATE users SET deleted = true WHERE id = ?")
-@Where(clause = "deleted = false")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(unique = true, nullable = false)
+    private String email;
 
     private String password;
 
-    private String email;
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    private String providerId;
 
     private boolean deleted = false;
 
