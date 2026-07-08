@@ -1,4 +1,4 @@
-package com.twinchainstudios.model.enums;
+package com.twinchainstudios.ourkanban.model.enums;
 
 public enum TaskStatus {
     TODO,

@@ -1,12 +1,14 @@
-package com.twinchainstudios.model;
+package com.twinchainstudios.ourkanban.model;
 
 import java.time.LocalDateTime;
-import java.util.*;
+
+import com.twinchainstudios.ourkanban.model.enums.EventType;
 
 import jakarta.persistence.*;
+
 @Entity
-@Table(name = "notifications")
-public class Notification {
+@Table(name = "events")
+public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,22 +21,18 @@ public class Notification {
     @Column(length = 5000)
     private String text;
 
-    @ManyToMany
-    @JoinTable(
-        name = "notification_recipient_roles",
-        joinColumns = @JoinColumn(name = "notification_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> recipientRoles = new HashSet<>();
+    private LocalDateTime date;
+
+    @Enumerated(EnumType.STRING)
+    private EventType type;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
 
-    private LocalDateTime date;
-
-    public Notification() {
+    public Event() {
     }
+
     public Long getId() {
         return id;
     }
@@ -53,11 +51,17 @@ public class Notification {
     public void setText(String text) {
         this.text = text;
     }
-    public Set<Role> getRecipientRoles() {
-        return recipientRoles;
+    public LocalDateTime getDate() {
+        return date;
     }
-    public void setRecipientRoles(Set<Role> recipientRoles) {
-        this.recipientRoles = recipientRoles;
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+    public EventType getType() {
+        return type;
+    }
+    public void setType(EventType type) {
+        this.type = type;
     }
     public Project getProject() {
         return project;
@@ -65,11 +69,7 @@ public class Notification {
     public void setProject(Project project) {
         this.project = project;
     }
-    public LocalDateTime getDate() {
-        return date;
-    }
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
+
+
     
 }

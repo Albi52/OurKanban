@@ -1,10 +1,10 @@
-package com.twinchainstudios.model;
+package com.twinchainstudios.ourkanban.model;
 
 import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 
-import com.twinchainstudios.model.enums.AuthProvider;
+import com.twinchainstudios.ourkanban.model.enums.AuthProvider;
 
 import java.util.HashSet;
 
@@ -25,6 +25,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -83,5 +84,21 @@ public class User {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public AuthProvider getProvider() {
+        return provider;
+    }
+
+    public void setProvider(AuthProvider provider) {
+        this.provider = provider;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
     }
 }

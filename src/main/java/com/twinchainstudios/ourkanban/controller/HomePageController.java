@@ -9,8 +9,5 @@ public class HomePageController {
     public String home() {
         return "Welcome to the OurKanban API!";
     }
-    @GetMapping("/secured")
-    public String secured() {
-        return "Welcome to the secured section of the OurKanban API!";
-    }
+
 }

@@ -1,4 +1,4 @@
-package com.twinchainstudios.model;
+package com.twinchainstudios.ourkanban.model;
 
 import java.util.*;
 

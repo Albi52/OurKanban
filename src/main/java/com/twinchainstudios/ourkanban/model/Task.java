@@ -1,9 +1,9 @@
-package com.twinchainstudios.model;
+package com.twinchainstudios.ourkanban.model;
 
 
 import java.time.LocalDate;
 
-import com.twinchainstudios.model.enums.TaskStatus;
+import com.twinchainstudios.ourkanban.model.enums.TaskStatus;
 
 import jakarta.persistence.*;
 

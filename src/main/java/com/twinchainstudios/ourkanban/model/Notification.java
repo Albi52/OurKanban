@@ -1,14 +1,12 @@
-package com.twinchainstudios.model;
+package com.twinchainstudios.ourkanban.model;
 
 import java.time.LocalDateTime;
-
-import com.twinchainstudios.model.enums.EventType;
+import java.util.*;
 
 import jakarta.persistence.*;
-
 @Entity
-@Table(name = "events")
-public class Event {
+@Table(name = "notifications")
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,18 +19,22 @@ public class Event {
     @Column(length = 5000)
     private String text;
 
-    private LocalDateTime date;
-
-    @Enumerated(EnumType.STRING)
-    private EventType type;
+    @ManyToMany
+    @JoinTable(
+        name = "notification_recipient_roles",
+        joinColumns = @JoinColumn(name = "notification_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> recipientRoles = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
 
-    public Event() {
-    }
+    private LocalDateTime date;
 
+    public Notification() {
+    }
     public Long getId() {
         return id;
     }
@@ -51,17 +53,11 @@ public class Event {
     public void setText(String text) {
         this.text = text;
     }
-    public LocalDateTime getDate() {
-        return date;
+    public Set<Role> getRecipientRoles() {
+        return recipientRoles;
     }
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-    public EventType getType() {
-        return type;
-    }
-    public void setType(EventType type) {
-        this.type = type;
+    public void setRecipientRoles(Set<Role> recipientRoles) {
+        this.recipientRoles = recipientRoles;
     }
     public Project getProject() {
         return project;
@@ -69,7 +65,11 @@ public class Event {
     public void setProject(Project project) {
         this.project = project;
     }
-
-
+    public LocalDateTime getDate() {
+        return date;
+    }
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
     
 }
