@@ -1,6 +1,7 @@
 package com.twinchainstudios.ourkanban.controller;
 
 
+import com.twinchainstudios.ourkanban.dto.request.GoogleLoginRequest;
 import com.twinchainstudios.ourkanban.dto.request.LoginRequest;
 import com.twinchainstudios.ourkanban.dto.request.RegisterRequest;
 import com.twinchainstudios.ourkanban.dto.response.AuthResponse;
@@ -34,5 +35,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+    @PostMapping("/login/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
     }
 }

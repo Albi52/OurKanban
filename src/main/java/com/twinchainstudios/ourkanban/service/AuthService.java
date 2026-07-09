@@ -8,11 +8,25 @@ import com.twinchainstudios.ourkanban.exception.UserAlreadyExistsException;
 import com.twinchainstudios.ourkanban.model.enums.AuthProvider;
 import com.twinchainstudios.ourkanban.repository.UserRepository;
 import com.twinchainstudios.ourkanban.security.JwtService;
+import com.twinchainstudios.ourkanban.exception.*;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.twinchainstudios.ourkanban.dto.request.GoogleLoginRequest;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.security.GeneralSecurityException;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -21,6 +35,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public AuthService(UserRepository userRepository,
                         PasswordEncoder passwordEncoder,
@@ -63,4 +79,54 @@ public class AuthService {
         String token = jwtService.generateToken(authentication.getName());
         return new AuthResponse(token);
     }
+
+    public AuthResponse loginWithGoogle(GoogleLoginRequest request) {
+    GoogleIdToken.Payload payload = verifyGoogleToken(request.idToken());
+
+    String email = payload.getEmail();
+    String googleId = payload.getSubject();
+
+    User user = userRepository.findByEmail(email)
+            .orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setUsername(generateUsernameFromEmail(email));
+                newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                newUser.setProvider(AuthProvider.GOOGLE);
+                newUser.setProviderId(googleId);
+                return userRepository.save(newUser);
+            });
+
+    String token = jwtService.generateToken(user.getUsername());
+    return new AuthResponse(token);
+}
+
+private GoogleIdToken.Payload verifyGoogleToken(String idTokenString) {
+    try {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(),
+                GsonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken == null) {
+            throw new InvalidGoogleTokenException("Invalid Google ID token");
+        }
+        return idToken.getPayload();
+
+    } catch (GeneralSecurityException | IOException e) {
+        throw new InvalidGoogleTokenException("Could not verify Google ID token");
+    }
+}
+
+private String generateUsernameFromEmail(String email) {
+    String base = email.split("@")[0];
+    String candidate = base;
+    int suffix = 1;
+    while (userRepository.existsByUsername(candidate)) {
+        candidate = base + suffix++;
+    }
+    return candidate;
+}
 }
