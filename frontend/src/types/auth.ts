@@ -9,6 +9,10 @@ export interface RegisterRequest {
   password: string
 }
 
+export interface GoogleLoginRequest {
+  idToken: string
+}
+
 export interface AuthResponse {
   token: string
 }
