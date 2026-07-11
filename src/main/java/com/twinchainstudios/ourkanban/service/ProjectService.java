@@ -4,6 +4,7 @@ import com.twinchainstudios.ourkanban.dto.application.request.CreateProjectReque
 import com.twinchainstudios.ourkanban.dto.application.request.UpdateProjectRequest;
 import com.twinchainstudios.ourkanban.dto.application.response.ProjectResponse;
 import com.twinchainstudios.ourkanban.exception.DuplicateProjectNameException;
+import com.twinchainstudios.ourkanban.exception.NotAMemberException;
 import com.twinchainstudios.ourkanban.exception.NotLeaderException;
 import com.twinchainstudios.ourkanban.exception.ProjectNotFoundException;
 import com.twinchainstudios.ourkanban.exception.WorkGroupNotFoundException;
@@ -95,4 +96,25 @@ public ProjectResponse renameProject(Long projectId, UpdateProjectRequest reques
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
+    public Project getProjectAndVerifyMembership(Long projectId, String username) {
+    User user = getUserOrThrow(username);
+    Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+
+    boolean isMember = project.getWorkGroup().getUsers().stream()
+            .anyMatch(u -> u.getId().equals(user.getId()));
+
+    if (!isMember) {
+        throw new NotAMemberException("You are not a member of this project's group");
+    }
+
+    return project;
+}
+
+@Transactional(readOnly = true)
+public ProjectResponse getProject(Long projectId, String username) {
+    Project project = getProjectAndVerifyMembership(projectId, username);
+    return new ProjectResponse(project.getId(), project.getName());
+}
 }

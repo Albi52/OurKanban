@@ -1,5 +1,9 @@
-import { apiPost, apiPatch, apiDelete } from './client'
+import { apiGet, apiPost, apiPatch, apiDelete } from './client'
 import type { ProjectSummary, CreateProjectRequest, UpdateProjectRequest } from '../types/workgroup'
+
+export function getProject(projectId: number): Promise<ProjectSummary> {
+  return apiGet<ProjectSummary>(`/projects/${projectId}`)
+}
 
 export function createProject(
   workGroupId: number,

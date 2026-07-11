@@ -7,6 +7,7 @@ import com.twinchainstudios.ourkanban.service.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 public class ProjectController {
@@ -20,7 +21,7 @@ public class ProjectController {
     @PostMapping("/workgroups/{workGroupId}/projects")
     public ResponseEntity<ProjectResponse> createProject(
             @PathVariable Long workGroupId,
-            @RequestBody CreateProjectRequest request,
+            @Valid@RequestBody CreateProjectRequest request,
             Authentication authentication) {
         return ResponseEntity.ok(
                 projectService.createProject(workGroupId, request, authentication.getName()));
@@ -36,9 +37,15 @@ public class ProjectController {
     @PatchMapping("/projects/{projectId}")
 public ResponseEntity<ProjectResponse> renameProject(
         @PathVariable Long projectId,
-        @RequestBody UpdateProjectRequest request,
+        @Valid @RequestBody UpdateProjectRequest request,
         Authentication authentication) {
     return ResponseEntity.ok(
             projectService.renameProject(projectId, request, authentication.getName()));
+}
+    @GetMapping("/projects/{projectId}")
+public ResponseEntity<ProjectResponse> getProject(
+        @PathVariable Long projectId,
+        Authentication authentication) {
+    return ResponseEntity.ok(projectService.getProject(projectId, authentication.getName()));
 }
 }

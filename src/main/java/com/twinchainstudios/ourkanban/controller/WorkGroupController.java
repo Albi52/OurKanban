@@ -7,6 +7,7 @@ import com.twinchainstudios.ourkanban.service.WorkGroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class WorkGroupController {
     @PostMapping("/{id}/members")
 public ResponseEntity<WorkGroupResponse> addMember(
         @PathVariable Long id,
-        @RequestBody AddMemberRequest request,
+        @Valid @RequestBody AddMemberRequest request,
         Authentication authentication) {
     return ResponseEntity.ok(workGroupService.addMember(id, request, authentication.getName()));
 }
