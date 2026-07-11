@@ -212,14 +212,21 @@ export default function HomePage() {
                 Led by {wg.leaderUsername}
                 {wg.isLeader ? ' (you)' : ''}
               </span>
-              {wg.isLeader && (
-                <button
-                  onClick={() => setManageMembersFor(wg.id)}
-                  className="manage-members-button"
-                >
-                  Manage members
-                </button>
-              )}
+              {wg.isLeader ? (
+  <button
+    onClick={() => setManageMembersFor(wg.id)}
+    className="manage-members-button"
+  >
+    Manage members
+  </button>
+) : (
+  <button
+    onClick={() => setManageMembersFor(wg.id)}
+    className="manage-members-button"
+  >
+    Members
+  </button>
+)}
               <button onClick={() => handleLeaveGroup(wg.id)} className="leave-button">
                 Leave group
               </button>
@@ -329,49 +336,51 @@ export default function HomePage() {
       )}
 
       {manageMembersGroup && (
-        <div className="modal-overlay" onClick={() => setManageMembersFor(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Members of {manageMembersGroup.name}</h2>
+  <div className="modal-overlay" onClick={() => setManageMembersFor(null)}>
+    <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <h2>Members of {manageMembersGroup.name}</h2>
 
-            <ul className="member-list">
-              {manageMembersGroup.members.map((m) => (
-                <li key={m.id}>
-                  {m.username}
-                  {m.username === manageMembersGroup.leaderUsername ? (
-                    <span className="member-leader-tag"> (leader)</span>
-                  ) : (
-                    <button onClick={() => handleRemoveMember(manageMembersGroup.id, m.id)}>
-                      Remove
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-
-            <form
-              onSubmit={(e) => handleAddMember(manageMembersGroup.id, e)}
-              className="add-member-form"
-            >
-              <input
-                type="text"
-                placeholder="Username to add"
-                value={newMemberUsername}
-                onChange={(e) => setNewMemberUsername(e.target.value)}
-                required
-              />
-              <button type="submit" disabled={busy}>
-                {busy ? 'Adding...' : 'Add'}
+      <ul className="member-list">
+        {manageMembersGroup.members.map((m) => (
+          <li key={m.id}>
+            {m.username}
+            {m.username === manageMembersGroup.leaderUsername ? (
+              <span className="member-leader-tag"> (leader)</span>
+            ) : manageMembersGroup.isLeader ? (
+              <button onClick={() => handleRemoveMember(manageMembersGroup.id, m.id)}>
+                Remove
               </button>
-            </form>
+            ) : null}
+          </li>
+        ))}
+      </ul>
 
-            <div className="modal-actions">
-              <button type="button" onClick={() => setManageMembersFor(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+      {manageMembersGroup.isLeader && (
+        <form
+          onSubmit={(e) => handleAddMember(manageMembersGroup.id, e)}
+          className="add-member-form"
+        >
+          <input
+            type="text"
+            placeholder="Username to add"
+            value={newMemberUsername}
+            onChange={(e) => setNewMemberUsername(e.target.value)}
+            required
+          />
+          <button type="submit" disabled={busy}>
+            {busy ? 'Adding...' : 'Add'}
+          </button>
+        </form>
       )}
+
+      <div className="modal-actions">
+        <button type="button" onClick={() => setManageMembersFor(null)}>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }
