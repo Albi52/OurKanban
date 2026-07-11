@@ -65,6 +65,13 @@ public class Project {
     )
     private List<Role> roles = new ArrayList<>();
 
+    @OneToMany(
+    mappedBy = "project",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+)
+private List<DashboardColumn> columns = new ArrayList<>();
+
     public Long getId() {
         return id;
     }
@@ -127,6 +134,12 @@ public class Project {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+    public List<DashboardColumn> getColumns() {
+        return columns;
+    }
+    public void setColumns(List<DashboardColumn> columns) {
+        this.columns = columns;
     }
     
 }

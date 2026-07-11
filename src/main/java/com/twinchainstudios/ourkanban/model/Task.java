@@ -3,7 +3,6 @@ package com.twinchainstudios.ourkanban.model;
 
 import java.time.LocalDate;
 
-import com.twinchainstudios.ourkanban.model.enums.TaskStatus;
 
 import jakarta.persistence.*;
 
@@ -16,9 +15,9 @@ public class Task {
     private Long id;
 
     private String title;
-
-    @Enumerated(EnumType.STRING)
-    private TaskStatus status;
+@ManyToOne
+@JoinColumn(name = "column_id")
+private DashboardColumn column;
 
     private LocalDate startDate;
 
@@ -52,12 +51,12 @@ public class Task {
         this.title = title;
     }
 
-    public TaskStatus getStatus() {
-        return status;
+    public DashboardColumn getColumn() {
+        return column;
     }
 
-    public void setStatus(TaskStatus status) {
-        this.status = status;
+    public void setColumn(DashboardColumn column) {
+        this.column = column;
     }
 
     public LocalDate getStartDate() {

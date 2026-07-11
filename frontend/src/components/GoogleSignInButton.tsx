@@ -22,7 +22,7 @@ export default function GoogleSignInButton({ onCredential }: GoogleSignInButtonP
         callback: (response) => onCredential(response.credential),
       })
       window.google!.accounts.id.renderButton(buttonRef.current, {
-        theme: 'outline',
+        theme: 'filled_black',
         size: 'large',
         width: 280,
       })

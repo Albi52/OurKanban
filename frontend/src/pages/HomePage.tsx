@@ -1,386 +1,87 @@
-import { useEffect, useState } from 'react'
-import type { SubmitEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  getMyWorkGroups,
-  createWorkGroup,
-  leaveWorkGroup,
-  addMember,
-  removeMember,
-} from '../api/workGroupAPI'
-import { createProject, deleteProject, renameProject } from '../api/projectAPI'
-import type { WorkGroup } from '../types/workgroup'
+import React, { useEffect, useState } from 'react'
+import { TopBar } from '../components/TopBar'
+import { WorkingGroupSection } from '../components/WorkingGroupSection'
+import { AccountSidebar } from '../components/AccountSidebar'
+import { CreateProjectDialog } from '../components/CreateProjectDialog'
+import { CreateGroupDialog } from '../components/CreateGroupDialog'
 import { useAuth } from '../context/AuthContext'
-import './HomePage.css'
+import { getMyWorkGroups } from '../api/workGroupAPI'
+import type { WorkGroup } from '../types/workgroup'
+import { Button } from '../components/ui/button'
+import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 
-export default function HomePage() {
-  const [workGroups, setWorkGroups] = useState<WorkGroup[]>([])
+const HomePage: React.FC = () => {
+  const { user } = useAuth()
+  const [groups, setGroups] = useState<WorkGroup[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [createInGroup, setCreateInGroup] = useState<WorkGroup | null>(null)
+  const [createGroupOpen, setCreateGroupOpen] = useState(false)
 
-  // Create group
-  const [showGroupForm, setShowGroupForm] = useState(false)
-  const [newGroupName, setNewGroupName] = useState('')
-
-  // Create project
-  const [projectFormFor, setProjectFormFor] = useState<number | null>(null)
-  const [newProjectName, setNewProjectName] = useState('')
-
-  // Rename project
-  const [renamingProjectId, setRenamingProjectId] = useState<number | null>(null)
-  const [renameValue, setRenameValue] = useState('')
-
-  // Manage members
-  const [manageMembersFor, setManageMembersFor] = useState<number | null>(null)
-  const [newMemberUsername, setNewMemberUsername] = useState('')
-
-  const { logout } = useAuth()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    loadWorkGroups()
-  }, [])
-
-  async function loadWorkGroups() {
+  async function refresh() {
     setLoading(true)
-    setError(null)
     try {
-      setWorkGroups(await getMyWorkGroups())
+      setGroups(await getMyWorkGroups())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load groups')
+      toast.error(err instanceof Error ? err.message : 'Failed to load groups')
     } finally {
       setLoading(false)
     }
   }
 
-  // --- Group handlers ---
+  useEffect(() => {
+    refresh()
+  }, [])
 
-  async function handleCreateGroup(e: SubmitEvent) {
-    e.preventDefault()
-    if (!newGroupName.trim()) return
+  if (!user) return null
 
-    setBusy(true)
-    setError(null)
-    try {
-      await createWorkGroup({ name: newGroupName.trim() })
-      setNewGroupName('')
-      setShowGroupForm(false)
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create group')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function handleLeaveGroup(id: number) {
-    const confirmed = window.confirm(
-      'Leave this group? If you are the last member, it will be permanently deleted.'
-    )
-    if (!confirmed) return
-
-    setError(null)
-    try {
-      await leaveWorkGroup(id)
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to leave group')
-    }
-  }
-
-  // --- Project handlers ---
-
-  async function handleCreateProject(workGroupId: number, e: SubmitEvent) {
-    e.preventDefault()
-    if (!newProjectName.trim()) return
-
-    setBusy(true)
-    setError(null)
-    try {
-      await createProject(workGroupId, { name: newProjectName.trim() })
-      setNewProjectName('')
-      setProjectFormFor(null)
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create project')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function handleDeleteProject(projectId: number) {
-    const confirmed = window.confirm('Delete this project? This cannot be undone.')
-    if (!confirmed) return
-
-    setError(null)
-    try {
-      await deleteProject(projectId)
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete project')
-    }
-  }
-
-  function startRename(projectId: number, currentName: string) {
-    setRenamingProjectId(projectId)
-    setRenameValue(currentName)
-  }
-
-  async function submitRename(e: SubmitEvent) {
-    e.preventDefault()
-    if (renamingProjectId === null || !renameValue.trim()) return
-
-    setError(null)
-    try {
-      await renameProject(renamingProjectId, { name: renameValue.trim() })
-      setRenamingProjectId(null)
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to rename project')
-    }
-  }
-
-  // --- Member handlers ---
-
-  async function handleAddMember(workGroupId: number, e: SubmitEvent) {
-    e.preventDefault()
-    if (!newMemberUsername.trim()) return
-
-    setBusy(true)
-    setError(null)
-    try {
-      await addMember(workGroupId, { username: newMemberUsername.trim() })
-      setNewMemberUsername('')
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add member')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function handleRemoveMember(workGroupId: number, userId: number) {
-    const confirmed = window.confirm('Remove this member from the group?')
-    if (!confirmed) return
-
-    setError(null)
-    try {
-      await removeMember(workGroupId, userId)
-      await loadWorkGroups()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove member')
-    }
-  }
-
-  function handleLogout() {
-    logout()
-    navigate('/')
-  }
-
-  const manageMembersGroup =
-    manageMembersFor !== null
-      ? workGroups.find((g) => g.id === manageMembersFor) ?? null
-      : null
+  const projectCount = groups.reduce((n, g) => n + g.projects.length, 0)
 
   return (
-    <div className="home-page">
-      <header className="home-header">
-        <h1>Your workspaces</h1>
-        <div>
-          <button onClick={() => setShowGroupForm(true)} className="new-group-button">
-            + New group
-          </button>
-          <button onClick={handleLogout} className="logout-button">
-            Log out
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-zinc-950 text-zinc-50">
+      <TopBar />
 
-      {error && <p className="home-error">{error}</p>}
+      <div className="mx-auto flex max-w-[1600px] gap-8 px-6 py-10 md:px-10">
+        <AccountSidebar groups={groups} />
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : workGroups.length === 0 ? (
-        <p>You're not part of any group yet. Create one to get started.</p>
-      ) : (
-        workGroups.map((wg) => (
-          <section key={wg.id} className="workgroup-section">
-            <div className="workgroup-header">
-              <h2>{wg.name}</h2>
-              <span className="workgroup-leader">
-                Led by {wg.leaderUsername}
-                {wg.isLeader ? ' (you)' : ''}
-              </span>
-              {wg.isLeader ? (
-  <button
-    onClick={() => setManageMembersFor(wg.id)}
-    className="manage-members-button"
-  >
-    Manage members
-  </button>
-) : (
-  <button
-    onClick={() => setManageMembersFor(wg.id)}
-    className="manage-members-button"
-  >
-    Members
-  </button>
-)}
-              <button onClick={() => handleLeaveGroup(wg.id)} className="leave-button">
-                Leave group
-              </button>
+        <main className="flex-1 min-w-0">
+          <div className="mb-10 flex items-end justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Workspace</p>
+              <h1 className="mt-2 font-heading text-4xl font-light tracking-tighter text-zinc-50 md:text-5xl" data-testid="dashboard-title">
+                Good to see you, <span className="font-medium">{user.username}</span>.
+              </h1>
+              <p className="mt-2 text-sm text-zinc-500">
+                {groups.length} working group{groups.length === 1 ? '' : 's'} · {projectCount} projects
+              </p>
             </div>
-
-            <div className="project-grid">
-              {wg.projects.map((p) => (
-                <div key={p.id} className="project-card">
-                  <div className="project-card-main">
-                    {renamingProjectId === p.id ? (
-                      <form onSubmit={submitRename} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="text"
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          autoFocus
-                          onBlur={() => setRenamingProjectId(null)}
-                        />
-                      </form>
-                    ) : (
-                      <h3
-                        onClick={() => navigate(`/board/${p.id}`)}
-                        onDoubleClick={(e) => {
-                          e.stopPropagation()
-                          if (wg.isLeader) startRename(p.id, p.name)
-                        }}
-                        title={wg.isLeader ? 'Double-click to rename' : undefined}
-                      >
-                        {p.name}
-                      </h3>
-                    )}
-                  </div>
-                  {wg.isLeader && (
-                    <button
-                      onClick={() => handleDeleteProject(p.id)}
-                      className="delete-project-button"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {wg.isLeader && (
-                <button
-                  className="project-card new-project-card"
-                  onClick={() => setProjectFormFor(wg.id)}
-                >
-                  + New project
-                </button>
-              )}
-            </div>
-
-            {projectFormFor === wg.id && (
-              <div className="modal-overlay" onClick={() => setProjectFormFor(null)}>
-                <div className="modal" onClick={(e) => e.stopPropagation()}>
-                  <h2>New project in {wg.name}</h2>
-                  <form onSubmit={(e) => handleCreateProject(wg.id, e)}>
-                    <input
-                      type="text"
-                      placeholder="Project name"
-                      value={newProjectName}
-                      onChange={(e) => setNewProjectName(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                    <div className="modal-actions">
-                      <button type="button" onClick={() => setProjectFormFor(null)}>
-                        Cancel
-                      </button>
-                      <button type="submit" disabled={busy}>
-                        {busy ? 'Creating...' : 'Create'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-          </section>
-        ))
-      )}
-
-      {showGroupForm && (
-        <div className="modal-overlay" onClick={() => setShowGroupForm(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Create a new group</h2>
-            <form onSubmit={handleCreateGroup}>
-              <input
-                type="text"
-                placeholder="Group name"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                required
-                autoFocus
-              />
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowGroupForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" disabled={busy}>
-                  {busy ? 'Creating...' : 'Create'}
-                </button>
-              </div>
-            </form>
+            <Button onClick={() => setCreateGroupOpen(true)} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200 rounded-full" data-testid="new-group-btn">
+              <Plus className="mr-2 h-4 w-4" />
+              New group
+            </Button>
           </div>
-        </div>
-      )}
 
-      {manageMembersGroup && (
-  <div className="modal-overlay" onClick={() => setManageMembersFor(null)}>
-    <div className="modal" onClick={(e) => e.stopPropagation()}>
-      <h2>Members of {manageMembersGroup.name}</h2>
-
-      <ul className="member-list">
-        {manageMembersGroup.members.map((m) => (
-          <li key={m.id}>
-            {m.username}
-            {m.username === manageMembersGroup.leaderUsername ? (
-              <span className="member-leader-tag"> (leader)</span>
-            ) : manageMembersGroup.isLeader ? (
-              <button onClick={() => handleRemoveMember(manageMembersGroup.id, m.id)}>
-                Remove
-              </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-
-      {manageMembersGroup.isLeader && (
-        <form
-          onSubmit={(e) => handleAddMember(manageMembersGroup.id, e)}
-          className="add-member-form"
-        >
-          <input
-            type="text"
-            placeholder="Username to add"
-            value={newMemberUsername}
-            onChange={(e) => setNewMemberUsername(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={busy}>
-            {busy ? 'Adding...' : 'Add'}
-          </button>
-        </form>
-      )}
-
-      <div className="modal-actions">
-        <button type="button" onClick={() => setManageMembersFor(null)}>
-          Close
-        </button>
+          {loading ? (
+            <p className="text-zinc-500">Loading...</p>
+          ) : (
+            <div className="space-y-14">
+              {groups.length === 0 && (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-12 text-center text-zinc-500">
+                  You're not in any working groups yet.
+                </div>
+              )}
+              {groups.map((group) => (
+                <WorkingGroupSection key={group.id} group={group} onChanged={refresh} onCreateProject={() => setCreateInGroup(group)} />
+              ))}
+            </div>
+          )}
+        </main>
       </div>
-    </div>
-  </div>
-)}
+
+      <CreateProjectDialog group={createInGroup} onClose={() => setCreateInGroup(null)} onCreated={() => { setCreateInGroup(null); refresh() }} />
+      <CreateGroupDialog open={createGroupOpen} onOpenChange={setCreateGroupOpen} onCreated={refresh} />
     </div>
   )
 }
+
+export default HomePage
