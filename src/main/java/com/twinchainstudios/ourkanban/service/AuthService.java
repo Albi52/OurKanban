@@ -1,8 +1,9 @@
 package com.twinchainstudios.ourkanban.service;
 
-import com.twinchainstudios.ourkanban.dto.request.LoginRequest;
-import com.twinchainstudios.ourkanban.dto.request.RegisterRequest;
-import com.twinchainstudios.ourkanban.dto.response.AuthResponse;
+import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.RegisterRequest;
+import com.twinchainstudios.ourkanban.dto.auth.response.AuthResponse;
 import com.twinchainstudios.ourkanban.model.User;
 import com.twinchainstudios.ourkanban.exception.UserAlreadyExistsException;
 import com.twinchainstudios.ourkanban.model.enums.AuthProvider;
@@ -20,7 +21,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.twinchainstudios.ourkanban.dto.request.GoogleLoginRequest;
+
 import org.springframework.beans.factory.annotation.Value;
 
 import java.security.GeneralSecurityException;

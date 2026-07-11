@@ -1,10 +1,10 @@
 package com.twinchainstudios.ourkanban.controller;
 
 
-import com.twinchainstudios.ourkanban.dto.request.GoogleLoginRequest;
-import com.twinchainstudios.ourkanban.dto.request.LoginRequest;
-import com.twinchainstudios.ourkanban.dto.request.RegisterRequest;
-import com.twinchainstudios.ourkanban.dto.response.AuthResponse;
+import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.RegisterRequest;
+import com.twinchainstudios.ourkanban.dto.auth.response.AuthResponse;
 import com.twinchainstudios.ourkanban.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
