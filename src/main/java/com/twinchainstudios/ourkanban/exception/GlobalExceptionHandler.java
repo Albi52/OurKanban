@@ -69,4 +69,13 @@ public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgument
     }
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
 }
+
+@ExceptionHandler(InvalidVerificationTokenException.class)
+public ResponseEntity<Map<String, String>> handleInvalidVerificationToken(InvalidVerificationTokenException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+}
+@ExceptionHandler(EmailNotVerifiedException.class)
+public ResponseEntity<Map<String, String>> handleEmailNotVerified(EmailNotVerifiedException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+}
 }

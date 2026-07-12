@@ -14,5 +14,12 @@ export interface GoogleLoginRequest {
 }
 
 export interface AuthResponse {
-  token: string
+  token: string | null
+  message?: string | null
+}
+
+export interface MeResponse {
+  username: string
+  emailVerified: boolean
+  localCredentialsPending: boolean
 }

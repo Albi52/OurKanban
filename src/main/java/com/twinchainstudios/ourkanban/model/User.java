@@ -30,8 +30,27 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private AuthProvider provider = AuthProvider.LOCAL;
-
+    @Column(unique = true)
     private String providerId;
+    
+    private boolean emailVerified = false;
+    private boolean localCredentialsPending = false;
+
+    public boolean isLocalCredentialsPending() {
+        return localCredentialsPending;
+    }
+
+    public void setLocalCredentialsPending(boolean localCredentialsPending) {
+        this.localCredentialsPending = localCredentialsPending;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
 
     private boolean deleted = false;
 

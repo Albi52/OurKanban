@@ -28,14 +28,19 @@ const AuthPage: React.FC = () => {
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setBusy(true)
-    try {
-      const response =
-        mode === 'login'
-          ? await login({ usernameOrEmail: username, password })
-          : await register({ username, email, password })
-      setAuthToken(response.token)
-      toast.success(mode === 'login' ? 'Welcome back' : 'Account created')
-      navigate('/home')
+    try {const response =
+  mode === 'login'
+    ? await login({ usernameOrEmail: username, password })
+    : await register({ username, email, password })
+
+if (response.token) {
+  setAuthToken(response.token)
+  toast.success(mode === 'login' ? 'Welcome back' : 'Account created')
+  navigate('/home')
+} else {
+  toast.info(response.message ?? 'Check your email to continue')
+  setMode('login')
+}
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -43,20 +48,24 @@ const AuthPage: React.FC = () => {
     }
   }
 
-  async function handleGoogleCredential(idToken: string) {
-    setBusy(true)
-    try {
-      const response = await loginWithGoogle({ idToken })
+ async function handleGoogleCredential(idToken: string) {
+  setBusy(true)
+  try {
+    const response = await loginWithGoogle({ idToken })
+
+    if (response.token) {
       setAuthToken(response.token)
       toast.success('Welcome back')
       navigate('/home')
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
-    } finally {
-      setBusy(false)
+    } else {
+      toast.error(response.message ?? 'Google sign-in did not return a token')
     }
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
+  } finally {
+    setBusy(false)
   }
-
+}
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
       <header className="sticky top-0 z-40 w-full border-b border-zinc-900 bg-zinc-950/70 backdrop-blur-xl">
