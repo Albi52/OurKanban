@@ -78,4 +78,8 @@ public ResponseEntity<Map<String, String>> handleInvalidVerificationToken(Invali
 public ResponseEntity<Map<String, String>> handleEmailNotVerified(EmailNotVerifiedException ex) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
 }
+@ExceptionHandler(InvalidCurrentPasswordException.class)
+public ResponseEntity<Map<String, String>> handleInvalidCurrentPassword(InvalidCurrentPasswordException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+}
 }

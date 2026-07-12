@@ -36,6 +36,8 @@ public class User {
     private boolean emailVerified = false;
     private boolean localCredentialsPending = false;
 
+    private boolean localPasswordSet = false;
+
     public boolean isLocalCredentialsPending() {
         return localCredentialsPending;
     }
@@ -120,4 +122,8 @@ public class User {
     public void setProviderId(String providerId) {
         this.providerId = providerId;
     }
+    
+public boolean isLocalPasswordSet() { return localPasswordSet; }
+public void setLocalPasswordSet(boolean localPasswordSet) { this.localPasswordSet = localPasswordSet; }
+
 }

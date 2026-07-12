@@ -18,7 +18,7 @@ export default function App() {
           <Route path="/login" element={<AuthPage />} />
           <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
           <Route path="/board/:id" element={<ProtectedRoute><BoardPage /></ProtectedRoute>} />
-          <Route path="/verify-email" element={<ProtectedRoute><VerifyEmailPage /></ProtectedRoute>} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

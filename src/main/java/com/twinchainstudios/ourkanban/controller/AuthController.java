@@ -4,6 +4,8 @@ package com.twinchainstudios.ourkanban.controller;
 import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.RegisterRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.UpdatePasswordRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.UpdateUsernameRequest;
 import com.twinchainstudios.ourkanban.dto.auth.response.AuthResponse;
 import com.twinchainstudios.ourkanban.dto.auth.response.MeResponse;
 import com.twinchainstudios.ourkanban.service.AuthService;
@@ -65,5 +67,17 @@ public ResponseEntity<Void> resendVerification(Authentication authentication) {
     return ResponseEntity.noContent().build();
 }
 
+@PatchMapping("/username")
+public ResponseEntity<AuthResponse> updateUsername(
+        @Valid @RequestBody UpdateUsernameRequest request,
+        Authentication authentication) {
+    return ResponseEntity.ok(authService.updateUsername(authentication.getName(), request));
+}
 
+@PatchMapping("/password")
+public ResponseEntity<AuthResponse> updatePassword(
+        @Valid @RequestBody UpdatePasswordRequest request,
+        Authentication authentication) {
+    return ResponseEntity.ok(authService.updatePassword(authentication.getName(), request));
+}
 }

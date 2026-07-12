@@ -1,5 +1,5 @@
-import { apiPost, apiGet } from './client'
-import type { LoginRequest, RegisterRequest, AuthResponse, GoogleLoginRequest, MeResponse} from '../types/auth'
+import { apiPost, apiGet, apiPatch } from './client'
+import type { LoginRequest, RegisterRequest, AuthResponse, GoogleLoginRequest, MeResponse, UpdatePasswordRequest, UpdateUsernameRequest} from '../types/auth'
 
 
 export function login(request: LoginRequest): Promise<AuthResponse> {
@@ -19,4 +19,11 @@ export function getMe(): Promise<MeResponse> {
 
 export function resendVerification(): Promise<void> {
   return apiPost<void>('/auth/resend-verification', {})
+}
+export function updateUsername(request: UpdateUsernameRequest): Promise<AuthResponse> {
+  return apiPatch<AuthResponse>('/auth/username', request)
+}
+
+export function updatePassword(request: UpdatePasswordRequest): Promise<AuthResponse> {
+  return apiPatch<AuthResponse>('/auth/password', request)
 }

@@ -22,4 +22,14 @@ export interface MeResponse {
   username: string
   emailVerified: boolean
   localCredentialsPending: boolean
+  hasLocalPassword: boolean
+}
+
+export interface UpdateUsernameRequest {
+  newUsername: string
+}
+
+export interface UpdatePasswordRequest {
+  currentPassword: string | null
+  newPassword: string
 }

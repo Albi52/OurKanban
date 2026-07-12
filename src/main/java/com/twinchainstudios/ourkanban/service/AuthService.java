@@ -3,6 +3,8 @@ package com.twinchainstudios.ourkanban.service;
 import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.RegisterRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.UpdatePasswordRequest;
+import com.twinchainstudios.ourkanban.dto.auth.request.UpdateUsernameRequest;
 import com.twinchainstudios.ourkanban.dto.auth.response.AuthResponse;
 import com.twinchainstudios.ourkanban.dto.auth.response.MeResponse;
 import com.twinchainstudios.ourkanban.exception.*;
@@ -75,6 +77,7 @@ public class AuthService {
             // login stays locked until they re-verify via email.
             existing.setPassword(passwordEncoder.encode(request.password()));
             existing.setLocalCredentialsPending(true);
+            existing.setLocalPasswordSet(true); 
             userRepository.save(existing);
 
             String token = createVerificationToken(existing);
@@ -97,6 +100,7 @@ public class AuthService {
         user.setProvider(AuthProvider.LOCAL);
         user.setEmailVerified(false);
         user.setLocalCredentialsPending(false);
+        user.setLocalPasswordSet(true);
         userRepository.save(user);
 
         String token = createVerificationToken(user);
@@ -211,10 +215,15 @@ public void verifyEmail(String token) {
     }
 
     @Transactional(readOnly = true)
-    public MeResponse getMe(String username) {
-        User user = getUserOrThrow(username);
-        return new MeResponse(user.getUsername(), user.isEmailVerified(), user.isLocalCredentialsPending());
-    }
+public MeResponse getMe(String username) {
+    User user = getUserOrThrow(username);
+    return new MeResponse(
+            user.getUsername(),
+            user.isEmailVerified(),
+            user.isLocalCredentialsPending(),
+            user.isLocalPasswordSet()
+    );
+}
 
     private String createVerificationToken(User user) {
         tokenRepository.deleteByUser_Id(user.getId());
@@ -268,4 +277,49 @@ public void verifyEmail(String token) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+    @Transactional
+public AuthResponse updateUsername(String currentUsername, UpdateUsernameRequest request) {
+    User user = getUserOrThrow(currentUsername);
+
+    if (!request.newUsername().equals(currentUsername)
+            && userRepository.existsByUsername(request.newUsername())) {
+        throw new UserAlreadyExistsException("Username is already taken");
+    }
+
+    user.setUsername(request.newUsername());
+    userRepository.save(user);
+
+    // The JWT subject is the username, so anything signed under the old
+    // name is now stale — issue a fresh token under the new one.
+    String token = jwtService.generateToken(user.getUsername());
+    return new AuthResponse(token, null);
+}
+
+@Transactional
+public AuthResponse updatePassword(String username, UpdatePasswordRequest request) {
+    User user = getUserOrThrow(username);
+
+    if (user.isLocalPasswordSet()) {
+        // Changing an existing password — require proof they still know the old one.
+        if (request.currentPassword() == null
+                || !passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new InvalidCurrentPasswordException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        String token = jwtService.generateToken(user.getUsername());
+        return new AuthResponse(token, "Password updated");
+    }
+
+    user.setPassword(passwordEncoder.encode(request.newPassword()));
+    user.setLocalPasswordSet(true);
+    user.setLocalCredentialsPending(false);
+    userRepository.save(user);
+
+
+    String token = jwtService.generateToken(user.getUsername());
+    return new AuthResponse(token,
+            "Password set. You can now log in with your username and password, or continue using Google login.");
+}
 }
