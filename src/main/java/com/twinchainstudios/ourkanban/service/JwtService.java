@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.security;
+package com.twinchainstudios.ourkanban.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

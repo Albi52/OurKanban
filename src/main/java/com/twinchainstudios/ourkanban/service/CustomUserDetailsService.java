@@ -1,7 +1,9 @@
-package com.twinchainstudios.ourkanban.security;
+package com.twinchainstudios.ourkanban.service;
 
+import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 import com.twinchainstudios.ourkanban.model.User;
 import com.twinchainstudios.ourkanban.repository.UserRepository;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

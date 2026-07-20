@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.security;
+package com.twinchainstudios.ourkanban.dto.auth;
 
 import com.twinchainstudios.ourkanban.model.User;
 import org.springframework.security.core.GrantedAuthority;
