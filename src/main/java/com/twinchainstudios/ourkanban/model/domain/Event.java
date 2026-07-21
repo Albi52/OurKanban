@@ -1,8 +1,6 @@
-package com.twinchainstudios.ourkanban.model;
+package com.twinchainstudios.ourkanban.model.domain;
 
 import java.time.LocalDateTime;
-
-import com.twinchainstudios.ourkanban.model.enums.EventType;
 
 import jakarta.persistence.*;
 

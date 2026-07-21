@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.dto.application.request;
+package com.twinchainstudios.ourkanban.dto.domain.groups;
 
 
 import jakarta.validation.constraints.NotBlank;

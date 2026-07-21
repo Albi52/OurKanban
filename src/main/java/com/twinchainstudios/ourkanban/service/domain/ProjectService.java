@@ -1,19 +1,20 @@
-package com.twinchainstudios.ourkanban.service;
+package com.twinchainstudios.ourkanban.service.domain;
 
-import com.twinchainstudios.ourkanban.dto.application.request.CreateProjectRequest;
-import com.twinchainstudios.ourkanban.dto.application.request.UpdateProjectRequest;
-import com.twinchainstudios.ourkanban.dto.application.response.ProjectResponse;
+import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectCapsuleResponse;
+import com.twinchainstudios.ourkanban.dto.domain.projects.CreateProjectRequest;
+import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateProjectRequest;
 import com.twinchainstudios.ourkanban.exception.DuplicateProjectNameException;
 import com.twinchainstudios.ourkanban.exception.NotAMemberException;
 import com.twinchainstudios.ourkanban.exception.NotLeaderException;
 import com.twinchainstudios.ourkanban.exception.ProjectNotFoundException;
 import com.twinchainstudios.ourkanban.exception.WorkGroupNotFoundException;
-import com.twinchainstudios.ourkanban.model.Project;
-import com.twinchainstudios.ourkanban.model.User;
-import com.twinchainstudios.ourkanban.model.WorkGroup;
-import com.twinchainstudios.ourkanban.repository.ProjectRepository;
-import com.twinchainstudios.ourkanban.repository.UserRepository;
-import com.twinchainstudios.ourkanban.repository.WorkGroupRepository;
+import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.model.domain.Project;
+import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
+import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
+import com.twinchainstudios.ourkanban.repository.domain.WorkGroupRepository;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class ProjectService {
 
 
 @Transactional
-public ProjectResponse createProject(Long workGroupId, CreateProjectRequest request, String username) {
+public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectRequest request, String username) {
     User user = getUserOrThrow(username);
     WorkGroup workGroup = workGroupRepository.findById(workGroupId)
             .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
@@ -60,7 +61,7 @@ public ProjectResponse createProject(Long workGroupId, CreateProjectRequest requ
     createDefaultColumns(project);
     projectMemberService.createDefaultMembers(project, workGroup.getUsers()); // ← new line
 
-    return new ProjectResponse(project.getId(), project.getName(), workGroup.getId(), true);
+    return new ProjectCapsuleResponse(project.getId(), project.getName(), workGroup.getId(), true);
 }
 
     @Transactional
@@ -74,7 +75,7 @@ public ProjectResponse createProject(Long workGroupId, CreateProjectRequest requ
         projectRepository.delete(project);
     }
     @Transactional
-public ProjectResponse renameProject(Long projectId, UpdateProjectRequest request, String username) {
+public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest request, String username) {
     User user = getUserOrThrow(username);
     Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
@@ -90,7 +91,7 @@ public ProjectResponse renameProject(Long projectId, UpdateProjectRequest reques
                 "A project with that name already exists in this group");
     }
 
-    return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
+    return new ProjectCapsuleResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
 }
 
     private void requireLeader(WorkGroup workGroup, User user) {
@@ -120,9 +121,9 @@ public ProjectResponse renameProject(Long projectId, UpdateProjectRequest reques
 }
 
 @Transactional(readOnly = true)
-public ProjectResponse getProject(Long projectId, String username) {
+public ProjectCapsuleResponse getProject(Long projectId, String username) {
     Project project = getProjectAndVerifyMembership(projectId, username);
-    return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
+    return new ProjectCapsuleResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
 
 }
 

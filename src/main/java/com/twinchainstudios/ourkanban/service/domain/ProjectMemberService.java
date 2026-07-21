@@ -1,15 +1,16 @@
-package com.twinchainstudios.ourkanban.service;
+package com.twinchainstudios.ourkanban.service.domain;
 
-import com.twinchainstudios.ourkanban.dto.application.request.UpdateDisplayNameRequest;
-import com.twinchainstudios.ourkanban.dto.application.response.ProjectMemberResponse;
+import com.twinchainstudios.ourkanban.dto.domain.projects.ProjectMemberResponse;
+import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateDisplayNameRequest;
 import com.twinchainstudios.ourkanban.exception.NotAMemberException;
 import com.twinchainstudios.ourkanban.exception.ProjectMemberNotFoundException;
-import com.twinchainstudios.ourkanban.model.Project;
-import com.twinchainstudios.ourkanban.model.ProjectMember;
-import com.twinchainstudios.ourkanban.model.User;
-import com.twinchainstudios.ourkanban.model.WorkGroup;
-import com.twinchainstudios.ourkanban.repository.ProjectMemberRepository;
-import com.twinchainstudios.ourkanban.repository.UserRepository;
+import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.model.domain.Project;
+import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
+import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
+import com.twinchainstudios.ourkanban.repository.domain.ProjectMemberRepository;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

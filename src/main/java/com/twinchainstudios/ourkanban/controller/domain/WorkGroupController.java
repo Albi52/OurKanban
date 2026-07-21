@@ -1,9 +1,10 @@
-package com.twinchainstudios.ourkanban.controller;
+package com.twinchainstudios.ourkanban.controller.domain;
 
-import com.twinchainstudios.ourkanban.dto.application.request.AddMemberRequest;
-import com.twinchainstudios.ourkanban.dto.application.request.CreateWorkGroupRequest;
-import com.twinchainstudios.ourkanban.dto.application.response.WorkGroupResponse;
-import com.twinchainstudios.ourkanban.service.WorkGroupService;
+import com.twinchainstudios.ourkanban.dto.domain.groups.AddMemberRequest;
+import com.twinchainstudios.ourkanban.dto.domain.groups.CreateWorkGroupRequest;
+import com.twinchainstudios.ourkanban.dto.domain.groups.WorkGroupResponse;
+import com.twinchainstudios.ourkanban.service.domain.WorkGroupService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

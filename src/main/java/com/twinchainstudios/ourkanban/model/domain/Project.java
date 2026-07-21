@@ -3,8 +3,6 @@ package com.twinchainstudios.ourkanban.model.domain;
 
 import java.util.*;
 
-import com.twinchainstudios.ourkanban.model.WorkGroup;
-
 import jakarta.persistence.*;
 
 

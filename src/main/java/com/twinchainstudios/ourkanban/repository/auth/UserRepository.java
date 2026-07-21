@@ -1,9 +1,9 @@
-package com.twinchainstudios.ourkanban.repository;
+package com.twinchainstudios.ourkanban.repository.auth;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.twinchainstudios.ourkanban.model.User;
+import com.twinchainstudios.ourkanban.model.auth.User;
 
 import java.util.Optional;
 

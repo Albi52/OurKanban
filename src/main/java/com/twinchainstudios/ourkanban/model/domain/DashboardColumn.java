@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.model;
+package com.twinchainstudios.ourkanban.model.domain;
 
 import jakarta.persistence.*;
 import java.util.ArrayList;

@@ -1,9 +1,10 @@
-package com.twinchainstudios.ourkanban.controller;
+package com.twinchainstudios.ourkanban.controller.domain;
 
-import com.twinchainstudios.ourkanban.dto.application.request.UpdateDisplayNameRequest;
-import com.twinchainstudios.ourkanban.dto.application.response.ProjectMemberResponse;
-import com.twinchainstudios.ourkanban.service.ProjectMemberService;
-import com.twinchainstudios.ourkanban.service.ProjectService;
+import com.twinchainstudios.ourkanban.dto.domain.projects.ProjectMemberResponse;
+import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateDisplayNameRequest;
+import com.twinchainstudios.ourkanban.service.domain.ProjectMemberService;
+import com.twinchainstudios.ourkanban.service.domain.ProjectService;
+
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

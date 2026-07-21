@@ -1,6 +1,8 @@
-package com.twinchainstudios.ourkanban.model;
+package com.twinchainstudios.ourkanban.model.domain;
 
 import java.util.*;
+
+import com.twinchainstudios.ourkanban.model.auth.User;
 
 import jakarta.persistence.*;
 

@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.service;
+package com.twinchainstudios.ourkanban.service.auth;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;

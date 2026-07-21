@@ -1,7 +1,8 @@
-package com.twinchainstudios.ourkanban.repository;
+package com.twinchainstudios.ourkanban.repository.domain;
 
-import com.twinchainstudios.ourkanban.model.WorkGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
 
 import java.util.List;
 

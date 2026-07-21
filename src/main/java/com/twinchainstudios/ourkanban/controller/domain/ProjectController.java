@@ -3,7 +3,8 @@ package com.twinchainstudios.ourkanban.controller.domain;
 import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectCapsuleResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CreateProjectRequest;
 import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateProjectRequest;
-import com.twinchainstudios.ourkanban.service.ProjectService;
+import com.twinchainstudios.ourkanban.service.domain.ProjectService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

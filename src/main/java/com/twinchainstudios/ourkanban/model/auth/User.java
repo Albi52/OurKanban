@@ -1,10 +1,10 @@
-package com.twinchainstudios.ourkanban.model;
+package com.twinchainstudios.ourkanban.model.auth;
 
 import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 
-import com.twinchainstudios.ourkanban.model.enums.AuthProvider;
+import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
 
 import java.util.HashSet;
 

@@ -12,8 +12,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.twinchainstudios.ourkanban.service.JwtService;
-import com.twinchainstudios.ourkanban.service.CustomUserDetailsService;
+import com.twinchainstudios.ourkanban.service.auth.CustomUserDetailsService;
+import com.twinchainstudios.ourkanban.service.auth.JwtService;
 
 import java.io.IOException;
 

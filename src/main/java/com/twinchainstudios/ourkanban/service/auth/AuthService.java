@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.service;
+package com.twinchainstudios.ourkanban.service.auth;
 
 import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
@@ -8,11 +8,11 @@ import com.twinchainstudios.ourkanban.dto.auth.request.UpdateUsernameRequest;
 import com.twinchainstudios.ourkanban.dto.auth.response.AuthResponse;
 import com.twinchainstudios.ourkanban.dto.auth.response.MeResponse;
 import com.twinchainstudios.ourkanban.exception.*;
-import com.twinchainstudios.ourkanban.model.EmailVerificationToken;
-import com.twinchainstudios.ourkanban.model.User;
-import com.twinchainstudios.ourkanban.model.enums.AuthProvider;
-import com.twinchainstudios.ourkanban.repository.EmailVerificationTokenRepository;
-import com.twinchainstudios.ourkanban.repository.UserRepository;
+import com.twinchainstudios.ourkanban.model.auth.AuthProvider;
+import com.twinchainstudios.ourkanban.model.auth.EmailVerificationToken;
+import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.repository.auth.EmailVerificationTokenRepository;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;

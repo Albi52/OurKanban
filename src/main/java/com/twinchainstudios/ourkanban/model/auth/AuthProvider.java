@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.model.enums;
+package com.twinchainstudios.ourkanban.model.auth;
 
 public enum AuthProvider {
     LOCAL,

@@ -1,15 +1,16 @@
-package com.twinchainstudios.ourkanban.service;
+package com.twinchainstudios.ourkanban.service.domain;
 
-import com.twinchainstudios.ourkanban.dto.application.request.AddMemberRequest;
-import com.twinchainstudios.ourkanban.dto.application.request.CreateWorkGroupRequest;
-import com.twinchainstudios.ourkanban.dto.application.response.MemberResponse;
-import com.twinchainstudios.ourkanban.dto.application.response.ProjectResponse;
-import com.twinchainstudios.ourkanban.dto.application.response.WorkGroupResponse;
+import com.twinchainstudios.ourkanban.dto.domain.groups.AddMemberRequest;
+import com.twinchainstudios.ourkanban.dto.domain.groups.CreateWorkGroupRequest;
+import com.twinchainstudios.ourkanban.dto.domain.groups.MemberResponse;
+import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectCapsuleResponse;
+import com.twinchainstudios.ourkanban.dto.domain.groups.WorkGroupResponse;
 import com.twinchainstudios.ourkanban.exception.*;
-import com.twinchainstudios.ourkanban.model.User;
-import com.twinchainstudios.ourkanban.model.WorkGroup;
-import com.twinchainstudios.ourkanban.repository.UserRepository;
-import com.twinchainstudios.ourkanban.repository.WorkGroupRepository;
+import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
+import com.twinchainstudios.ourkanban.repository.domain.WorkGroupRepository;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,8 +138,8 @@ public class WorkGroupService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
     private WorkGroupResponse toResponse(WorkGroup wg, User currentUser) {
-        List<ProjectResponse> projects = wg.getProjects().stream()
-                .map(p -> new ProjectResponse(p.getId(), p.getName(), p.getWorkGroup().getId(), true))
+        List<ProjectCapsuleResponse> projects = wg.getProjects().stream()
+                .map(p -> new ProjectCapsuleResponse(p.getId(), p.getName(), p.getWorkGroup().getId(), true))
                 .toList();
 
         List<MemberResponse> members = wg.getUsers().stream()

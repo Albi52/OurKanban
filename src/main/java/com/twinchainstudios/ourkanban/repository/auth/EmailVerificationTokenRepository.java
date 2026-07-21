@@ -1,7 +1,9 @@
-package com.twinchainstudios.ourkanban.repository;
+package com.twinchainstudios.ourkanban.repository.auth;
 
-import com.twinchainstudios.ourkanban.model.EmailVerificationToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.twinchainstudios.ourkanban.model.auth.EmailVerificationToken;
+
 import java.util.Optional;
 
 public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, Long> {

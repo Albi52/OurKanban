@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.model;
+package com.twinchainstudios.ourkanban.model.auth;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

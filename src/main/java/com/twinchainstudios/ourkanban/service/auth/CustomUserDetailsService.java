@@ -1,8 +1,8 @@
-package com.twinchainstudios.ourkanban.service;
+package com.twinchainstudios.ourkanban.service.auth;
 
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
-import com.twinchainstudios.ourkanban.model.User;
-import com.twinchainstudios.ourkanban.repository.UserRepository;
+import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,9 +1,10 @@
 package com.twinchainstudios.ourkanban.dto.auth;
 
-import com.twinchainstudios.ourkanban.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.twinchainstudios.ourkanban.model.auth.User;
 
 import java.util.Collection;
 import java.util.List;
