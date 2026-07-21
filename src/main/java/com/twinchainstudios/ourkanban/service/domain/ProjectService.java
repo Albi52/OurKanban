@@ -10,6 +10,8 @@ import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
 import com.twinchainstudios.ourkanban.repository.domain.WorkGroupRepository;
+import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;
+import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,15 +25,18 @@ public class ProjectService {
     private final WorkGroupRepository workGroupRepository;
     private final UserRepository userRepository;
     private final ProjectMemberService projectMemberService;
+    private final DashboardColumnRepository dashboardColumnRepository;
 
     public ProjectService(ProjectRepository projectRepository,
                            WorkGroupRepository workGroupRepository,
                            UserRepository userRepository,
-                           ProjectMemberService projectMemberService) {
+                           ProjectMemberService projectMemberService,
+                           DashboardColumnRepository dashboardColumnRepository) {
         this.projectRepository = projectRepository;
         this.workGroupRepository = workGroupRepository;
         this.userRepository = userRepository;
         this.projectMemberService = projectMemberService;
+        this.dashboardColumnRepository = dashboardColumnRepository;
     }
 
 
@@ -122,10 +127,14 @@ public ProjectCapsuleResponse getProject(Long projectId, String username) {
     return new ProjectCapsuleResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
 
 }
-
-    private void createDefaultColumns(Project project) {
-        // Create default columns for the new project
-        // For example: "To Do", "In Progress", "Done"
-        // You can implement this method based on your application's requirements
+private void createDefaultColumns(Project project) {
+    String[] defaults = { "TODO", "IN PROGRESS", "DONE" };
+    for (int i = 0; i < defaults.length; i++) {
+        DashboardColumn column = new DashboardColumn();
+        column.setName(defaults[i]);
+        column.setPosition(i);
+        column.setProject(project);
+        dashboardColumnRepository.save(column);
     }
+}
 }
