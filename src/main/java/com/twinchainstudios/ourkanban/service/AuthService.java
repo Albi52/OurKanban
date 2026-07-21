@@ -13,7 +13,6 @@ import com.twinchainstudios.ourkanban.model.User;
 import com.twinchainstudios.ourkanban.model.enums.AuthProvider;
 import com.twinchainstudios.ourkanban.repository.EmailVerificationTokenRepository;
 import com.twinchainstudios.ourkanban.repository.UserRepository;
-import com.twinchainstudios.ourkanban.service.JwtService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
