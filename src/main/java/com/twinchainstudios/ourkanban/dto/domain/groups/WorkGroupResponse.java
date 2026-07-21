@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.dto.application.response;
+package com.twinchainstudios.ourkanban.dto.domain.groups;
 
 import java.util.List;
 
@@ -7,6 +7,6 @@ public record WorkGroupResponse(
         String name,
         String leaderUsername,
         boolean isLeader,
-        List<ProjectResponse> projects,
+        List<ProjectCapsuleResponse> projects,
         List<MemberResponse> members
 ) {}

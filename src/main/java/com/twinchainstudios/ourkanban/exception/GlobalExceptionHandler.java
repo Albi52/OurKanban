@@ -82,4 +82,8 @@ public ResponseEntity<Map<String, String>> handleEmailNotVerified(EmailNotVerifi
 public ResponseEntity<Map<String, String>> handleInvalidCurrentPassword(InvalidCurrentPasswordException ex) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
 }
+@ExceptionHandler(ProjectMemberNotFoundException.class)
+public ResponseEntity<Map<String, String>> handleProjectMemberNotFound(ProjectMemberNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+}
 }

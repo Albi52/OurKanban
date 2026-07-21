@@ -25,36 +25,43 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final WorkGroupRepository workGroupRepository;
     private final UserRepository userRepository;
+    private final ProjectMemberService projectMemberService;
 
     public ProjectService(ProjectRepository projectRepository,
                            WorkGroupRepository workGroupRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           ProjectMemberService projectMemberService) {
         this.projectRepository = projectRepository;
         this.workGroupRepository = workGroupRepository;
         this.userRepository = userRepository;
+        this.projectMemberService = projectMemberService;
     }
 
-    @Transactional
-    public ProjectResponse createProject(Long workGroupId, CreateProjectRequest request, String username) {
-        User user = getUserOrThrow(username);
-        WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-                .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
 
-        requireLeader(workGroup, user);
 
-        Project project = new Project();
-        project.setName(request.name());
-        project.setWorkGroup(workGroup);
+@Transactional
+public ProjectResponse createProject(Long workGroupId, CreateProjectRequest request, String username) {
+    User user = getUserOrThrow(username);
+    WorkGroup workGroup = workGroupRepository.findById(workGroupId)
+            .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
 
-        try {
-            projectRepository.save(project);
-        } catch (DataIntegrityViolationException e) {
-            throw new DuplicateProjectNameException(
-                    "A project with that name already exists in this group");
-        }
+    requireLeader(workGroup, user);
 
-        return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
+    Project project = new Project();
+    project.setName(request.name());
+    project.setWorkGroup(workGroup);
+
+    try {
+        projectRepository.save(project);
+    } catch (DataIntegrityViolationException e) {
+        throw new DuplicateProjectNameException("A project with that name already exists in this group");
     }
+
+    createDefaultColumns(project);
+    projectMemberService.createDefaultMembers(project, workGroup.getUsers()); // ← new line
+
+    return new ProjectResponse(project.getId(), project.getName(), workGroup.getId(), true);
+}
 
     @Transactional
     public void deleteProject(Long projectId, String username) {
@@ -118,4 +125,10 @@ public ProjectResponse getProject(Long projectId, String username) {
     return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
 
 }
+
+    private void createDefaultColumns(Project project) {
+        // Create default columns for the new project
+        // For example: "To Do", "In Progress", "Done"
+        // You can implement this method based on your application's requirements
+    }
 }
