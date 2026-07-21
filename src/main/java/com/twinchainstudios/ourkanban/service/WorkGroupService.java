@@ -136,10 +136,9 @@ public class WorkGroupService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-
     private WorkGroupResponse toResponse(WorkGroup wg, User currentUser) {
         List<ProjectResponse> projects = wg.getProjects().stream()
-                .map(p -> new ProjectResponse(p.getId(), p.getName()))
+                .map(p -> new ProjectResponse(p.getId(), p.getName(), p.getWorkGroup().getId(), true))
                 .toList();
 
         List<MemberResponse> members = wg.getUsers().stream()

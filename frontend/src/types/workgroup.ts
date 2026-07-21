@@ -1,8 +1,9 @@
 export interface ProjectSummary {
   id: number
   name: string
+  workGroupId: number
+  isLeader: boolean
 }
-
 export interface Member {
   id: number
   username: string

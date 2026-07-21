@@ -53,7 +53,7 @@ public class ProjectService {
                     "A project with that name already exists in this group");
         }
 
-        return new ProjectResponse(project.getId(), project.getName());
+        return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
     }
 
     @Transactional
@@ -83,7 +83,7 @@ public ProjectResponse renameProject(Long projectId, UpdateProjectRequest reques
                 "A project with that name already exists in this group");
     }
 
-    return new ProjectResponse(project.getId(), project.getName());
+    return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
 }
 
     private void requireLeader(WorkGroup workGroup, User user) {
@@ -115,6 +115,7 @@ public ProjectResponse renameProject(Long projectId, UpdateProjectRequest reques
 @Transactional(readOnly = true)
 public ProjectResponse getProject(Long projectId, String username) {
     Project project = getProjectAndVerifyMembership(projectId, username);
-    return new ProjectResponse(project.getId(), project.getName());
+    return new ProjectResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
+
 }
 }
