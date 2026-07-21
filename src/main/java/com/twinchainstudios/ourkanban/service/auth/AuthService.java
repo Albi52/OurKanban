@@ -68,7 +68,7 @@ public class AuthService {
             User existing = existingByEmail.get();
 
             if (existing.getProvider() == AuthProvider.LOCAL) {
-                throw new UserAlreadyExistsException("Email is already registered");
+                throw new AlreadyExistsException("Email is already registered");
             }
 
             // Existing account originated via Google. Owning a Google session doesn't
@@ -89,7 +89,7 @@ public class AuthService {
         }
 
         if (userRepository.existsByUsername(request.username())) {
-            throw new UserAlreadyExistsException("Username is already taken");
+            throw new AlreadyExistsException("Username is already taken. " + request.username());
         }
 
         User user = new User();
@@ -119,7 +119,7 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.isLocalCredentialsPending()) {
-            throw new EmailNotVerifiedException(
+            throw new AuthenticationException(
                     "Please verify your email to finish setting up password login for this account.");
         }
 
@@ -136,7 +136,7 @@ public class AuthService {
         Boolean googleEmailVerified = payload.getEmailVerified();
 
         if (googleEmailVerified == null || !googleEmailVerified) {
-            throw new InvalidGoogleTokenException("Google account email is not verified");
+            throw new InvalidTokenException("Google account email is not verified");
         }
 
         User user = userRepository.findByProviderId(googleId)
@@ -184,13 +184,13 @@ public void verifyEmail(String token) {
         // We can't tell the difference from the token alone anymore since it's
         // deleted on success — that's fine, this is intentionally treated as
         // an error state rather than silently claiming success for a random token.
-        throw new InvalidVerificationTokenException("Invalid verification link");
+        throw new InvalidTokenException("Invalid verification link");
     }
 
     EmailVerificationToken evt = maybeEvt.get();
 
     if (evt.getExpiresAt().isBefore(LocalDateTime.now())) {
-        throw new InvalidVerificationTokenException("This verification link has expired");
+        throw new InvalidTokenException("This email verification link has expired");
     }
 
     User user = evt.getUser();
@@ -205,7 +205,7 @@ public void verifyEmail(String token) {
         User user = getUserOrThrow(username);
 
         if (user.isEmailVerified() && !user.isLocalCredentialsPending()) {
-            throw new InvalidVerificationTokenException("Your email is already verified");
+            throw new InvalidTokenException("Your email is already verified");
         }
 
         tokenRepository.deleteByUser_Id(user.getId());
@@ -253,12 +253,12 @@ public MeResponse getMe(String username) {
 
             GoogleIdToken idToken = verifier.verify(idTokenString);
             if (idToken == null) {
-                throw new InvalidGoogleTokenException("Invalid Google ID token");
+                throw new InvalidTokenException("Invalid Google ID token");
             }
             return idToken.getPayload();
 
         } catch (GeneralSecurityException | IOException e) {
-            throw new InvalidGoogleTokenException("Could not verify Google ID token");
+            throw new InvalidTokenException("Could not verify Google ID token");
         }
     }
 
@@ -282,7 +282,7 @@ public AuthResponse updateUsername(String currentUsername, UpdateUsernameRequest
 
     if (!request.newUsername().equals(currentUsername)
             && userRepository.existsByUsername(request.newUsername())) {
-        throw new UserAlreadyExistsException("Username is already taken");
+        throw new AlreadyExistsException("Username is already taken. "+ currentUsername);
     }
 
     user.setUsername(request.newUsername());
@@ -302,7 +302,7 @@ public AuthResponse updatePassword(String username, UpdatePasswordRequest reques
         // Changing an existing password — require proof they still know the old one.
         if (request.currentPassword() == null
                 || !passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new InvalidCurrentPasswordException("Current password is incorrect");
+            throw new AuthenticationException("Current password is incorrect");
         }
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);

@@ -54,11 +54,11 @@ public class WorkGroupService {
     public void leaveWorkGroup(Long workGroupId, String username) {
         User user = getUserOrThrow(username);
         WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-                .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
+                .orElseThrow(() -> new NotFoundException("Group not found"));
 
         boolean wasMember = workGroup.getUsers().removeIf(u -> u.getId().equals(user.getId()));
         if (!wasMember) {
-            throw new NotAMemberException("You are not a member of this group");
+            throw new ForbiddenOperationException("You are not a member of this group");
         }
 
         if (workGroup.getUsers().isEmpty()) {
@@ -85,18 +85,18 @@ public class WorkGroupService {
     public WorkGroupResponse addMember(Long workGroupId, AddMemberRequest request, String requesterUsername) {
         User requester = getUserOrThrow(requesterUsername);
         WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-                .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
+                .orElseThrow(() -> new NotFoundException("Group not found"));
 
         requireLeader(workGroup, requester);
 
         User newMember = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new UsernameNotFoundException(
+                .orElseThrow(() -> new NotFoundException(
                         "No user found with username: " + request.username()));
 
         boolean alreadyMember = workGroup.getUsers().stream()
                 .anyMatch(u -> u.getId().equals(newMember.getId()));
         if (alreadyMember) {
-            throw new AlreadyMemberException("User is already a member of this group");
+            throw new ConflictException("User is already a member of this group");
         }
 
         workGroup.getUsers().add(newMember);
@@ -109,18 +109,18 @@ public class WorkGroupService {
     public WorkGroupResponse removeMember(Long workGroupId, Long memberUserId, String requesterUsername) {
         User requester = getUserOrThrow(requesterUsername);
         WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-                .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
+                .orElseThrow(() -> new NotFoundException("Group not found"));
 
         requireLeader(workGroup, requester);
 
         if (workGroup.getLeader().getId().equals(memberUserId)) {
-            throw new CannotRemoveLeaderException(
+            throw new ForbiddenOperationException(
                     "The leader cannot be removed. Transfer leadership or leave the group instead.");
         }
 
         boolean wasMember = workGroup.getUsers().removeIf(u -> u.getId().equals(memberUserId));
         if (!wasMember) {
-            throw new NotAMemberException("That user is not a member of this group");
+            throw new ForbiddenOperationException("That user is not a member of this group");
         }
 
         workGroupRepository.save(workGroup);
@@ -129,13 +129,13 @@ public class WorkGroupService {
 
     private void requireLeader(WorkGroup workGroup, User user) {
         if (!workGroup.getLeader().getId().equals(user.getId())) {
-            throw new NotLeaderException("Only the group leader can do this");
+            throw new ForbiddenOperationException("Only the group leader can do this");
         }
     }
 
     private User getUserOrThrow(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
     private WorkGroupResponse toResponse(WorkGroup wg, User currentUser) {
         List<ProjectCapsuleResponse> projects = wg.getProjects().stream()

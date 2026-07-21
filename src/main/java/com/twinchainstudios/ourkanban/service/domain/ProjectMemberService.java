@@ -2,8 +2,8 @@ package com.twinchainstudios.ourkanban.service.domain;
 
 import com.twinchainstudios.ourkanban.dto.domain.projects.ProjectMemberResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateDisplayNameRequest;
-import com.twinchainstudios.ourkanban.exception.NotAMemberException;
-import com.twinchainstudios.ourkanban.exception.ProjectMemberNotFoundException;
+import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
+import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
@@ -84,13 +84,13 @@ public class ProjectMemberService {
 
         ProjectMember member = projectMemberRepository.findById(memberId)
                 .filter(m -> m.getProject().getId().equals(projectId))
-                .orElseThrow(() -> new ProjectMemberNotFoundException("Project member not found"));
+                .orElseThrow(() -> new NotFoundException("Project member not found"));
 
         // Only the member themself can rename their own display name for now.
         // Whether leaders should be able to rename OTHERS is left open —
         // easy to loosen this single check later if that's wanted.
         if (!member.getUser().getId().equals(requester.getId())) {
-            throw new NotAMemberException("You can only rename your own display name");
+            throw new ForbiddenOperationException("You can only rename your own display name");
         }
 
         member.setDisplayName(request.displayName());

@@ -3,11 +3,7 @@ package com.twinchainstudios.ourkanban.service.domain;
 import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectCapsuleResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CreateProjectRequest;
 import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateProjectRequest;
-import com.twinchainstudios.ourkanban.exception.DuplicateProjectNameException;
-import com.twinchainstudios.ourkanban.exception.NotAMemberException;
-import com.twinchainstudios.ourkanban.exception.NotLeaderException;
-import com.twinchainstudios.ourkanban.exception.ProjectNotFoundException;
-import com.twinchainstudios.ourkanban.exception.WorkGroupNotFoundException;
+import com.twinchainstudios.ourkanban.exception.*;
 import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
@@ -44,7 +40,7 @@ public class ProjectService {
 public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectRequest request, String username) {
     User user = getUserOrThrow(username);
     WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-            .orElseThrow(() -> new WorkGroupNotFoundException("Group not found"));
+            .orElseThrow(() -> new NotFoundException("Group not found."));
 
     requireLeader(workGroup, user);
 
@@ -55,7 +51,7 @@ public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectReque
     try {
         projectRepository.save(project);
     } catch (DataIntegrityViolationException e) {
-        throw new DuplicateProjectNameException("A project with that name already exists in this group");
+        throw new ConflictException("A project with that name already exists in this group");
     }
 
     createDefaultColumns(project);
@@ -68,7 +64,7 @@ public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectReque
     public void deleteProject(Long projectId, String username) {
         User user = getUserOrThrow(username);
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+                .orElseThrow(() -> new NotFoundException("Project not found"));
 
         requireLeader(project.getWorkGroup(), user);
 
@@ -78,7 +74,7 @@ public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectReque
 public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest request, String username) {
     User user = getUserOrThrow(username);
     Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+            .orElseThrow(() -> new NotFoundException("Project not found"));
 
     requireLeader(project.getWorkGroup(), user);
 
@@ -87,7 +83,7 @@ public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest
     try {
         projectRepository.save(project);
     } catch (DataIntegrityViolationException e) {
-        throw new DuplicateProjectNameException(
+        throw new ConflictException(
                 "A project with that name already exists in this group");
     }
 
@@ -96,7 +92,7 @@ public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest
 
     private void requireLeader(WorkGroup workGroup, User user) {
         if (!workGroup.getLeader().getId().equals(user.getId())) {
-            throw new NotLeaderException("Only the group leader can do this");
+            throw new ForbiddenOperationException("Only the group leader can do this");
         }
     }
 
@@ -108,13 +104,13 @@ public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest
     public Project getProjectAndVerifyMembership(Long projectId, String username) {
     User user = getUserOrThrow(username);
     Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+            .orElseThrow(() -> new NotFoundException("Project not found"));
 
     boolean isMember = project.getWorkGroup().getUsers().stream()
             .anyMatch(u -> u.getId().equals(user.getId()));
 
     if (!isMember) {
-        throw new NotAMemberException("You are not a member of this project's group");
+        throw new ForbiddenOperationException("You are not a member of this project's group");
     }
 
     return project;
