@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { toast } from 'sonner'
-import { renameProject } from '../api/projectApi'
+import { renameProject } from '../api/projectAPI'
 import type { ProjectSummary } from '../types/workgroup'
 
 interface Props {

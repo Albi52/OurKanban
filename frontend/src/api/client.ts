@@ -1,5 +1,8 @@
 import { TOKEN_STORAGE_KEY } from '../constants'
 
+const API_PREFIX = "/api";
+
+
 function getToken(): string | null {
   return localStorage.getItem(TOKEN_STORAGE_KEY)
 }
@@ -10,8 +13,8 @@ async function request<TResponse>(
   body?: unknown
 ): Promise<TResponse> {
   const token = getToken()
+  const res = await fetch(`${API_PREFIX}${path}`, {
 
-  const res = await fetch(path, {
     method,
     headers: {
       'Content-Type': 'application/json',

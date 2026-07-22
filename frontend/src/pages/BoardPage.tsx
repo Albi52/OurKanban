@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getProject } from '../api/projectApi'
+import { getProject } from '../api/projectAPI'
 import { getColumns } from '../api/columnAPI'
 import type { ProjectSummary } from '../types/workgroup'
 import type { BoardColumn } from '../types/board'
