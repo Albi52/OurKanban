@@ -44,7 +44,7 @@ const LandingPage: React.FC = () => (
       </h1>
 
       <p className="mt-10 max-w-xl text-lg leading-relaxed text-zinc-400 md:text-xl">
-        A quiet workspace for working groups. Organize projects, run the board, keep a calendar — without the noise.
+        A quiet workspace for working groups. Organize projects, run the board, keep a calendar — without the noise. Brought to you by TwinChainStudios.
       </p>
 
       <div className="mt-12 flex flex-wrap items-center gap-3">
