@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - dockerizacion
+      - main
 
 jobs:
   deploy:
@@ -25,7 +25,7 @@ jobs:
             echo "Updating repository..."
             git fetch origin
 
-            git reset --hard origin/dockerizacion
+            git reset --hard origin/main
 
             echo "Restarting containers..."
             docker compose -f docker-compose.production.yml up -d --build --remove-orphans
