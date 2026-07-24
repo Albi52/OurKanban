@@ -4,7 +4,13 @@ WORKDIR /frontend
 
 COPY frontend/package*.json .
 
+RUN node -v
+RUN npm -v
+
 RUN npm install
+
+RUN npm list typescript
+RUN ls -la node_modules/.bin | grep tsc || true
 
 COPY frontend .
 
