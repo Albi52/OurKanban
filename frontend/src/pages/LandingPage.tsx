@@ -62,9 +62,15 @@ const LandingPage: React.FC = () => (
       </div>
     </main>
 
-    <footer className="relative z-10 mx-auto max-w-[1600px] px-6 py-10 text-xs uppercase tracking-[0.2em] text-zinc-600 md:px-12">
-      &copy; 2026 OurKanban · A minimalist workspace
+
+      <footer className="relative z-10 mx-auto max-w-[1600px] px-6 py-10 text-xs uppercase tracking-[0.2em] text-zinc-600 md:px-12">
+  &copy; 2026 OurKanban · A minimalist workspace
+  <span className="mx-3">·</span>
+  <Link to="/privacy" className="hover:text-zinc-300">Privacy</Link>
+  <span className="mx-3">·</span>
+  <Link to="/terms" className="hover:text-zinc-300">Terms</Link>
     </footer>
+
   </div>
 )
 

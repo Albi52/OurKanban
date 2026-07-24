@@ -7,6 +7,8 @@ import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import BoardPage from './pages/BoardPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
+import TermsPage from './pages/TermsPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
           <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
           <Route path="/board/:id" element={<ProtectedRoute><BoardPage /></ProtectedRoute>} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
