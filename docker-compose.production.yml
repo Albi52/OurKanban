@@ -56,6 +56,15 @@ services:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
       - DOMAINS=twinchainstudiostesting.es,www.twinchainstudiostesting.es
       - PROXIED=true
+  cloudflare-ddns-ssh:
+    image: favonia/cloudflare-ddns:latest
+    container_name: cloudflare-ddns-ssh
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - DOMAINS=ssh.twinchainstudiostesting.es
+      - PROXIED=false
 
 
 volumes:
