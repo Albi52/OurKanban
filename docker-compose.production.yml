@@ -46,6 +46,16 @@ services:
     restart: unless-stopped
     volumes:
       - ./nginx/ssl:/etc/nginx/ssl:ro
+  
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - DOMAINS=twinchainstudiostesting.es,www.twinchainstudiostesting.es
+      - PROXIED=true
 
 
 volumes:
