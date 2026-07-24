@@ -64,7 +64,7 @@ const LandingPage: React.FC = () => (
 
 
       <footer className="relative z-10 mx-auto max-w-[1600px] px-6 py-10 text-xs uppercase tracking-[0.2em] text-zinc-600 md:px-12">
-  &copy; 2026 OurKanban · A minimalist workspace
+  &copy; 2026 OurKanban · A minimalist workspace.v A TCS product. All rights reserved.
   <span className="mx-3">·</span>
   <Link to="/privacy" className="hover:text-zinc-300">Privacy</Link>
   <span className="mx-3">·</span>
