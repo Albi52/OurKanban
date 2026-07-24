@@ -34,10 +34,7 @@ const LandingPage: React.FC = () => (
     </nav>
 
     <main className="relative z-10 mx-auto flex max-w-[1400px] flex-col items-start justify-center px-6 py-24 md:px-12 md:py-32">
-      <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-zinc-400">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-        Collaborative Kanban
-      </span>
+
 
       <h1 className="font-heading text-6xl font-light leading-[0.9] tracking-tighter text-zinc-50 sm:text-7xl md:text-8xl lg:text-[9rem]" data-testid="landing-title">
         OurKanban
