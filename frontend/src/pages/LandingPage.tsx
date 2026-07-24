@@ -37,7 +37,7 @@ const LandingPage: React.FC = () => (
 
 
       <h1 className="font-heading text-6xl font-light leading-[0.9] tracking-tighter text-zinc-50 sm:text-7xl md:text-8xl lg:text-[9rem]" data-testid="landing-title">
-        OurKanban
+        Our<span className="font-medium">Kanban</span>
       </h1>
 
 
