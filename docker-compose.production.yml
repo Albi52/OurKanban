@@ -32,6 +32,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     expose:
       - "8080"
+    restart: unless-stopped
   
   nginx:
     build:
@@ -42,8 +43,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
-  volumes:
-    - ./nginx/ssl:/etc/nginx/ssl:ro
+    restart: unless-stopped
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+
 
 volumes:
   mysql_data:
