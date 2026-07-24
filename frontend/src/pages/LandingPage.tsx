@@ -60,6 +60,75 @@ const LandingPage: React.FC = () => (
           </Button>
         </Link>
       </div>
+      <section className="mt-40 w-full max-w-5xl">
+  <h2 className="text-4xl font-light text-zinc-50">
+    Built for collaborative teams
+  </h2>
+
+  <p className="mt-6 max-w-3xl text-lg leading-relaxed text-zinc-400">
+    OurKanban provides everything a team needs to organize work in one place.
+    Create workgroups, manage projects, assign tasks and collaborate through
+    intuitive Kanban boards designed for productivity.
+  </p>
+
+  <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <h3 className="text-lg font-medium text-zinc-100">
+        Workgroups
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Create collaborative workspaces and invite members to work together.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <h3 className="text-lg font-medium text-zinc-100">
+        Project Management
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Organize multiple projects, define responsibilities and track progress.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <h3 className="text-lg font-medium text-zinc-100">
+        Kanban Boards
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Visualize workflows and move tasks across customizable columns.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <h3 className="text-lg font-medium text-zinc-100">
+        Task Assignment
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Assign work, monitor deadlines and keep everyone aligned.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <h3 className="text-lg font-medium text-zinc-100">
+        Shared Calendar
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Schedule events and coordinate important milestones with your team.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <h3 className="text-lg font-medium text-zinc-100">
+        Secure Authentication
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Sign in securely using Google or email authentication.
+      </p>
+    </div>
+
+  </div>
+</section>
     </main>
 
 
