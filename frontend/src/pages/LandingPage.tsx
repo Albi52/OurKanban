@@ -43,8 +43,11 @@ const LandingPage: React.FC = () => (
         Our<span className="font-medium">Kanban</span>
       </h1>
 
+
       <p className="mt-10 max-w-xl text-lg leading-relaxed text-zinc-400 md:text-xl">
-        A quiet workspace for working groups. Organize projects, run the board, keep a calendar — without the noise. Brought to you by TwinChainStudios.
+        OurKanban is a collaborative project management platform that helps teams
+  organize projects, manage Kanban boards, assign tasks, schedule events,
+  and work together in real time. 
       </p>
 
       <div className="mt-12 flex flex-wrap items-center gap-3">
@@ -64,7 +67,7 @@ const LandingPage: React.FC = () => (
 
 
       <footer className="relative z-10 mx-auto max-w-[1600px] px-6 py-10 text-xs uppercase tracking-[0.2em] text-zinc-600 md:px-12">
-  &copy; 2026 OurKanban · A minimalist workspace.v A TCS product. All rights reserved.
+  &copy; 2026 OurKanban · A minimalist workspace · © 2026 TwinChain Studios · All rights reserved.
   <span className="mx-3">·</span>
   <Link to="/privacy" className="hover:text-zinc-300">Privacy</Link>
   <span className="mx-3">·</span>
