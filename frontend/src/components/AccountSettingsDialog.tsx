@@ -45,25 +45,25 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
   }, [open])
 
   async function handleGoogleCredential(idToken: string) {
-  setPictureBusy(true)
-  setShowGoogleRefetch(false)
-  const wasAlreadyLinked = me?.hasGoogleAccount
-  try {
-    await refreshGoogleProfilePicture({ idToken })
-    await refreshProfile()
-    const refreshedMe = await getMe()
-    setMe(refreshedMe)
-    toast.success(
-      wasAlreadyLinked
-        ? 'Profile picture updated from Google'
-        : 'Google account linked, email verified, and picture updated'
-    )
-  } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Failed to verify with Google')
-  } finally {
-    setPictureBusy(false)
+    setPictureBusy(true)
+    setShowGoogleRefetch(false)
+    const wasAlreadyLinked = me?.hasGoogleAccount
+    try {
+      await refreshGoogleProfilePicture({ idToken })
+      await refreshProfile()
+      const refreshedMe = await getMe()
+      setMe(refreshedMe)
+      toast.success(
+        wasAlreadyLinked
+          ? 'Profile picture updated from Google'
+          : 'Google account linked, email verified, and picture updated'
+      )
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to verify with Google')
+    } finally {
+      setPictureBusy(false)
+    }
   }
-}
   async function handleUsernameSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!newUsername.trim() || newUsername === user?.username) return
@@ -166,7 +166,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
                 />
               </label>
 
-              { (
+              {(
                 showGoogleRefetch ? (
                   <GoogleSignInButton onCredential={handleGoogleCredential} />
                 ) : (
@@ -213,7 +213,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
             {me?.hasLocalPassword ? 'Change password' : 'Set a password'}
           </Label>
 
-          {me?.hasLocalPassword && (
+          {!me?.hasGoogleAccount && (
             <Input
               type="password"
               placeholder="Current password"
@@ -233,9 +233,14 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
             data-testid="settings-new-password-input"
           />
 
-          {!me?.hasLocalPassword && (
+          {!me?.hasLocalPassword && me?.hasGoogleAccount && (
             <p className="text-xs text-zinc-500">
-              You signed in with Google and haven't set a password yet. Setting one will require email verification before it works.
+              Set a password to enable signing in without Google. 
+            </p>
+          )}
+          {me?.hasLocalPassword && me?.hasGoogleAccount && (
+            <p className="text-xs text-zinc-500">
+              Set a new password. Google verified, no previous password required. 
             </p>
           )}
 

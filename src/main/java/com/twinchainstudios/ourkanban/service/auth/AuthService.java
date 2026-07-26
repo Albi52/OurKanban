@@ -342,31 +342,44 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse updatePassword(String username, UpdatePasswordRequest request) {
-        User user = getUserOrThrow(username);
+public AuthResponse updatePassword(String username, UpdatePasswordRequest request) {
+    User user = getUserOrThrow(username);
 
-        if (user.isLocalPasswordSet()) {
-            // Changing an existing password — require proof they still know the old one.
-            if (request.currentPassword() == null
-                    || !passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-                throw new AuthenticationException("Current password is incorrect");
-            }
-            user.setPassword(passwordEncoder.encode(request.newPassword()));
-            userRepository.save(user);
+    boolean isGoogleLinked = user.getProviderId() != null;
 
-            String token = jwtService.generateToken(user.getUsername());
-            return new AuthResponse(token, "Password updated");
-        }
-
+    if (isGoogleLinked) {
+        // Being authenticated on a session for an account already linked to
+        // a verified Google identity is treated as sufficient proof of
+        // ownership on its own — no need to also prove knowledge of any
+        // prior local password. This action itself fully verifies the
+        // account for local login going forward, regardless of whatever
+        // password state existed before.
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         user.setLocalPasswordSet(true);
         user.setLocalCredentialsPending(false);
+        user.setEmailVerified(true);
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getUsername());
-        return new AuthResponse(token,
-                "Password set. You can now log in with your username and password, or continue using Google login.");
+        return new AuthResponse(token, "Password updated");
     }
+
+    // Not Google-linked — a pure local account, so the current password is
+    // the only available proof it's really them.
+    if (user.isLocalPasswordSet()) {
+        if (request.currentPassword() == null
+                || !passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new ConflictException("Current password is incorrect");
+        }
+    }
+
+    user.setPassword(passwordEncoder.encode(request.newPassword()));
+    user.setLocalPasswordSet(true);
+    userRepository.save(user);
+
+    String token = jwtService.generateToken(user.getUsername());
+    return new AuthResponse(token, "Password updated");
+}
 
     @Transactional
     public MeResponse updateProfilePicture(String username, MultipartFile file) {

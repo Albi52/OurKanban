@@ -12,7 +12,7 @@ export function VerifyEmailBanner() {
   }, [])
 
   if (!status) return null
-  const needsVerification = !status.emailVerified || status.localCredentialsPending
+  const needsVerification = !status.emailVerified 
   if (!needsVerification) return null
 
   async function handleResend() {
