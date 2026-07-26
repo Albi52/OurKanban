@@ -59,14 +59,14 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
         <ul className="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
           {group.members.map((m) => (
             <li key={m.id} className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-2" data-testid={`participant-${m.id}`}>
-              <div className="flex min-w-0 items-center gap-3">
+              
                 <UserAvatar
                   username={m.username}
                   profilePicture={m.profilePicture}
                   avatarColor={usernameToColor(m.username)}
                   className="h-8 w-8 border border-zinc-800"
                 />
-              </div>
+              
               {group.isLeader && m.username !== group.leaderUsername && (
                 <button onClick={() => handleRemove(m.id)} className="rounded-md p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-300" data-testid={`remove-participant-${m.id}`} aria-label="Remove participant">
                   <X className="h-4 w-4" />
