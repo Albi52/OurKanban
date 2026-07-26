@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { SubmitEvent } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Logo } from '../components/Logo'
@@ -11,6 +12,9 @@ import { login, register, loginWithGoogle } from '../api/authAPI'
 import GoogleSignInButton from '../components/GoogleSignInButton'
 
 type Mode = 'login' | 'register'
+
+
+
 
 const AuthPage: React.FC = () => {
   const [params] = useSearchParams()
@@ -24,23 +28,33 @@ const AuthPage: React.FC = () => {
 
   const { login: setAuthToken } = useAuth()
   const navigate = useNavigate()
+  
+const [confirmPassword, setConfirmPassword] = useState('')
+const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
-    setBusy(true)
-    try {const response =
-  mode === 'login'
-    ? await login({ usernameOrEmail: username, password })
-    : await register({ username, email, password })
 
-if (response.token) {
-  setAuthToken(response.token)
-  toast.success(mode === 'login' ? 'Welcome back' : 'Account created')
-  navigate('/home')
-} else {
-  toast.info(response.message ?? 'Check your email to continue')
-  setMode('login')
-}
+
+    if (mode === 'register' && password !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+    setBusy(true)
+    try {
+      const response =
+        mode === 'login'
+          ? await login({ usernameOrEmail: username, password })
+          : await register({ username, email, password })
+
+      if (response.token) {
+        setAuthToken(response.token)
+        toast.success(mode === 'login' ? 'Welcome back' : 'Account created')
+        navigate('/home')
+      } else {
+        toast.info(response.message ?? 'Check your email to continue')
+        setMode('login')
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -48,24 +62,24 @@ if (response.token) {
     }
   }
 
- async function handleGoogleCredential(idToken: string) {
-  setBusy(true)
-  try {
-    const response = await loginWithGoogle({ idToken })
+  async function handleGoogleCredential(idToken: string) {
+    setBusy(true)
+    try {
+      const response = await loginWithGoogle({ idToken })
 
-    if (response.token) {
-      setAuthToken(response.token)
-      toast.success('Welcome back')
-      navigate('/home')
-    } else {
-      toast.error(response.message ?? 'Google sign-in did not return a token')
+      if (response.token) {
+        setAuthToken(response.token)
+        toast.success('Welcome back')
+        navigate('/home')
+      } else {
+        toast.error(response.message ?? 'Google sign-in did not return a token')
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
+    } finally {
+      setBusy(false)
     }
-  } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
-  } finally {
-    setBusy(false)
   }
-}
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
       <header className="sticky top-0 z-40 w-full border-b border-zinc-900 bg-zinc-950/70 backdrop-blur-xl">
@@ -128,16 +142,41 @@ if (response.token) {
             </>
           )}
           <Field label="Password">
-            <Input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
-              data-testid="auth-password-input"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            />
+            <div className="relative">
+              <Input
+                required
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500 pr-10"
+                data-testid="auth-password-input"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-200"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                data-testid="auth-password-toggle"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </Field>
+
+          {mode === 'register' && (
+            <Field label="Confirm password">
+              <Input
+                required
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+                data-testid="auth-confirm-password-input"
+                autoComplete="new-password"
+              />
+            </Field>
+          )}
 
           <Button type="submit" disabled={busy} className="mt-2 w-full rounded-full bg-zinc-50 text-zinc-950 hover:bg-zinc-200 h-11" data-testid="auth-submit-btn">
             {busy ? '...' : mode === 'login' ? 'Sign in' : 'Create account'}
@@ -158,14 +197,22 @@ if (response.token) {
           {mode === 'login' ? (
             <>
               New to OurKanban?{' '}
-              <button type="button" className="text-zinc-100 underline underline-offset-4 hover:text-white" onClick={() => setMode('register')} data-testid="auth-switch-register">
+              <button type="button" className="text-zinc-100 underline underline-offset-4 hover:text-white" onClick={
+                () => {
+                  setMode('register')
+                  setConfirmPassword('')
+                }
+              } data-testid="auth-switch-register">
                 Create an account
               </button>
             </>
           ) : (
             <>
               Already have an account?{' '}
-              <button type="button" className="text-zinc-100 underline underline-offset-4 hover:text-white" onClick={() => setMode('login')} data-testid="auth-switch-login">
+              <button type="button" className="text-zinc-100 underline underline-offset-4 hover:text-white" onClick={() => {
+                setMode('login')
+                setConfirmPassword('')
+              }} data-testid="auth-switch-login">
                 Sign in
               </button>
             </>
