@@ -52,7 +52,9 @@ const HomePage: React.FC = () => {
               <h1 className="mt-2 font-heading text-4xl font-light tracking-tighter text-zinc-50 md:text-5xl" data-testid="dashboard-title">
                 Good to see you, <span className="font-medium">{user.username}</span>.
               </h1>
-              <VerifyEmailBanner />
+              <div className="my-4">
+                <VerifyEmailBanner />
+              </div>
               <p className="mt-2 text-sm text-zinc-500">
                 {groups.length} working group{groups.length === 1 ? '' : 's'} · {projectCount} projects
               </p>
