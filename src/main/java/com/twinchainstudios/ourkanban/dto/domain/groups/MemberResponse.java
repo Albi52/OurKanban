@@ -1,4 +1,4 @@
 package com.twinchainstudios.ourkanban.dto.domain.groups;
 
 
-public record MemberResponse(Long id, String username) {}
+public record MemberResponse(Long id, String username, String profilePicture) {}

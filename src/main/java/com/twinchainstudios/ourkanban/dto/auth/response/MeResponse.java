@@ -4,5 +4,7 @@ public record MeResponse(
         String username,
         boolean emailVerified,
         boolean localCredentialsPending,
-        boolean hasLocalPassword
+        boolean hasLocalPassword,
+        String profilePicture,
+        boolean hasGoogleAccount
 ) {}

@@ -3,6 +3,7 @@ export interface ProjectMember {
   userId: number
   username: string
   displayName: string
+  profilePicture: string | null
 }
 
 export interface UpdateDisplayNameRequest {

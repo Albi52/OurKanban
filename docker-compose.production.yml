@@ -32,6 +32,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     expose:
       - "8080"
+    volumes:
+      - avatar_uploads:/app/uploads/avatars
     restart: unless-stopped
   
   nginx:
@@ -69,3 +71,4 @@ services:
 
 volumes:
   mysql_data:
+  avatar_uploads:

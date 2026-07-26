@@ -32,7 +32,19 @@ public class User {
     private AuthProvider provider = AuthProvider.LOCAL;
     @Column(unique = true)
     private String providerId;
-    
+
+    @Column(length = 500)
+    private String profilePicture; // a URL (either "/uploads/avatars/..." or an external Google URL), or null
+    private boolean customProfilePicture = false;
+
+    public boolean isCustomProfilePicture() {
+        return customProfilePicture;
+    }
+
+    public void setCustomProfilePicture(boolean customProfilePicture) {
+        this.customProfilePicture = customProfilePicture;
+    }
+
     private boolean emailVerified = false;
     private boolean localCredentialsPending = false;
 
@@ -122,8 +134,21 @@ public class User {
     public void setProviderId(String providerId) {
         this.providerId = providerId;
     }
-    
-public boolean isLocalPasswordSet() { return localPasswordSet; }
-public void setLocalPasswordSet(boolean localPasswordSet) { this.localPasswordSet = localPasswordSet; }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public boolean isLocalPasswordSet() {
+        return localPasswordSet;
+    }
+
+    public void setLocalPasswordSet(boolean localPasswordSet) {
+        this.localPasswordSet = localPasswordSet;
+    }
 
 }

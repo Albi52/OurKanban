@@ -23,6 +23,8 @@ export interface MeResponse {
   emailVerified: boolean
   localCredentialsPending: boolean
   hasLocalPassword: boolean
+  profilePicture: string | null
+  hasGoogleAccount: boolean
 }
 
 export interface UpdateUsernameRequest {

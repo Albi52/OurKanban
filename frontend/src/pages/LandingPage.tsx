@@ -2,9 +2,9 @@ import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { Button } from '../components/ui/button'
-import { Avatar, AvatarFallback } from '../components/ui/avatar'
 import { ArrowUpRight, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { UserAvatar } from '../components/UserAvatar'
 
 const LandingPage: React.FC = () => {
   const { user, logout } = useAuth()
@@ -34,11 +34,12 @@ const LandingPage: React.FC = () => {
         {user ? (
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 sm:flex">
-              <Avatar className="h-8 w-8 border border-zinc-800">
-                <AvatarFallback className="text-xs font-medium text-zinc-950" style={{ background: user.avatarColor }}>
-                  {user.username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                username={user.username}
+                profilePicture={user.profilePicture}
+                avatarColor={user.avatarColor}
+                className="h-8 w-8 border border-zinc-800"
+              />
               <span className="text-sm text-zinc-300" data-testid="nav-username">{user.username}</span>
             </div>
 
@@ -113,64 +114,64 @@ const LandingPage: React.FC = () => {
             </>
           )}
         </div>
-        
-  <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-      <h3 className="text-lg font-medium text-zinc-100">
-        Workgroups
-      </h3>
-      <p className="mt-3 text-zinc-400">
-        Create collaborative workspaces and invite members to work together.
-      </p>
-    </div>
+        <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-      <h3 className="text-lg font-medium text-zinc-100">
-        Project Management
-      </h3>
-      <p className="mt-3 text-zinc-400">
-        Organize multiple projects, define responsibilities and track progress.
-      </p>
-    </div>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <h3 className="text-lg font-medium text-zinc-100">
+              Workgroups
+            </h3>
+            <p className="mt-3 text-zinc-400">
+              Create collaborative workspaces and invite members to work together.
+            </p>
+          </div>
 
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-      <h3 className="text-lg font-medium text-zinc-100">
-        Kanban Boards
-      </h3>
-      <p className="mt-3 text-zinc-400">
-        Visualize workflows and move tasks across customizable columns.
-      </p>
-    </div>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <h3 className="text-lg font-medium text-zinc-100">
+              Project Management
+            </h3>
+            <p className="mt-3 text-zinc-400">
+              Organize multiple projects, define responsibilities and track progress.
+            </p>
+          </div>
 
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-      <h3 className="text-lg font-medium text-zinc-100">
-        Task Assignment
-      </h3>
-      <p className="mt-3 text-zinc-400">
-        Assign work, monitor deadlines and keep everyone aligned.
-      </p>
-    </div>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <h3 className="text-lg font-medium text-zinc-100">
+              Kanban Boards
+            </h3>
+            <p className="mt-3 text-zinc-400">
+              Visualize workflows and move tasks across customizable columns.
+            </p>
+          </div>
 
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-      <h3 className="text-lg font-medium text-zinc-100">
-        Shared Calendar
-      </h3>
-      <p className="mt-3 text-zinc-400">
-        Schedule events and coordinate important milestones with your team.
-      </p>
-    </div>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <h3 className="text-lg font-medium text-zinc-100">
+              Task Assignment
+            </h3>
+            <p className="mt-3 text-zinc-400">
+              Assign work, monitor deadlines and keep everyone aligned.
+            </p>
+          </div>
 
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-      <h3 className="text-lg font-medium text-zinc-100">
-        Secure Authentication
-      </h3>
-      <p className="mt-3 text-zinc-400">
-        Sign in securely using Google or email authentication.
-      </p>
-    </div>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <h3 className="text-lg font-medium text-zinc-100">
+              Shared Calendar
+            </h3>
+            <p className="mt-3 text-zinc-400">
+              Schedule events and coordinate important milestones with your team.
+            </p>
+          </div>
 
-  </div>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <h3 className="text-lg font-medium text-zinc-100">
+              Secure Authentication
+            </h3>
+            <p className="mt-3 text-zinc-400">
+              Sign in securely using Google or email authentication.
+            </p>
+          </div>
+
+        </div>
 
       </main>
 

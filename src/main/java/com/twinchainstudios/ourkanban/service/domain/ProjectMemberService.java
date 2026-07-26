@@ -36,12 +36,15 @@ public class ProjectMemberService {
     private final UserRepository userRepository;
 
     public ProjectMemberService(ProjectMemberRepository projectMemberRepository,
-                                 UserRepository userRepository) {
+            UserRepository userRepository) {
         this.projectMemberRepository = projectMemberRepository;
         this.userRepository = userRepository;
     }
 
-    /** Called right after a Project is created — gives every current WorkGroup user a ProjectMember row on it. */
+    /**
+     * Called right after a Project is created — gives every current WorkGroup user
+     * a ProjectMember row on it.
+     */
     @Transactional
     public void createDefaultMembers(Project project, Set<User> workGroupUsers) {
         for (User user : workGroupUsers) {
@@ -49,7 +52,10 @@ public class ProjectMemberService {
         }
     }
 
-    /** Called right after a user is added to a WorkGroup — gives them a ProjectMember row on every project that group already has. */
+    /**
+     * Called right after a user is added to a WorkGroup — gives them a
+     * ProjectMember row on every project that group already has.
+     */
     @Transactional
     public void addUserToAllProjects(WorkGroup workGroup, User user) {
         for (Project project : workGroup.getProjects()) {
@@ -77,8 +83,8 @@ public class ProjectMemberService {
 
     @Transactional
     public ProjectMemberResponse updateDisplayName(Long projectId, Long memberId,
-                                                     UpdateDisplayNameRequest request,
-                                                     String username) {
+            UpdateDisplayNameRequest request,
+            String username) {
         User requester = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
@@ -103,7 +109,7 @@ public class ProjectMemberService {
                 member.getId(),
                 member.getUser().getId(),
                 member.getUser().getUsername(),
-                member.getDisplayName()
-        );
+                member.getDisplayName(),
+                member.getUser().getProfilePicture());
     }
 }

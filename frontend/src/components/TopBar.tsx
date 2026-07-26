@@ -1,14 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
 import { useAuth } from '../context/AuthContext'
-import { Avatar, AvatarFallback } from '../components/ui/avatar'
 import { Button } from '../components/ui/button'
 import { LogOut } from 'lucide-react'
+import { UserAvatar } from './UserAvatar'
+import { AccountSettingsDialog } from './AccountSettingsDialog'
 
 export const TopBar: React.FC = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+    const [settingsOpen, setSettingsOpen] = useState(false)
 
   function handleLogout() {
     logout()
@@ -23,14 +25,19 @@ export const TopBar: React.FC = () => {
         </Link>
         {user && (
           <div className="flex items-center gap-4">
-            <div className="hidden items-center gap-2 md:flex">
-              <Avatar className="h-8 w-8 border border-zinc-800">
-                <AvatarFallback className="text-xs font-medium text-zinc-950" style={{ background: user.avatarColor }}>
-                  {user.username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="hidden items-center gap-2 rounded-md px-2 py-1 hover:bg-zinc-900 md:flex"
+              data-testid="top-bar-account-trigger"
+            >
+              <UserAvatar
+                username={user.username}
+                profilePicture={user.profilePicture}
+                avatarColor={user.avatarColor}
+                className="h-8 w-8 border border-zinc-800"
+              />
               <span className="text-sm text-zinc-300" data-testid="top-bar-username">{user.username}</span>
-            </div>
+            </button>
             <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900" onClick={handleLogout} data-testid="top-bar-logout-btn">
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
@@ -38,6 +45,7 @@ export const TopBar: React.FC = () => {
           </div>
         )}
       </div>
+      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </header>
   )
 }

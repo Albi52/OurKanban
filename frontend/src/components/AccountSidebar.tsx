@@ -1,11 +1,11 @@
 import React from 'react'
-import { Avatar, AvatarFallback } from '../components/ui/avatar'
 import { useAuth } from '../context/AuthContext'
 import type { WorkGroup } from '../types/workgroup'
 import { Users, LayoutGrid, Circle } from 'lucide-react'
 import { useState } from 'react'
 import { Settings } from 'lucide-react'
 import { AccountSettingsDialog } from './AccountSettingsDialog'
+import { UserAvatar } from './UserAvatar'
 
 
 interface Props {
@@ -25,11 +25,12 @@ export const AccountSidebar: React.FC<Props> = ({ groups }) => {
       <div className="sticky top-24 space-y-6">
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
           <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12 border border-zinc-800">
-              <AvatarFallback className="text-sm font-medium text-zinc-950" style={{ background: user.avatarColor }}>
-                {user.username.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              username={user.username}
+              profilePicture={user.profilePicture}
+              avatarColor={user.avatarColor}
+              className="h-8 w-8 border border-zinc-800"
+            />
             <p className="truncate font-heading text-lg font-medium text-zinc-50" data-testid="sidebar-username">
               {user.username}
             </p>
@@ -39,15 +40,15 @@ export const AccountSidebar: React.FC<Props> = ({ groups }) => {
             <span className="text-xs text-zinc-400">Active workspace</span>
           </div>
           <button
-  onClick={() => setSettingsOpen(true)}
-  className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
-  data-testid="open-account-settings"
->
-  <Settings className="h-3.5 w-3.5" />
-  Account settings
-</button>
+            onClick={() => setSettingsOpen(true)}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+            data-testid="open-account-settings"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            Account settings
+          </button>
 
-<AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+          <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">

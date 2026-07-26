@@ -7,6 +7,7 @@ export interface ProjectSummary {
 export interface Member {
   id: number
   username: string
+  profilePicture: string | null
 }
 
 export interface WorkGroup {

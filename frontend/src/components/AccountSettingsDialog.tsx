@@ -6,9 +6,11 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import { toast } from 'sonner'
-import { getMe, updateUsername, updatePassword } from '../api/authAPI'
+import { getMe, updateUsername, updatePassword, uploadProfilePicture, removeProfilePicture, refreshGoogleProfilePicture } from '../api/authAPI'
 import { useAuth } from '../context/AuthContext'
 import type { MeResponse } from '../types/auth'
+import { UserAvatar } from './UserAvatar'
+import GoogleSignInButton from './GoogleSignInButton'
 
 interface Props {
   open: boolean
@@ -26,17 +28,42 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
   const [newPassword, setNewPassword] = useState('')
   const [passwordBusy, setPasswordBusy] = useState(false)
 
+  const { refreshProfile } = useAuth()
+  const [pictureBusy, setPictureBusy] = useState(false)
+
+  const [showGoogleRefetch, setShowGoogleRefetch] = useState(false)
+
   useEffect(() => {
     if (open) {
       getMe().then((res) => {
         setMe(res)
         setNewUsername(res.username)
-      }).catch(() => {})
+      }).catch(() => { })
       setCurrentPassword('')
       setNewPassword('')
     }
   }, [open])
 
+  async function handleGoogleCredential(idToken: string) {
+  setPictureBusy(true)
+  setShowGoogleRefetch(false)
+  const wasAlreadyLinked = me?.hasGoogleAccount
+  try {
+    await refreshGoogleProfilePicture({ idToken })
+    await refreshProfile()
+    const refreshedMe = await getMe()
+    setMe(refreshedMe)
+    toast.success(
+      wasAlreadyLinked
+        ? 'Profile picture updated from Google'
+        : 'Google account linked, email verified, and picture updated'
+    )
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Failed to verify with Google')
+  } finally {
+    setPictureBusy(false)
+  }
+}
   async function handleUsernameSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!newUsername.trim() || newUsername === user?.username) return
@@ -79,11 +106,90 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
       setPasswordBusy(false)
     }
   }
+  async function handlePictureChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file')
+      return
+    }
+
+    setPictureBusy(true)
+    try {
+      await uploadProfilePicture(file)
+      await refreshProfile()
+      toast.success('Profile picture updated')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update picture')
+    } finally {
+      setPictureBusy(false)
+      e.target.value = ''
+    }
+  }
+
+  async function handleRemovePicture() {
+    setPictureBusy(true)
+    try {
+      await removeProfilePicture()
+      await refreshProfile()
+      toast.success('Profile picture removed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to remove picture')
+    } finally {
+      setPictureBusy(false)
+    }
+  }
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-md" data-testid="account-settings-dialog">
         <DialogHeader>
+          <div className="flex items-center gap-4 border-b border-zinc-900 pb-6">
+            <UserAvatar
+              username={user?.username ?? ''}
+              profilePicture={user?.profilePicture}
+              avatarColor={user?.avatarColor ?? '#666'}
+              className="h-16 w-16 border border-zinc-800"
+            />
+            <div className="flex flex-col gap-2">
+              <label className="cursor-pointer text-xs text-zinc-300 underline hover:text-zinc-50">
+                {pictureBusy ? 'Uploading...' : 'Upload picture'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePictureChange}
+                  disabled={pictureBusy}
+                  data-testid="settings-picture-input"
+                />
+              </label>
+
+              { (
+                showGoogleRefetch ? (
+                  <GoogleSignInButton onCredential={handleGoogleCredential} />
+                ) : (
+                  <button
+                    onClick={() => setShowGoogleRefetch(true)}
+                    className="text-left text-xs text-zinc-300 underline hover:text-zinc-50"
+                  >
+                    {me?.hasGoogleAccount ? 'Use my Google picture' : 'Verify with Google & use picture'}
+                  </button>
+                )
+              )}
+
+              {user?.profilePicture && (
+                <button
+                  onClick={handleRemovePicture}
+                  disabled={pictureBusy}
+                  className="text-left text-xs text-zinc-400 hover:text-zinc-200"
+                >
+                  Keep default (remove picture)
+                </button>
+              )}
+            </div>
+          </div>
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">Account settings</DialogTitle>
         </DialogHeader>
 

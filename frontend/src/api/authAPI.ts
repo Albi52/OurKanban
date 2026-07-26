@@ -1,4 +1,4 @@
-import { apiPost, apiGet, apiPatch } from './client'
+import { apiPost, apiGet, apiPatch, apiDelete, apiUpload } from './client'
 import type { LoginRequest, RegisterRequest, AuthResponse, GoogleLoginRequest, MeResponse, UpdatePasswordRequest, UpdateUsernameRequest} from '../types/auth'
 
 
@@ -26,4 +26,14 @@ export function updateUsername(request: UpdateUsernameRequest): Promise<AuthResp
 
 export function updatePassword(request: UpdatePasswordRequest): Promise<AuthResponse> {
   return apiPatch<AuthResponse>('/auth/password', request)
+}
+export function uploadProfilePicture(file: File): Promise<MeResponse> {
+  return apiUpload<MeResponse>('/auth/profile-picture', file)
+}
+
+export function removeProfilePicture(): Promise<MeResponse> {
+  return apiDelete<MeResponse>('/auth/profile-picture')
+}
+export function refreshGoogleProfilePicture(request: GoogleLoginRequest): Promise<MeResponse> {
+  return apiPost<MeResponse>('/auth/profile-picture/from-google', request)
 }

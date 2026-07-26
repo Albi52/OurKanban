@@ -136,13 +136,14 @@ public class WorkGroupService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
+
     private WorkGroupResponse toResponse(WorkGroup wg, User currentUser) {
         List<ProjectCapsuleResponse> projects = wg.getProjects().stream()
                 .map(p -> new ProjectCapsuleResponse(p.getId(), p.getName(), p.getWorkGroup().getId(), true))
                 .toList();
 
         List<MemberResponse> members = wg.getUsers().stream()
-                .map(u -> new MemberResponse(u.getId(), u.getUsername()))
+                .map(u -> new MemberResponse(u.getId(), u.getUsername(), u.getProfilePicture()))
                 .toList();
 
         return new WorkGroupResponse(
@@ -151,7 +152,6 @@ public class WorkGroupService {
                 wg.getLeader().getUsername(),
                 wg.getLeader().getId().equals(currentUser.getId()),
                 projects,
-                members
-        );
+                members);
     }
 }

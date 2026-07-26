@@ -50,3 +50,24 @@ export function apiPatch<TResponse>(path: string, body: unknown): Promise<TRespo
 export function apiDelete<TResponse>(path: string): Promise<TResponse> {
   return request<TResponse>(path, 'DELETE')
 }
+
+export async function apiUpload<TResponse>(path: string, file: File): Promise<TResponse> {
+  const token = getToken()
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const res = await fetch(`${API_PREFIX}${path}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    // Deliberately no Content-Type header — the browser sets the correct
+    // multipart boundary automatically. Setting it manually breaks the upload.
+    body: formData,
+  })
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => null)
+    throw new Error(errorBody?.error ?? `Request failed with status ${res.status}`)
+  }
+
+  return res.json() as Promise<TResponse>
+}
