@@ -33,6 +33,17 @@ public class ProjectMember {
     private Project project;
 
     private String displayName;
+    
+    @Column(length = 500)
+    private String profilePicture; // a URL (either "/uploads/avatars/..." or an external Google URL), or null
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
     @ManyToMany
     @JoinTable(

@@ -71,6 +71,7 @@ public class ProjectMemberService {
         member.setProject(project);
         member.setUser(user);
         member.setDisplayName(user.getUsername());
+        member.setProfilePicture(user.getProfilePicture());
         projectMemberRepository.save(member);
     }
 
