@@ -18,7 +18,7 @@ export const TopBar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950/70 backdrop-blur-xl" data-testid="top-bar">
       <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between px-6 md:px-10">
-        <Link to={user ? '/home' : '/'} data-testid="top-bar-logo-link">
+        <Link to="/" data-testid="top-bar-logo-link">
           <Logo size="sm" />
         </Link>
         {user && (
