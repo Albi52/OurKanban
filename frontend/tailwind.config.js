@@ -4,6 +4,9 @@ module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+        screens: {
+          xs: '400px',
+        },
       fontFamily: {
         heading: ['Outfit', 'sans-serif'],
         sans: ['Manrope', 'sans-serif'],

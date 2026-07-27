@@ -86,10 +86,10 @@ export default function BoardPage() {
             Don't split this into two <Tabs> instances; the triggers and
             the content must be siblings under one root. */}
         <Tabs defaultValue="kanban">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Project</p>
-              <h1 className="mt-2 font-heading text-4xl font-light tracking-tighter text-zinc-50 md:text-5xl">
+              <h1 className="font-heading text-3xl font-light tracking-tighter text-zinc-50 sm:text-4xl md:text-5xl">
                 {project.name}
               </h1>
             </div>

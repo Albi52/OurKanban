@@ -46,10 +46,10 @@ const HomePage: React.FC = () => {
         <AccountSidebar groups={groups} />
 
         <main className="flex-1 min-w-0">
-          <div className="mb-10 flex items-end justify-between">
+          <div className="mb-8 flex flex-col items-start gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Workspace</p>
-              <h1 className="mt-2 font-heading text-4xl font-light tracking-tighter text-zinc-50 md:text-5xl" data-testid="dashboard-title">
+              <h1 className="mt-2 font-heading text-3xl font-light tracking-tighter text-zinc-50 sm:text-4xl md:text-5xl" data-testid="dashboard-title">
                 Good to see you, <span className="font-medium">{user.username}</span>.
               </h1>
               <div className="my-4">

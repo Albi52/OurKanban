@@ -49,9 +49,11 @@ export function KanbanView({ project, columns, onColumnsChanged }: Props) {
   }
 
   return (
-    <div className="flex gap-5 overflow-x-auto pb-4" data-testid="kanban-view">
+    <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4" data-testid="kanban-view">
       {columns.map((col) => (
-        <BoardColumnView key={col.id} column={col} />
+        <div key={col.id} className="snap-center">
+          <BoardColumnView column={col} />
+        </div>
       ))}
 
       {project.isLeader && (
@@ -106,7 +108,7 @@ export function KanbanView({ project, columns, onColumnsChanged }: Props) {
 function BoardColumnView({ column }: { column: BoardColumn }) {
   return (
     <div
-      className="flex w-80 shrink-0 flex-col rounded-xl border border-zinc-800 bg-zinc-900/40"
+      className="flex w-[85vw] max-w-[320px] shrink-0 flex-col rounded-xl border border-zinc-800 bg-zinc-900/40"
       data-testid={`column-${column.id}`}
     >
       <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">

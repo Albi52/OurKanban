@@ -32,7 +32,7 @@ const LandingPage: React.FC = () => {
         <Logo size="md" />
 
         {user ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="hidden items-center gap-2 sm:flex">
               <UserAvatar
                 username={user.username}
@@ -44,7 +44,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             <Link to="/home">
-              <Button className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200 rounded-full px-5" data-testid="nav-go-home-btn">
+              <Button className="rounded-full bg-zinc-50 px-4 text-zinc-950 hover:bg-zinc-200 sm:px-5" data-testid="nav-go-home-btn">
                 Go to home
                 <ArrowUpRight className="ml-1 h-4 w-4" />
               </Button>
@@ -53,11 +53,11 @@ const LandingPage: React.FC = () => {
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="text-zinc-300 hover:text-zinc-50 hover:bg-zinc-900"
+              className="text-zinc-300 hover:bg-zinc-900 hover:text-zinc-50"
               data-testid="nav-logout-btn"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Log out</span>
             </Button>
           </div>
         ) : (
@@ -77,23 +77,25 @@ const LandingPage: React.FC = () => {
       </nav>
 
       <main className="relative z-10 mx-auto flex max-w-[1400px] flex-col items-start justify-center px-6 py-24 md:px-12 md:py-32">
-        <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-zinc-400">
+        <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-zinc-400 sm:mb-8">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           Collaborative Kanban
         </span>
 
-        <h1 className="font-heading text-6xl font-light leading-[0.9] tracking-tighter text-zinc-50 sm:text-7xl md:text-8xl lg:text-[9rem]" data-testid="landing-title">
+        <h1
+          className="font-heading text-5xl font-light leading-[0.95] tracking-tighter text-zinc-50 xs:text-6xl sm:text-7xl md:text-8xl lg:text-[9rem]"
+          data-testid="landing-title"
+        >
           Our<span className="font-medium">Kanban</span>
         </h1>
-
-        <p className="mt-10 max-w-xl text-lg leading-relaxed text-zinc-400 md:text-xl">
+        <p className="mt-6 max-w-xl text-base leading-relaxed text-zinc-400 sm:mt-10 sm:text-lg md:text-xl">
           A quiet workspace for working groups. Organize projects, run the board, keep a calendar — without the noise.
         </p>
 
-        <div className="mt-12 flex flex-wrap items-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-12">
           {user ? (
             <Link to="/home">
-              <Button size="lg" className="rounded-full bg-zinc-50 px-8 text-zinc-950 hover:bg-zinc-200 h-12 text-base transition-transform hover:-translate-y-0.5" data-testid="hero-go-home-btn">
+              <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-go-home-btn">
                 Go to your workspace
                 <ArrowUpRight className="ml-1 h-4 w-4" />
               </Button>
@@ -101,13 +103,13 @@ const LandingPage: React.FC = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button size="lg" className="rounded-full bg-zinc-50 px-8 text-zinc-950 hover:bg-zinc-200 h-12 text-base transition-transform hover:-translate-y-0.5" data-testid="hero-signin-btn">
+                <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-signin-btn">
                   Sign in
                   <ArrowUpRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/login?mode=register">
-                <Button size="lg" variant="outline" className="rounded-full border-zinc-700 bg-transparent px-8 text-zinc-100 hover:bg-zinc-900 hover:text-zinc-50 h-12 text-base" data-testid="hero-register-btn">
+                <Button size="lg" variant="outline" className="h-12 rounded-full border-zinc-700 bg-transparent px-6 text-base text-zinc-100 hover:bg-zinc-900 hover:text-zinc-50 sm:px-8" data-testid="hero-register-btn">
                   Create account
                 </Button>
               </Link>
@@ -175,7 +177,7 @@ const LandingPage: React.FC = () => {
 
       </main>
 
-      <footer className="relative z-10 mx-auto max-w-[1600px] px-6 py-10 text-xs uppercase tracking-[0.2em] text-zinc-600 md:px-12">
+      <footer className="relative z-10 mx-auto max-w-[1600px] px-4 py-8 text-xs uppercase tracking-[0.2em] text-zinc-600 sm:px-6 sm:py-10 md:px-12">
         &copy; 2026 OurKanban · A minimalist workspace
         <span className="mx-3">·</span>
         <Link to="/privacy" className="hover:text-zinc-300">Privacy</Link>

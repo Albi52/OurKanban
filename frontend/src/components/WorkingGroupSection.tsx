@@ -28,13 +28,13 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
     }
   }
 
-  return (
+    return (
     <section data-testid={`group-section-${group.id}`}>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-zinc-900 pb-4">
+      <div className="mb-6 flex flex-col gap-4 border-b border-zinc-900 pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Working group</p>
           <div className="mt-2 flex items-center gap-3">
-            <h2 className="font-heading text-2xl font-medium tracking-tight text-zinc-50 md:text-3xl">{group.name}</h2>
+            <h2 className="font-heading text-xl font-medium tracking-tight text-zinc-50 sm:text-2xl md:text-3xl">{group.name}</h2>
             {group.isLeader && (
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-emerald-300">
                 Leader
@@ -43,13 +43,13 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setParticipantsOpen(true)} className="border-zinc-800 bg-transparent text-zinc-200 hover:bg-zinc-900 hover:text-zinc-50" data-testid={`view-participants-${group.id}`}>
             <Users className="mr-2 h-4 w-4" />
-            {group.isLeader ? `Manage members (${group.members.length})` : `Members (${group.members.length})`}
+            {group.isLeader ? `Manage (${group.members.length})` : `Members (${group.members.length})`}
           </Button>
           {group.isLeader && (
-            <Button size="sm" onClick={onCreateProject} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200 rounded-md" data-testid={`create-project-${group.id}`}>
+            <Button size="sm" onClick={onCreateProject} className="rounded-md bg-zinc-50 text-zinc-950 hover:bg-zinc-200" data-testid={`create-project-${group.id}`}>
               <Plus className="mr-2 h-4 w-4" />
               New project
             </Button>
@@ -62,11 +62,11 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
       </div>
 
       {group.projects.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 p-10 text-center text-sm text-zinc-500">
+        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center text-sm text-zinc-500 sm:p-10">
           No projects here yet.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {group.projects.map((p) => (
             <ProjectCard key={p.id} project={p} canManage={group.isLeader} onChanged={onChanged} />
           ))}

@@ -93,7 +93,7 @@ const [showPassword, setShowPassword] = useState(false)
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-md flex-col items-stretch px-6 py-16">
+      <main className="mx-auto flex max-w-md flex-col items-stretch px-4 py-10 sm:px-6 sm:py-16">
         <div className="mb-10 text-left">
           <h1 className="font-heading text-4xl font-light tracking-tighter text-zinc-50" data-testid="auth-title">
             {mode === 'login' ? 'Sign in' : 'Create account'}
