@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import com.twinchainstudios.ourkanban.model.auth.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
     Optional<User> findByProviderId(String providerId);
+    
+    List<User> findTop10ByUsernameContainingIgnoreCaseOrderByUsernameAsc(String query);
 }

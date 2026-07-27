@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.controller;
+package com.twinchainstudios.ourkanban.controller.auth;
 
 import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
