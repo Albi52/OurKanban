@@ -16,8 +16,9 @@ export default function App() {
     <AuthProvider>
       <Toaster theme="dark" position="top-right" />
       <BrowserRouter>
+      <AuthGate />
         <Routes>
-          <AuthGate />
+          
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
