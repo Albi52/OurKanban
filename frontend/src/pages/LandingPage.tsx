@@ -102,18 +102,17 @@ const LandingPage: React.FC = () => {
             </Link>
           ) : (
             <>
-              <div className="flex items-center gap-2">
-                <Link to="/login?mode=register">
-                  <Button variant="outline" className="rounded-full border-zinc-700 bg-transparent text-zinc-100 hover:bg-zinc-900 hover:text-zinc-50" data-testid="nav-register-btn">
-                    Register
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button className="rounded-full bg-zinc-50 px-4 text-zinc-950 hover:bg-zinc-200 sm:px-5" data-testid="nav-signin-btn">
-                    Sign in
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/login">
+                <Button size="lg" variant="outline" className="h-12 rounded-full border-zinc-700 bg-transparent px-6 text-base text-zinc-100 hover:bg-zinc-900 hover:text-zinc-50 sm:px-8" data-testid="hero-register-btn">
+                 Sign in
+                  <ArrowUpRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/login?mode=register">
+                <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-signin-btn">
+                  Create account
+                </Button>
+              </Link>
             </>
           )}
         </div>
