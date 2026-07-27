@@ -63,12 +63,12 @@ const LandingPage: React.FC = () => {
         ) : (
           <div className="flex items-center gap-2">
             <Link to="/login">
-              <Button variant="ghost" className="text-zinc-300 hover:text-zinc-50 hover:bg-zinc-900" data-testid="nav-signin-btn">
+              <Button className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200 rounded-full px-5" data-testid="nav-register-btn">
                 Sign in
               </Button>
             </Link>
             <Link to="/login?mode=register">
-              <Button className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200 rounded-full px-5" data-testid="nav-register-btn">
+              <Button variant="ghost" className="text-zinc-300 hover:text-zinc-50 hover:bg-zinc-900" data-testid="nav-signin-btn">
                 Register
               </Button>
             </Link>
@@ -103,13 +103,13 @@ const LandingPage: React.FC = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button size="lg" variant="outline" className="h-12 rounded-full border-zinc-700 bg-transparent px-6 text-base text-zinc-100 hover:bg-zinc-900 hover:text-zinc-50 sm:px-8" data-testid="hero-register-btn">
-                 Sign in
+                <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-signin-btn">
+                  Sign in
                   <ArrowUpRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/login?mode=register">
-                <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-signin-btn">
+                <Button size="lg" variant="outline" className="h-12 rounded-full border-zinc-700 bg-transparent px-6 text-base text-zinc-100 hover:bg-zinc-900 hover:text-zinc-50 sm:px-8" data-testid="hero-register-btn">
                   Create account
                 </Button>
               </Link>
