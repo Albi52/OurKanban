@@ -4,6 +4,8 @@ import { TOKEN_STORAGE_KEY } from '../constants'
 import { decodeToken } from '../lib/jwt'
 import { usernameToColor } from '../lib/avatarColor'
 import { getMe } from '../api/authAPI'
+import { registerUnauthorizedHandler } from '../api/authEvents'
+import { toast } from 'sonner'
 
 interface AuthUser {
   username: string
@@ -31,12 +33,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem(TOKEN_STORAGE_KEY)
   }, [token])
 
+  useEffect(() => {
+  registerUnauthorizedHandler(() => {
+    setToken(null)
+    toast.error('Your session has expired. Please log in again.')
+  })
+}, [])
   const baseUser = useMemo(() => {
     if (!token) return null
     const decoded = decodeToken(token)
     if (!decoded) return null
     return { username: decoded.username, avatarColor: usernameToColor(decoded.username) }
   }, [token])
+
+  useEffect(() => {
+  registerUnauthorizedHandler(() => {
+    setToken(null)
+  })
+}, [])
 
   useEffect(() => {
     if (!token) {

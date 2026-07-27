@@ -1,4 +1,5 @@
 import { TOKEN_STORAGE_KEY } from '../constants'
+import { notifyUnauthorized } from './authEvents'
 
 const API_PREFIX = "/api";
 
@@ -22,6 +23,10 @@ async function request<TResponse>(
     },
     body: body ? JSON.stringify(body) : undefined,
   })
+    if (res.status === 401) {
+    notifyUnauthorized()
+    throw new Error('Session expired. Please log in again.')
+  }
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => null)

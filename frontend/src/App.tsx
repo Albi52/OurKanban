@@ -9,6 +9,7 @@ import BoardPage from './pages/BoardPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import TermsPage from './pages/TermsPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import { AuthGate } from './components/AuthGate'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Toaster theme="dark" position="top-right" />
       <BrowserRouter>
         <Routes>
+          <AuthGate />
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
