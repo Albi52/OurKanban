@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import type { WorkGroup } from '../types/workgroup'
-import { Button } from '../components/ui/button'
+import type { WorkGroup } from '../../../types/workgroup'
+import { Button } from '../../../components/shared/ui/button'
 import { Plus, Users, LogOut, ChevronDown } from 'lucide-react'
-import { ProjectCard } from './ProjectCard'
+import { ProjectCard } from '../projects/ProjectCard'
 import { ParticipantsDialog } from './ParticipantsDialog'
-import { leaveWorkGroup } from '../api/workGroupAPI'
+import { leaveWorkGroup } from '../../../api/homeManagement/workGroupAPI'
 import { toast } from 'sonner'
-import { cn } from '../lib/utils'
+import { cn } from '../../../lib/utils'
 
 interface Props {
   group: WorkGroup

@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 import { TOKEN_STORAGE_KEY } from '../constants'
 import { decodeToken } from '../lib/jwt'
 import { usernameToColor } from '../lib/avatarColor'
-import { getMe } from '../api/authAPI'
-import { registerUnauthorizedHandler } from '../api/authEvents'
+import { getMe } from '../api/account/authAPI'
+import { registerUnauthorizedHandler } from '../api/account/authEvents'
 import { toast } from 'sonner'
 
 interface AuthUser {

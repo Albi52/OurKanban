@@ -10,7 +10,7 @@ import { getMe, updateUsername, updatePassword, uploadProfilePicture, removeProf
 import { useAuth } from '../context/AuthContext'
 import type { MeResponse } from '../types/auth'
 import { UserAvatar } from './UserAvatar'
-import GoogleSignInButton from './GoogleSignInButton'
+import GoogleSignInButton from './auth/GoogleSignInButton'
 
 interface Props {
   open: boolean

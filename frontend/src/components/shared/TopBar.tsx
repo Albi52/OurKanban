@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 import { Button } from './ui/button'
 import { UserAvatar } from './UserAvatar'
 import { AccountSettingsDialog } from './AccountSettingsDialog'
