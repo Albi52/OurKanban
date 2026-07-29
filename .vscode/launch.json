@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-OurkanbanApplication<ourkanban>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.twinchainstudios.ourkanban.OurkanbanApplication",
+            "projectName": "ourkanban",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
