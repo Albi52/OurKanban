@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { getMe, resendVerification } from '../api/authAPI'
-import { Button } from '../components/ui/button'
+import { getMe, resendVerification } from '@api/account/authAPI'
+import { Button } from '@components/shared/ui/button'
 
 export function VerifyEmailBanner() {
   const [status, setStatus] = useState<{ emailVerified: boolean; localCredentialsPending: boolean } | null>(null)

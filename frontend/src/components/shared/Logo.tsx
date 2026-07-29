@@ -1,5 +1,5 @@
 import React from 'react'
-import { Squares2X2Icon } from './BrandIcon'
+import { Squares2X2Icon } from '@components/shared/BrandIcon'
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'

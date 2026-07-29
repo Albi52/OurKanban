@@ -1,5 +1,5 @@
-import { apiGet, apiPost } from './client'
-import type { BoardColumn } from '../types/board'
+import { apiGet, apiPost } from '@api/client'
+import type { BoardColumn } from '@app-types/board'
 
 export function getColumns(projectId: number): Promise<BoardColumn[]> {
   return apiGet<BoardColumn[]>(`/projects/${projectId}/columns`)

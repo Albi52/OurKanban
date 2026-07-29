@@ -1,5 +1,5 @@
-import { apiPost, apiGet, apiPatch, apiDelete, apiUpload } from './client'
-import type { LoginRequest, RegisterRequest, AuthResponse, GoogleLoginRequest, MeResponse, UpdatePasswordRequest, UpdateUsernameRequest} from '../types/auth'
+import { apiPost, apiGet, apiPatch, apiDelete, apiUpload } from '@api/client'
+import type { LoginRequest, RegisterRequest, AuthResponse, GoogleLoginRequest, MeResponse, UpdatePasswordRequest, UpdateUsernameRequest} from '@app-types/auth'
 
 
 export function login(request: LoginRequest): Promise<AuthResponse> {

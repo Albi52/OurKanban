@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@components/shared/ui/dialog'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
 import { toast } from 'sonner'
-import { createProject } from '../api/projectAPI'
-import type { WorkGroup } from '../types/workgroup'
+import { createProject } from '@api/homeManagement/projectAPI'
+import type { WorkGroup } from '@app-types/workgroup'
 
 interface Props {
   group: WorkGroup | null

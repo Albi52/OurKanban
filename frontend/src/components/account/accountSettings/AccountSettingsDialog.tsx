@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
-} from '../components/ui/dialog'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Label } from '../components/ui/label'
+} from '@components/shared/ui/dialog'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
+import { Label } from '@components/shared/ui/label'
 import { toast } from 'sonner'
-import { getMe, updateUsername, updatePassword, uploadProfilePicture, removeProfilePicture, refreshGoogleProfilePicture } from '../api/authAPI'
-import { useAuth } from '../context/AuthContext'
-import type { MeResponse } from '../types/auth'
-import { UserAvatar } from './UserAvatar'
-import GoogleSignInButton from './auth/GoogleSignInButton'
+import { getMe, updateUsername, updatePassword, uploadProfilePicture, removeProfilePicture, refreshGoogleProfilePicture } from '@api/account/authAPI'
+import { useAuth } from '@context/AuthContext'
+import type { MeResponse } from '@app-types/auth'
+import { UserAvatar } from '@components/shared/UserAvatar'
+import GoogleSignInButton from '@components/account/auth/GoogleSignInButton'
 
 interface Props {
   open: boolean

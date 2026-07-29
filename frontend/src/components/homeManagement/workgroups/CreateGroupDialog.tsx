@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../shared/ui/dialog'
-import { Button } from '../../shared/ui/button'
-import { Input } from '../../shared/ui/input'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@components/shared/ui/dialog'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
 import { toast } from 'sonner'
-import { createWorkGroup } from '../../../api/homeManagement/workGroupAPI'
+import { createWorkGroup } from '@api/homeManagement/workGroupAPI'
 
 interface Props {
   open: boolean

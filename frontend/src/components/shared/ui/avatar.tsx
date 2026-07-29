@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
-import { cn } from '../../../lib/utils'
+import { cn } from '@lib/utils'
 
 type AvatarProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
   ref?: React.Ref<React.ComponentRef<typeof AvatarPrimitive.Root>>

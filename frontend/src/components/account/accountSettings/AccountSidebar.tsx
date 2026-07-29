@@ -1,11 +1,11 @@
 import React from 'react'
-import { useAuth } from '../context/AuthContext'
-import type { WorkGroup } from '../types/workgroup'
+import { useAuth } from '@context/AuthContext'
+import type { WorkGroup } from '@app-types/workgroup'
 import { Users, LayoutGrid, Circle } from 'lucide-react'
 import { useState } from 'react'
 import { Settings } from 'lucide-react'
-import { AccountSettingsDialog } from './AccountSettingsDialog'
-import { UserAvatar } from './UserAvatar'
+import { AccountSettingsDialog } from '@components/account/accountSettings/AccountSettingsDialog'
+import { UserAvatar } from '@components/shared/UserAvatar'
 
 
 interface Props {

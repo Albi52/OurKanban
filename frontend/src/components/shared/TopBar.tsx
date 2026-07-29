@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Logo } from './Logo'
-import { useAuth } from '../../context/AuthContext'
-import { Button } from './ui/button'
-import { UserAvatar } from './UserAvatar'
-import { AccountSettingsDialog } from './AccountSettingsDialog'
+import { Logo } from '@components/shared/Logo'
+import { useAuth } from '@context/AuthContext'
+import { Button } from '@components/shared/ui/button'
+import { UserAvatar } from '@components/shared/UserAvatar'
+import { AccountSettingsDialog } from '@components/account/accountSettings/AccountSettingsDialog'
 import { LogOut } from 'lucide-react'
 
 export const TopBar: React.FC = () => {

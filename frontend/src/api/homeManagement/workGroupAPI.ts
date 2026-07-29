@@ -1,5 +1,5 @@
-import { apiGet, apiPost, apiDelete } from '../client'
-import type { WorkGroup, CreateWorkGroupRequest, AddMemberRequest } from '../../types/workgroup'
+import { apiGet, apiPost, apiDelete } from '@api/client'
+import type { WorkGroup, CreateWorkGroupRequest, AddMemberRequest } from '@app-types/workgroup'
 
 export function getMyWorkGroups(): Promise<WorkGroup[]> {
   return apiGet<WorkGroup[]>('/workgroups/mine')

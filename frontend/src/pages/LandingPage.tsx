@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Logo } from '../components/shared/Logo'
-import { Button } from '../components/shared/ui/button'
+import { Logo } from '@components/shared/Logo'
+import { Button } from '@components/shared/ui/button'
 import { ArrowUpRight, LogOut } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { UserAvatar } from '../components/shared/UserAvatar'
+import { useAuth } from '@context/AuthContext'
+import { UserAvatar } from '@components/shared/UserAvatar'
 
 const LandingPage: React.FC = () => {
   const { user, logout } = useAuth()

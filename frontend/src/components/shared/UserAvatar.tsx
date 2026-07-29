@@ -1,4 +1,4 @@
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@components/shared/ui/avatar'
 
 interface Props {
   username: string

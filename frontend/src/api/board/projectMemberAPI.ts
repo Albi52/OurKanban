@@ -1,5 +1,5 @@
-import { apiGet, apiPatch } from './client'
-import type { ProjectMember, UpdateDisplayNameRequest } from '../types/projectMember'
+import { apiGet, apiPatch } from '@api/client'
+import type { ProjectMember, UpdateDisplayNameRequest } from '@app-types/projectMember'
 
 export function getProjectMembers(projectId: number): Promise<ProjectMember[]> {
   return apiGet<ProjectMember[]>(`/projects/${projectId}/members`)

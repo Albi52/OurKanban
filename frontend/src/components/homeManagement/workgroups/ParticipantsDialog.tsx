@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog'
-import { Button } from '../components/ui/button'
-import { Input } from '../../../components/shared/ui/input'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@components/shared/ui/dialog'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
 import { toast } from 'sonner'
-import { addMember, removeMember } from '../../../api/homeManagement/workGroupAPI'
-import { usernameToColor } from '../../../lib/avatarColor'
-import type { WorkGroup } from '../../../types/workgroup'
+import { addMember, removeMember } from '@api/homeManagement/workGroupAPI'
+import { usernameToColor } from '@lib/avatarColor'
+import type { WorkGroup } from '@app-types/workgroup'
 import { X, UserPlus, Crown } from 'lucide-react'
-import { UserAvatar } from '../../shared/UserAvatar'
+import { UserAvatar } from '@components/shared/UserAvatar'
 
-import { searchUsers } from '../../../api/account/userAPI'
-import type { UserSearchResult } from '../../../types/user'
+import { searchUsers } from '@api/account/userAPI'
+import type { UserSearchResult } from '@app-types/user'
 
 interface Props {
   open: boolean

@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog'
-import { Button } from '../components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@components/shared/ui/dialog'
+import { Button } from '@components/shared/ui/button'
 import { toast } from 'sonner'
-import { deleteProject } from '../api/projectAPI'
-import type { ProjectSummary } from '../types/workgroup'
+import { deleteProject } from '@api/homeManagement/projectAPI'
+import type { ProjectSummary } from '@app-types/workgroup'
 
 interface Props {
   project: ProjectSummary

@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ProjectSummary } from '../types/workgroup'
+import type { ProjectSummary } from '@app-types/workgroup'
 import { MoreHorizontal, ArrowUpRight } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu'
-import { RenameProjectDialog } from './RenameProjectDialog'
-import { DeleteProjectDialog } from './DeleteProjectDialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@components/shared/ui/dropdown-menu'
+import { RenameProjectDialog } from '@components/homeManagement/projects/RenameProjectDialog'
+import { DeleteProjectDialog } from '@components/homeManagement/projects/DeleteProjectDialog'
 
 interface Props {
   project: ProjectSummary
