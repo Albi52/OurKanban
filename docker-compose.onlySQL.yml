@@ -10,7 +10,7 @@ services:
 
     environment:
       MYSQL_DATABASE: ourkanban
-      MYSQL_USER: ourkanban
+      MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
