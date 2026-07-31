@@ -3,8 +3,6 @@ package com.twinchainstudios.ourkanban.dto.domain.websockets.Evets;
 import java.time.LocalDateTime;
 
 import com.twinchainstudios.ourkanban.model.domain.EventType;
-import com.twinchainstudios.ourkanban.model.domain.Project;
-import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
 
 
 public class EventMessage {
@@ -16,7 +14,6 @@ public class EventMessage {
     public String text;
     public LocalDateTime date;
     public EventType type; 
-    public Project project;
 
     public EventMessage() {}
 }

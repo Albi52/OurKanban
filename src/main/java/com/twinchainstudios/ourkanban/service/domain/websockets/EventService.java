@@ -2,10 +2,9 @@ package com.twinchainstudios.ourkanban.service.domain.websockets;
 
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventMessage;
-import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Event;
 import com.twinchainstudios.ourkanban.model.domain.Project;
-import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectMemberRepository;
@@ -13,24 +12,23 @@ import com.twinchainstudios.ourkanban.repository.domain.EventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 public class EventService {
 
     private final EventRepository EventRepository;
-    private final DashboardColumnRepository columnRepository;
     private final ProjectRepository projectRepository;
-    private final ProjectMemberRepository memberRepository;
+    private final UserRepository userRepository;
 
     public EventService(EventRepository EventRepository,
-                       DashboardColumnRepository columnRepository,
-                       ProjectRepository projectRepository,
-                       ProjectMemberRepository memberRepository) {
+                        UserRepository userRepository,
+                        DashboardColumnRepository columnRepository,
+                        ProjectRepository projectRepository,
+                        ProjectMemberRepository memberRepository
+                    ) 
+    {
         this.EventRepository = EventRepository;
-        this.columnRepository = columnRepository;
         this.projectRepository = projectRepository;
-        this.memberRepository = memberRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -95,6 +93,16 @@ public class EventService {
 
     private EventDto toDto(Event event) {
         Long projectId = event.getProject() != null ? event.getProject().getId() : null;
-        return new EventDto(event.getId(), event.getText(), event.getDate(), event.getType(), projectId);
+        Long authorId = event.getAuthor() != null ? event.getAuthor().getId() : null;
+        String authorName = event.getAuthor() != null ? event.getAuthor().getUser().getUsername() : null;
+        return new EventDto(
+            event.getId(), 
+            event.getText(), 
+            event.getDate(), 
+            event.getType(), 
+            projectId, 
+            authorId,
+            authorName
+        );
     }
 }

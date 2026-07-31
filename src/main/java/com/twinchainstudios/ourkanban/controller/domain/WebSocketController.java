@@ -5,6 +5,7 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventMessage;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
+import com.twinchainstudios.ourkanban.service.auth.UserSearchService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
@@ -20,7 +21,13 @@ public class WebSocketController {
     
     private final SimpMessagingTemplate messagingTemplate;
 
-    public WebSocketController(TaskService taskService, EventService eventService, SimpMessagingTemplate messagingTemplate) {
+    public WebSocketController(
+        TaskService taskService, 
+        EventService eventService, 
+        SimpMessagingTemplate messagingTemplate
+    ) 
+        {
+
         this.taskService = taskService;
         this.eventService = eventService;
         this.messagingTemplate = messagingTemplate;

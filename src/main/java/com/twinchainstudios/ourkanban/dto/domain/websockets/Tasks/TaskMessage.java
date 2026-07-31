@@ -1,7 +1,5 @@
 package com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks;
 
-import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
-
 public class TaskMessage {
     // action: CREATE | MOVE | UPDATE | DELETE
     public String action;

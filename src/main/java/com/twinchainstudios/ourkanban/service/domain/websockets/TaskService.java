@@ -6,14 +6,13 @@ import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
 import com.twinchainstudios.ourkanban.model.domain.Task;
+import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectMemberRepository;
 import com.twinchainstudios.ourkanban.repository.domain.TaskRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 public class TaskService {
@@ -24,9 +23,11 @@ public class TaskService {
     private final ProjectMemberRepository memberRepository;
 
     public TaskService(TaskRepository taskRepository,
-                       DashboardColumnRepository columnRepository,
-                       ProjectRepository projectRepository,
-                       ProjectMemberRepository memberRepository) {
+                        UserRepository userRepository,
+                        DashboardColumnRepository columnRepository,
+                        ProjectRepository projectRepository,
+                        ProjectMemberRepository memberRepository
+                    ) {
         this.taskRepository = taskRepository;
         this.columnRepository = columnRepository;
         this.projectRepository = projectRepository;
@@ -108,6 +109,19 @@ public class TaskService {
         Long columnId = t.getColumn() != null ? t.getColumn().getId() : null;
         Long projectId = t.getProject() != null ? t.getProject().getId() : null;
         Long assigneeId = t.getAssignee() != null ? t.getAssignee().getId() : null;
-        return new TaskDto(t.getId(), t.getTitle(), columnId, projectId, assigneeId);
+        String assigneeName = t.getAssignee() != null ? t.getAssignee().getUser().getUsername() : null;
+        Long authorId = t.getAuthor() != null ? t.getAuthor().getId() : null;
+        String authorName = t.getAuthor() != null ? t.getAuthor().getUser().getUsername() : null;
+
+        return new TaskDto(
+            t.getId(), 
+            t.getTitle(), 
+            columnId, 
+            projectId, 
+            assigneeId,
+            assigneeName,
+            authorId,
+            authorName
+        );
     }
 }
