@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+<<<<<<< HEAD
 import { TopBar } from '../components/TopBar'
 import { WorkingGroupSection } from '../components/WorkingGroupSection'
 import { AccountSidebar } from '../components/AccountSidebar'
@@ -11,6 +12,20 @@ import { Button } from '../components/ui/button'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { VerifyEmailBanner } from '../components/EmailVerifyBanner'
+=======
+import { TopBar } from '@components/shared/TopBar'
+import { WorkingGroupSection } from '@components/homeManagement/workgroups/WorkingGroupSection'
+import { AccountSidebar } from '@components/account/accountSettings/AccountSidebar'
+import { CreateProjectDialog } from '@components/homeManagement/projects/CreateProjectDialog'
+import { CreateGroupDialog } from '@components/homeManagement/workgroups/CreateGroupDialog'
+import { useAuth } from '@context/AuthContext'
+import { getMyWorkGroups } from '@api/homeManagement/workGroupAPI'
+import type { WorkGroup } from '@app-types/workgroup'
+import { Button } from '@components/shared/ui/button'
+import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
+import { VerifyEmailBanner } from '@components/account/auth/EmailVerifyBanner'
+>>>>>>> main
 
 const HomePage: React.FC = () => {
   const { user } = useAuth()
