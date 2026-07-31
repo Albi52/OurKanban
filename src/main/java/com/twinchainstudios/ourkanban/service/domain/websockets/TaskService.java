@@ -1,7 +1,7 @@
-package com.twinchainstudios.ourkanban.service.domain;
+package com.twinchainstudios.ourkanban.service.domain.websockets;
 
-import com.twinchainstudios.ourkanban.dto.domain.websockets.TaskDto;
-import com.twinchainstudios.ourkanban.dto.domain.websockets.TaskMessage;
+import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
+import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;

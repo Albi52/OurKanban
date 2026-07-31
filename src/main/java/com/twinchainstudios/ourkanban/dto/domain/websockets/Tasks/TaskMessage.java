@@ -1,8 +1,11 @@
-package com.twinchainstudios.ourkanban.dto.domain.websockets;
+package com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks;
+
+import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
 
 public class TaskMessage {
     // action: CREATE | MOVE | UPDATE | DELETE
     public String action;
+
     public Long taskId;      // para MOVE/UPDATE/DELETE
     public String title;     // para CREATE/UPDATE
     public Long columnId;    // para CREATE/MOVE

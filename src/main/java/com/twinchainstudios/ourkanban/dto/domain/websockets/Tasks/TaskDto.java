@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.dto.domain.websockets;
+package com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks;
 
 public class TaskDto {
     public Long id;
