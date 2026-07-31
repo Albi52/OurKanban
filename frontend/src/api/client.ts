@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import { TOKEN_STORAGE_KEY } from '../constants'
-import { notifyUnauthorized } from './authEvents'
-=======
 import { TOKEN_STORAGE_KEY } from '@/constants'
 import { notifyUnauthorized } from '@api/account/authEvents'
->>>>>>> main
 
 const API_PREFIX = "/api";
 
