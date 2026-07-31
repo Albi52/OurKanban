@@ -1,16 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-<<<<<<< HEAD
-import { getProject } from '../api/projectAPI'
-import { getColumns } from '../api/columnAPI'
-import type { ProjectSummary } from '../types/workgroup'
-import type { BoardColumn } from '../types/board'
-import { TopBar } from '../components/TopBar'
-import { Button } from '../components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs'
-import { KanbanView } from '../components/board/KanbanView'
-import { CalendarView } from '../components/board/CalendarView'
-=======
 import { getProject } from '@api/homeManagement/projectAPI'
 import { getColumns } from '@api/board/columnAPI'
 import type { ProjectSummary } from '@app-types/workgroup'
@@ -20,7 +9,6 @@ import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
 import { KanbanView } from '@components/board/KanbanView'
 import { CalendarView } from '@components/board/CalendarView'
->>>>>>> main
 import { Layout, CalendarDays } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
