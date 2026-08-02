@@ -7,31 +7,15 @@ import type { BoardColumn } from '@app-types/board'
 import { TopBar } from '@components/shared/TopBar'
 import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
-import { KanbanView } from '@components/board/KanbanView'
+import { KanbanView, type Task } from '@components/board/KanbanView'
 import { CalendarView } from '@components/board/CalendarView'
-import { Layout, CalendarDays } from 'lucide-react'
+import { Layout, CalendarDays, Columns } from 'lucide-react'
 
-// ---------------------------------------------------------------------------
-// NOTE FOR WHOEVER ADDS WEBSOCKETS:
-//
-// This page loads the board once via REST (`load()` below) and never
-// updates after that unless the current user makes a change themselves.
-//
-// Intended integration point:
-//   - Keep `load()` for the initial fetch when the page opens (REST is
-//     still right for "give me everything right now").
-//   - After connecting to the socket (e.g. a new useEffect keyed on
-//     `projectId`), subscribe to a project-scoped topic
-//     (e.g. `/topic/projects/{projectId}`) and merge incoming events into
-//     `columns` (and later `tasks`) via their setters here, then pass the
-//     updated state down to both `KanbanView` and `CalendarView` as props.
-//     Both tabs stay mounted at once (see TabsContent below — Radix keeps
-//     inactive panels in the DOM, just hidden), so both will reflect live
-//     updates immediately even while not the visible tab, since they share
-//     this one source of truth instead of each fetching independently.
-//   - `project.isLeader` is already computed server-side on `ProjectSummary`
-//     — reuse it for any other leader-only realtime action.
-// ---------------------------------------------------------------------------
+// Objeto simulado o recuperado de la sesión actual
+const CURRENT_USER = {
+  id: 1, // ID del usuario autenticado
+  name: 'Current User',
+}
 
 export default function BoardPage() {
   const { id } = useParams()
@@ -40,11 +24,16 @@ export default function BoardPage() {
 
   const [project, setProject] = useState<ProjectSummary | null>(null)
   const [columns, setColumns] = useState<BoardColumn[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function load() {
     try {
-      const [p, cols] = await Promise.all([getProject(projectId), getColumns(projectId)])
+      const [p, cols] = await Promise.all([
+        getProject(projectId),
+        getColumns(projectId),
+      ])
       setProject(p)
       setColumns(cols)
     } catch (err) {
@@ -56,6 +45,17 @@ export default function BoardPage() {
     if (id) load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  function handleDeleteTask(taskId: string) {
+    setTasks((current) => current.filter((task) => task.id !== taskId))
+    if (selectedTaskId === taskId) setSelectedTaskId(null)
+  }
+
+  function handleUpdateTask(updatedTask: Task) {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    )
+  }
 
   if (error) {
     return (
@@ -77,19 +77,15 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50">
+    <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
       <TopBar />
 
-      <div className="mx-auto max-w-[1600px] px-6 py-8 md:px-10">
-        {/* Single Tabs root wraps both the switcher and the panels below —
-            required so Radix's active-tab state is shared between them.
-            Don't split this into two <Tabs> instances; the triggers and
-            the content must be siblings under one root. */}
-        <Tabs defaultValue="kanban">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-1 flex-col mx-auto w-full max-w-[1800px] px-6 py-6 md:px-10">
+        <Tabs defaultValue="kanban" className="flex flex-1 flex-col">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Project</p>
-              <h1 className="font-heading text-3xl font-light tracking-tighter text-zinc-50 sm:text-4xl md:text-5xl">
+              <h1 className="font-heading text-3xl font-light tracking-tighter text-zinc-50 sm:text-4xl">
                 {project.name}
               </h1>
             </div>
@@ -111,15 +107,71 @@ export default function BoardPage() {
                 <CalendarDays className="mr-2 h-4 w-4" />
                 Calendar
               </TabsTrigger>
+              <TabsTrigger
+                value="split"
+                className="text-zinc-400 data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950"
+                data-testid="board-tab-split"
+              >
+                <Columns className="mr-2 h-4 w-4" />
+                Split View
+              </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="kanban" className="mt-8">
-            <KanbanView project={project} columns={columns} onColumnsChanged={load} />
+          {/* Vista Kanban individual */}
+          <TabsContent value="kanban" className="mt-6 flex-1 flex flex-col min-h-0">
+            <KanbanView
+              project={project}
+              columns={columns}
+              tasks={tasks}
+              currentUser={CURRENT_USER}
+              selectedTaskId={selectedTaskId}
+              onSelectTaskId={setSelectedTaskId}
+              onTasksChange={setTasks}
+              onColumnsChanged={load}
+            />
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-8">
-            <CalendarView />
+          {/* Vista Calendario individual */}
+          <TabsContent value="calendar" className="mt-6 flex-1 flex flex-col min-h-0">
+            <CalendarView
+              project={project}
+              tasks={tasks}
+              currentUser={CURRENT_USER}
+              selectedTaskId={selectedTaskId}
+              onSelectTaskId={setSelectedTaskId}
+              onDeleteTask={handleDeleteTask}
+              onUpdateTask={handleUpdateTask}
+              onCreateTask={(newTask) => setTasks((prev) => [...prev, newTask])}
+            />
+          </TabsContent>
+
+          {/* Vista Dividida: Kanban + Calendario al mismo tiempo */}
+          <TabsContent value="split" className="mt-6 flex-1 flex gap-6 overflow-hidden min-h-0">
+            <div className="flex-1 flex flex-col min-w-0 border-r border-zinc-800/80 pr-4">
+              <KanbanView
+                project={project}
+                columns={columns}
+                tasks={tasks}
+                currentUser={CURRENT_USER}
+                selectedTaskId={selectedTaskId}
+                onSelectTaskId={setSelectedTaskId}
+                onTasksChange={setTasks}
+                onColumnsChanged={load}
+              />
+            </div>
+            <div className="flex-1 flex flex-col min-w-0 pl-2">
+              <CalendarView
+                project={project}
+                tasks={tasks}
+                currentUser={CURRENT_USER}
+                selectedTaskId={selectedTaskId}
+                onSelectTaskId={setSelectedTaskId}
+                onDeleteTask={handleDeleteTask}
+                onUpdateTask={handleUpdateTask}
+                onCreateTask={(newTask) => setTasks((prev) => [...prev, newTask])}
+              />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

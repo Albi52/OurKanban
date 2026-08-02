@@ -9,6 +9,8 @@ public class TaskMessage {
     public Long columnId;    // para CREATE/MOVE
     public Long projectId;   // target project (required)
     public Long assigneeId;  // optional
+    public int positionX;      // optional, for MOVE
+    public int positionY;      // optional, for MOVE
 
     public TaskMessage() {}
 }

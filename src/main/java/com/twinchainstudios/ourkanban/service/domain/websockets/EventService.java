@@ -32,8 +32,10 @@ public class EventService {
     }
 
     @Transactional
-    public EventDto handleMessage(EventMessage msg) {
+    public EventDto handleMessage(EventMessage msg, Long userId) {
         if (msg.action == null) throw new IllegalArgumentException("action required");
+
+        
 
         switch (msg.action.toUpperCase()) {
             case "CREATE":

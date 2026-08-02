@@ -15,13 +15,19 @@ public class Task {
     private Long id;
 
     private String title;
-@ManyToOne
-@JoinColumn(name = "column_id")
-private DashboardColumn column;
+
+    @ManyToOne
+    @JoinColumn(name = "column_id")
+    private DashboardColumn column;
 
     private LocalDate startDate;
 
-    private LocalDate endDate;
+    private LocalDate endDate;    
+
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority;
+
+    //private 
 
     @ManyToOne
     @JoinColumn(name = "assignee_id")

@@ -11,6 +11,7 @@ import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepositor
 import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectMemberRepository;
 import com.twinchainstudios.ourkanban.repository.domain.TaskRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,21 +36,34 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDto handleMessage(TaskMessage msg) {
+    public TaskDto handleMessage(TaskMessage msg, Long userId) {
         if (msg.action == null) throw new IllegalArgumentException("action required");
+        Project p;
+        if(msg.projectId != null) {
+            p = projectRepository.findById(msg.projectId)
+                    .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+                    
+            ProjectMember user = p.getMembers().stream().filter(
+                    m -> m.getId().equals(userId)).findFirst().orElseThrow(
+                () -> new IllegalArgumentException("User not found in project")
+                );
 
-        switch (msg.action.toUpperCase()) {
-            case "CREATE":
-                return createTask(msg);
-            case "MOVE":
-                return moveTask(msg);
-            case "UPDATE":
-                return updateTask(msg);
-            case "DELETE":
-                deleteTask(msg);
-                return null;
-            default:
-                throw new IllegalArgumentException("Unknown action: " + msg.action);
+            switch (msg.action.toUpperCase()) {
+                case "CREATE":
+                    return createTask(msg);
+                case "MOVE":
+                    return moveTask(msg);
+                case "UPDATE":
+                    return updateTask(msg);
+                case "DELETE":
+                    deleteTask(msg);
+                    return null;
+                default:
+                    throw new IllegalArgumentException("Unknown action: " + msg.action);
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Project ID is required");
         }
     }
 
