@@ -23,7 +23,7 @@ public class EmailService {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Verify your OurKanban email");
+        message.setSubject("[OurKanban] Verify your OurKanban email");
         message.setText(
                 "Welcome to OurKanban!\n\n" +
                 "Please verify your email by clicking the link below:\n\n" +
