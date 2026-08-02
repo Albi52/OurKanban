@@ -50,13 +50,30 @@ public class TaskService {
 
             switch (msg.action.toUpperCase()) {
                 case "CREATE":
-                    return createTask(msg);
+                    if(user.getRoles().stream().noneMatch(r -> r.getPermissions().contains("TASK_CREATE"))) {
+                        throw new IllegalArgumentException("User does not have permission to create tasks");
+                    }else{
+                        return createTask(msg);
+                    }
                 case "MOVE":
-                    return moveTask(msg);
+                    if(user.getRoles().stream().noneMatch(r -> r.getPermissions().contains("TASK_EDIT"))) {
+                        throw new IllegalArgumentException("User does not have permission to move tasks");
+                    }else{
+                        return moveTask(msg);
+                    }
                 case "UPDATE":
-                    return updateTask(msg);
+                    if(user.getRoles().stream().noneMatch(r -> r.getPermissions().contains("TASK_EDIT"))) {
+                        throw new IllegalArgumentException("User does not have permission to update tasks");
+                    }
+                    else{
+                        return updateTask(msg);
+                    }
                 case "DELETE":
-                    deleteTask(msg);
+                    if(user.getRoles().stream().noneMatch(r -> r.getPermissions().contains("TASK_DELETE"))) {
+                        throw new IllegalArgumentException("User does not have permission to delete tasks");
+                    }else{
+                        deleteTask(msg);
+                    }
                     return null;
                 default:
                     throw new IllegalArgumentException("Unknown action: " + msg.action);
