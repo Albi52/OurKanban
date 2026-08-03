@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Client } from '@stomp/stompjs'
-import type { IFrame } from '@stomp/stompjs'
+//import type { IFrame } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 
 
@@ -30,11 +30,11 @@ export function useStomp(projectId: number, onMessage: (m: TaskDto) => void) {
       // webSocketFactory is recommended with SockJS
       webSocketFactory: () => new SockJS(`${window.location.protocol}//${window.location.host}/ws`),
       reconnectDelay: 5000,
-      debug: (str) => { /* console.log(str) */ },
-      onConnect: (frame: IFrame) => {
+      //debug: (str) => { /* console.log(str) */ },
+      onConnect: (/*frame: IFrame*/) => {
         setConnected(true);
         // subscribe to project topic
-        const sub = client.subscribe(`/topic/projects/${projectId}/tasks`, (msg) => {
+        /*const sub =*/ client.subscribe(`/topic/projects/${projectId}/tasks`, (msg) => {
           if (msg.body) {
             try {
               const dto: TaskDto = JSON.parse(msg.body);
