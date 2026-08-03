@@ -8,8 +8,8 @@ import {
   Pencil,
   Plus,
 } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
 import type { Task } from './KanbanView'
 import type { ProjectSummary } from '../../types/workgroup'
 
