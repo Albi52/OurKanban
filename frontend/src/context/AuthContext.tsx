@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 interface AuthUser {
   username: string
   avatarColor: string
-  profilePicture?: string | null
+  profilePicture?: string | null | undefined
 }
 
 interface AuthContextValue {
@@ -26,7 +26,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY))
-  const [profilePicture, setProfilePicture] = useState<string | null>(null)
+  const [profilePicture, setProfilePicture] = useState<string | null | undefined>(undefined)
 
   useEffect(() => {
     if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token)
@@ -54,11 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!token) {
-      setProfilePicture(null)
+      setProfilePicture(undefined)
       return
     }
+    setProfilePicture(undefined)
     getMe()
-      .then((me) => setProfilePicture(me.profilePicture))
+      .then((me) => setProfilePicture(me.profilePicture ?? null))
       .catch(() => setProfilePicture(null))
   }, [token])
 
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refreshProfile() {
     if (!token) return
     const me = await getMe()
-    setProfilePicture(me.profilePicture)
+    setProfilePicture(me.profilePicture ?? null)
   }
 
   return (
