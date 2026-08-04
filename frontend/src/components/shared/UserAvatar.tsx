@@ -23,7 +23,10 @@ export function UserAvatar({ username, profilePicture, avatarColor, className }:
   return (
     <Avatar className={className}>
       {profilePicture && <AvatarImage src={profilePicture} alt={username} />}
-      <AvatarFallback className="text-xs font-medium text-zinc-950" style={{ background: avatarColor }}>
+      <AvatarFallback 
+      delayMs={profilePicture ? 400 : undefined}
+      className="text-xs font-medium text-zinc-950" 
+      style={{ background: avatarColor }}>
         {username.slice(0, 2).toUpperCase()}
       </AvatarFallback>
     </Avatar>
