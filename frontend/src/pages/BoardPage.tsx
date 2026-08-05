@@ -46,7 +46,7 @@ export default function BoardPage() {
   const [editPriority, setEditPriority] = useState<String>('medium')
   const [editAssigneeId, setEditAssigneeId] = useState<number | undefined>(undefined)
   const {
-    connected,
+  //  connected,
     sendTaskMessage,
     subscribeTaskMessages
 } = useStomp();
@@ -63,7 +63,7 @@ export default function BoardPage() {
 
     setTasks((prev) => {
       // Si contiene la propiedad 'text', sabemos que se trata de un EventDto
-      const isEvent = 'text' in rawDto
+      //const isEvent = 'text' in rawDto
       let mappedTask: Task
       
       mappedTask = {
