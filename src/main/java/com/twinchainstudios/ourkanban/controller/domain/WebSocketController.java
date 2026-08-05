@@ -8,7 +8,7 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +17,10 @@ import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 
 import java.security.Principal;
 
+import org.springframework.messaging.handler.annotation.Header;
 //import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -44,28 +46,29 @@ public class WebSocketController {
     }
 
     @MessageMapping("/board")
-    public void onBoardMessage(BoardMessage msg, Principal principal) {
-        if (msg.type == null || msg.data == null) {
-            return; // Invalid message
-        }
-        Authentication authentication =
-            (Authentication) SecurityContextHolder.getContext().getAuthentication();
+    public void onBoardMessage(
+        BoardMessage msg, Principal principal) {
 
-        UserPrincipal userPrincipal =
+        System.out.println(principal);
+
+        Authentication authentication =
+                (Authentication) principal;
+
+        UserPrincipal user =
                 (UserPrincipal) authentication.getPrincipal();
 
-        Long userId = userPrincipal.getId();
+        Long userId = user.getId();
 
         System.out.println("Principal = " + principal);
 
         if (principal != null) {
-            System.out.println(principal.getClass().getName());
+            System.out.println("Principal name"+principal.getClass().getName());
         }
 
 
         switch (msg.type) {
             case Task:
-                System.out.println("Received Task message: " + msg.data);
+                //System.out.println("Received Task message: " + msg.data);
                 TaskMessage taskMessage = objectMapper.convertValue(msg.data, TaskMessage.class);
                 TaskDto taskDto = taskService.handleMessage(taskMessage, userId);
 
@@ -76,7 +79,7 @@ public class WebSocketController {
                 }
                 break;
             case Event:
-                System.out.println("Received Event message: " + msg.data);
+                //System.out.println("Received Event message: " + msg.data);
                 EventDto eventsDto= eventService.handleMessage((EventMessage) msg.data, userId);
                 messagingTemplate.convertAndSend("/topic/events", eventsDto);
                 break;
