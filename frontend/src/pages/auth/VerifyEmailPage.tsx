@@ -30,11 +30,11 @@ export default function VerifyEmailPage() {
   }, [token])
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4">
       {status === 'loading' && <p>Verifying...</p>}
       {status === 'success' && <p className="text-emerald-400">{message}</p>}
       {status === 'error' && <p className="text-red-400">{message}</p>}
-      <Link to="/login" className="underline text-zinc-400 hover:text-zinc-50">Back to sign in</Link>
+      <Link to="/login" className="underline text-muted-foreground hover:text-foreground">Back to sign in</Link>
     </div>
   )
 }

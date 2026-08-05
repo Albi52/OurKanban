@@ -236,14 +236,14 @@ export function KanbanView({
               {project.isLeader && (
                 <div className="flex w-80 shrink-0 flex-col">
                   {adding ? (
-                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+                    <div className="rounded-xl border border-border bg-card/60 p-3">
                       <Input
                         value={newColumnName}
                         onChange={(e) => setNewColumnName(e.target.value)}
                         placeholder="Column name"
                         autoFocus
                         onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
-                        className="border-zinc-800 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+                        className="border-border bg-background text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:ring-zinc-500"
                         data-testid="new-column-input"
                       />
                       <div className="mt-2 flex items-center gap-2">
@@ -251,7 +251,7 @@ export function KanbanView({
                           size="sm"
                           onClick={handleAddColumn}
                           disabled={busy || !newColumnName.trim()}
-                          className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
+                          className="bg-primary text-primary-foreground hover:bg-zinc-200"
                           data-testid="new-column-confirm"
                         >
                           {busy ? 'Adding...' : 'Add'}
@@ -260,7 +260,7 @@ export function KanbanView({
                           size="sm"
                           variant="ghost"
                           onClick={() => setAdding(false)}
-                          className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+                          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
                         >
                           Cancel
                         </Button>
@@ -269,7 +269,7 @@ export function KanbanView({
                   ) : (
                     <button
                       onClick={() => setAdding(true)}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-800 text-sm text-zinc-500 hover:border-zinc-600 hover:text-zinc-200"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-foreground0 hover:border-border-hover hover:text-foreground-secondary"
                       data-testid="add-column-btn"
                     >
                       <Plus className="h-4 w-4" />
@@ -365,20 +365,20 @@ function BoardColumnView({
 
   return (
     <div
-      className="flex h-full w-[85vw] max-w-[320px] shrink-0 flex-col rounded-xl border border-zinc-800 bg-zinc-900/40"
+      className="flex h-full w-[85vw] max-w-[320px] shrink-0 flex-col rounded-xl border border-border bg-card/40"
       data-testid={`column-${column.id}`}
     >
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3 shrink-0">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
           {dragHandleProps && (
             <div
               {...dragHandleProps}
-              className="cursor-grab text-zinc-600 hover:text-zinc-300 active:cursor-grabbing"
+              className="cursor-grab text-muted-foreground-subtle hover:text-foreground-secondary active:cursor-grabbing"
             >
               <GripVertical className="h-4 w-4" />
             </div>
           )}
-          <span className="font-heading text-sm font-medium uppercase tracking-[0.15em] text-zinc-200">
+          <span className="font-heading text-sm font-medium uppercase tracking-[0.15em] text-foreground-secondary">
             {column.name}
           </span>
         </div>
@@ -386,7 +386,7 @@ function BoardColumnView({
         {canRemoveColumn && onRemoveColumn ? (
           <button
             type="button"
-            className="rounded-full p-2 text-zinc-500 transition hover:bg-zinc-900 hover:text-zinc-100"
+            className="rounded-full p-2 text-foreground0 transition hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
             onClick={() => onRemoveColumn(column.id)}
             aria-label={`Remove ${column.name}`}
           >
@@ -426,22 +426,22 @@ function BoardColumnView({
                         {...taskProvided.dragHandleProps}
                         data-task-item="true"
                         onClick={() => onSelectTask(task)}
-                        className={`group relative rounded-2xl border bg-zinc-950 p-4 transition cursor-pointer ${priorityBorder} ${
+                        className={`group relative rounded-2xl border bg-background p-4 transition cursor-pointer ${priorityBorder} ${
                           isAssignedToMe
                             ? 'ring-2 ring-indigo-500/80 shadow-md shadow-indigo-950/50'
                             : ''
                         } ${
                           isSelected
                             ? 'border-zinc-500 ring-2 ring-zinc-500/40 shadow-lg shadow-black/80'
-                            : 'border-zinc-800 hover:border-zinc-700'
+                            : 'border-border hover:border-border-hover'
                         } ${taskSnapshot.isDragging ? 'shadow-lg shadow-black/60 ring-1 ring-zinc-700' : ''}`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="font-semibold text-zinc-100">{task.title}</p>
-                            <p className="mt-1 text-xs leading-5 text-zinc-400 line-clamp-2">
+                            <p className="font-semibold text-foreground-secondary">{task.title}</p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2">
                               {task.description || (
-                                <span className="italic text-zinc-600">No description</span>
+                                <span className="italic text-muted-foreground-subtle">No description</span>
                               )}
                             </p>
                           </div>
@@ -449,7 +449,7 @@ function BoardColumnView({
                           {canDelete && (
                             <button
                               type="button"
-                              className="rounded-full p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-900 hover:text-zinc-100 shrink-0"
+                              className="rounded-full p-1 text-foreground0 opacity-0 transition group-hover:opacity-100 hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary shrink-0"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 onDeleteTask(task.id)
@@ -470,13 +470,13 @@ function BoardColumnView({
                         )}
 
                         {/* Fechas horizontales */}
-                        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-zinc-500 border-t border-zinc-900 pt-2">
+                        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-foreground0 border-t border-border pt-2">
                           <span>
-                            <span className="font-medium text-zinc-400">Start:</span>{' '}
+                            <span className="font-medium text-muted-foreground">Start:</span>{' '}
                             {task.startDate || '-'}
                           </span>
                           <span>
-                            <span className="font-medium text-zinc-400">End:</span>{' '}
+                            <span className="font-medium text-muted-foreground">End:</span>{' '}
                             {task.endDate || '-'}
                           </span>
                         </div>
@@ -486,32 +486,32 @@ function BoardColumnView({
                 )
               })
             ) : (
-              <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/60 p-4 text-center text-xs text-zinc-500">
+              <div className="rounded-xl border border-dashed border-border bg-card/60 p-4 text-center text-xs text-foreground0">
                 No tasks yet. Add one to this column.
               </div>
             )}
             {provided.placeholder}
 
             {addingTask ? (
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="rounded-3xl border border-border bg-background/80 p-4">
                 <div className="space-y-3">
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Task title"
-                    className="border-zinc-800 bg-zinc-900 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+                    className="border-border bg-zinc-900 text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:ring-zinc-500"
                     data-testid="task-title-input"
                   />
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Description"
-                    className="min-h-[80px] w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+                    className="min-h-[80px] w-full rounded-md border border-border bg-zinc-900 px-3 py-2 text-xs text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
                   />
 
                   {/* Selección de Prioridad con Colores Visuales */}
                   <div>
-                    <label className="text-[10px] font-semibold text-zinc-500 uppercase block mb-1">
+                    <label className="text-[10px] font-semibold text-foreground0 uppercase block mb-1">
                       Priority
                     </label>
                     <div className="grid grid-cols-3 gap-1">
@@ -521,7 +521,7 @@ function BoardColumnView({
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'low'
                             ? 'bg-emerald-950 border border-emerald-500 text-emerald-300'
-                            : 'bg-zinc-900 border border-zinc-800 text-zinc-500'
+                            : 'bg-zinc-900 border border-border text-foreground0'
                         }`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -533,7 +533,7 @@ function BoardColumnView({
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'medium'
                             ? 'bg-amber-950 border border-amber-500 text-amber-300'
-                            : 'bg-zinc-900 border border-zinc-800 text-zinc-500'
+                            : 'bg-zinc-900 border border-border text-foreground0'
                         }`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
@@ -545,7 +545,7 @@ function BoardColumnView({
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'high'
                             ? 'bg-red-950 border border-red-500 text-red-300'
-                            : 'bg-zinc-900 border border-zinc-800 text-zinc-500'
+                            : 'bg-zinc-900 border border-border text-foreground0'
                         }`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
@@ -556,7 +556,7 @@ function BoardColumnView({
 
                   {/* Dropdown de Responsables de Grupo */}
                   <div>
-                    <label className="text-[10px] font-semibold text-zinc-500 uppercase block mb-1">
+                    <label className="text-[10px] font-semibold text-foreground0 uppercase block mb-1">
                       Assignee
                     </label>
                     <select
@@ -566,7 +566,7 @@ function BoardColumnView({
                           e.target.value ? Number(e.target.value) : undefined
                         )
                       }
-                      className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-1.5 text-xs text-zinc-100 focus:outline-none"
+                      className="w-full rounded-md border border-border bg-zinc-900 p-1.5 text-xs text-foreground-secondary focus:outline-none"
                     >
                       <option value="">Unassigned</option>
                       {groupMembers.map((member) => (
@@ -586,10 +586,10 @@ function BoardColumnView({
                           setOpenStartPicker((prev) => !prev)
                           setOpenEndPicker(false)
                         }}
-                        className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-100 hover:border-zinc-700"
+                        className="flex h-9 w-full items-center justify-between rounded-md border border-border bg-zinc-900 px-3 text-xs text-foreground-secondary hover:border-border-hover"
                       >
                         <span className="truncate">{startDate || 'Start date'}</span>
-                        <CalendarIcon className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       </button>
 
                       {openStartPicker && (
@@ -616,10 +616,10 @@ function BoardColumnView({
                           setOpenEndPicker((prev) => !prev)
                           setOpenStartPicker(false)
                         }}
-                        className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-100 hover:border-zinc-700"
+                        className="flex h-9 w-full items-center justify-between rounded-md border border-border bg-zinc-900 px-3 text-xs text-foreground-secondary hover:border-border-hover"
                       >
                         <span className="truncate">{endDate || 'End date'}</span>
-                        <CalendarIcon className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       </button>
 
                       {openEndPicker && (
@@ -646,7 +646,7 @@ function BoardColumnView({
                     size="sm"
                     onClick={handleSaveTask}
                     disabled={busy}
-                    className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
+                    className="bg-primary text-primary-foreground hover:bg-zinc-200"
                   >
                     {busy ? 'Adding...' : 'Add task'}
                   </Button>
@@ -657,7 +657,7 @@ function BoardColumnView({
                       resetTaskForm()
                       setAddingTask(false)
                     }}
-                    className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+                    className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
                   >
                     Cancel
                   </Button>
@@ -666,7 +666,7 @@ function BoardColumnView({
             ) : (
               <button
                 type="button"
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-800 text-sm text-zinc-500 hover:border-zinc-600 hover:text-zinc-200"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-foreground0 hover:border-border-hover hover:text-foreground-secondary"
                 onClick={() => setAddingTask(true)}
                 data-testid={`add-task-${column.id}`}
               >
@@ -791,14 +791,14 @@ function DatePickerPopover({
     <div
       ref={containerRef}
       style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
-      className="fixed z-[9999] w-64 rounded-xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl"
+      className="fixed z-[9999] w-64 rounded-xl border border-border bg-background p-3 shadow-2xl"
     >
-      <div className="mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
+      <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setViewDate(new Date(year - 1, month, 1))}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
             title="Previous Year"
           >
             <ChevronsLeft className="h-3.5 w-3.5" />
@@ -806,14 +806,14 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year, month - 1, 1))}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
             title="Previous Month"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        <span className="text-xs font-semibold text-zinc-200">
+        <span className="text-xs font-semibold text-foreground-secondary">
           {MONTH_NAMES[month]} {year}
         </span>
 
@@ -821,7 +821,7 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year, month + 1, 1))}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
             title="Next Month"
           >
             <ChevronRight className="h-3.5 w-3.5" />
@@ -829,7 +829,7 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year + 1, month, 1))}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
             title="Next Year"
           >
             <ChevronsRight className="h-3.5 w-3.5" />
@@ -837,7 +837,7 @@ function DatePickerPopover({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 text-center text-[10px] font-bold uppercase text-zinc-500">
+      <div className="grid grid-cols-7 text-center text-[10px] font-bold uppercase text-foreground0">
         <span>Mo</span>
         <span>Tu</span>
         <span>We</span>
@@ -870,10 +870,10 @@ function DatePickerPopover({
                   : isOther
                     ? 'bg-emerald-900/80 font-bold text-emerald-200 border border-emerald-500'
                     : inRange
-                      ? 'bg-zinc-800/80 text-zinc-200'
+                      ? 'bg-zinc-800/80 text-foreground-secondary'
                       : item.isCurrentMonth
-                        ? 'text-zinc-200 hover:bg-zinc-800'
-                        : 'text-zinc-600 hover:bg-zinc-900'
+                        ? 'text-foreground-secondary hover:bg-zinc-800'
+                        : 'text-muted-foreground-subtle hover:bg-accent hover:text-accent-foreground'
               }`}
             >
               {item.day}

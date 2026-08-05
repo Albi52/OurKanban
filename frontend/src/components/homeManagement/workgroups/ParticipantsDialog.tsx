@@ -80,10 +80,10 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-lg" data-testid="participants-dialog">
+      <DialogContent className="border-border bg-background text-foreground sm:max-w-lg" data-testid="participants-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">{group.name}</DialogTitle>
-          <DialogDescription className="text-zinc-500">
+          <DialogDescription className="text-foreground0">
             {group.members.length} participant{group.members.length === 1 ? '' : 's'}
           </DialogDescription>
         </DialogHeader>
@@ -92,17 +92,17 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
           {group.members.map((m) => (
             <li
               key={m.id}
-              className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-2"
+              className="flex items-center justify-between rounded-md border border-border bg-card/40 px-3 py-2"
             >
               <div className="flex items-center gap-3">
                 <UserAvatar
                   username={m.username}
                   profilePicture={m.profilePicture}
                   avatarColor={usernameToColor(m.username)}
-                  className="h-8 w-8 border border-zinc-800"
+                  className="h-8 w-8 border border-border"
                 />
 
-                <span className="flex items-center text-sm text-zinc-100">
+                <span className="flex items-center text-sm text-foreground-secondary">
                   {m.username}
 
                   {m.username === group.leaderUsername && (
@@ -116,7 +116,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                   size="icon"
                   variant="ghost"
                   onClick={() => handleRemove(m.id)}
-                  className="h-8 w-8 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
+                  className="h-8 w-8 text-foreground0 hover:bg-red-500/10 hover:text-red-400"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -126,8 +126,8 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
         </ul>
 
         {group.isLeader && (
-          <div className="mt-4 space-y-2 border-t border-zinc-900 pt-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Add member</p>
+          <div className="mt-4 space-y-2 border-t border-border pt-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Add member</p>
             <div className="flex gap-2">
               <div className="relative flex-1">
               <Input
@@ -139,20 +139,20 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 placeholder="Start typing a username..."
-                className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+                className="border-border bg-card/60 text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:ring-zinc-500"
                 data-testid="participant-add-input"
                 autoComplete="off"
               />
               
               {showSuggestions && suggestions.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-zinc-800 bg-zinc-950 shadow-lg">
+                <ul className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-background shadow-lg">
                   {suggestions.map((s) => (
                     <li key={s.id}>
                       <button
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => selectSuggestion(s.username)}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-900"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground-secondary hover:bg-accent hover:text-accent-foreground"
                         data-testid={`user-suggestion-${s.id}`}
                       >
                         <UserAvatar
@@ -168,7 +168,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                 </ul>
               )}
               </div>
-              <Button onClick={handleAdd} disabled={busy} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200" data-testid="participant-add-btn">
+              <Button onClick={handleAdd} disabled={busy} className="bg-primary text-primary-foreground hover:bg-zinc-200" data-testid="participant-add-btn">
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add
               </Button>
@@ -177,7 +177,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50" data-testid="participants-close-btn">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground" data-testid="participants-close-btn">
             Close
           </Button>
         </DialogFooter>

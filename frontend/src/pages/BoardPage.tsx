@@ -271,9 +271,9 @@ export default function BoardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center justify-center gap-4 text-center px-6">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4 text-center px-6">
         <p className="text-red-400 font-semibold">{error}</p>
-        <Button onClick={() => navigate('/home')} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
+        <Button onClick={() => navigate('/home')} className="bg-primary text-primary-foreground hover:bg-zinc-200">
           Back to home
         </Button>
       </div>
@@ -282,7 +282,7 @@ export default function BoardPage() {
 
   if (loading || !project || !currentUser) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         Loading...
       </div>
     )
@@ -297,27 +297,27 @@ export default function BoardPage() {
   const canModifySelected = project.isLeader || (selectedTask && selectedTask.author?.id === currentUser.id)
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <TopBar />
 
       <div ref={mainBoardRef} className="flex flex-1 flex-col mx-auto w-full max-w-[1800px] px-6 py-6 md:px-10 overflow-hidden">
         <Tabs defaultValue="kanban" className="flex flex-1 flex-col overflow-hidden">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0 mb-6">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Project</p>
-              <h1 className="font-heading text-3xl font-light tracking-tighter text-zinc-50 sm:text-4xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Project</p>
+              <h1 className="font-heading text-3xl font-light tracking-tighter text-foreground sm:text-4xl">
                 {project.name}
               </h1>
             </div>
 
-            <TabsList className="bg-zinc-900/60 border border-zinc-800" data-testid="board-tabs">
-              <TabsTrigger value="kanban" className="text-zinc-400 data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
+            <TabsList className="bg-card/60 border border-border" data-testid="board-tabs">
+              <TabsTrigger value="kanban" className="text-muted-foreground data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
                 <Layout className="mr-2 h-4 w-4" /> Board
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="text-zinc-400 data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
+              <TabsTrigger value="calendar" className="text-muted-foreground data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
                 <CalendarDays className="mr-2 h-4 w-4" /> Calendar
               </TabsTrigger>
-              <TabsTrigger value="split" className="text-zinc-400 data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
+              <TabsTrigger value="split" className="text-muted-foreground data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
                 <Columns className="mr-2 h-4 w-4" /> Split View
               </TabsTrigger>
             </TabsList>
@@ -352,7 +352,7 @@ export default function BoardPage() {
               </TabsContent>
 
               <TabsContent value="split" className="m-0 flex-1 flex gap-6 overflow-hidden min-h-0">
-                <div className="flex-1 flex flex-col min-w-0 border-r border-zinc-800/80 pr-4">
+                <div className="flex-1 flex flex-col min-w-0 border-r border-border/80 pr-4">
                   <KanbanView
                     project={project}
                     columns={columns}
@@ -381,19 +381,19 @@ export default function BoardPage() {
 
             {/* Panel lateral para ver / editar tarea o evento */}
             {selectedTask && (
-              <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-zinc-800 bg-zinc-950 p-5 flex flex-col justify-between overflow-y-auto z-10">
+              <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-border bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
                 <div>
-                  <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-foreground0">
                       {selectedTask.type === 'event' ? 'Event Info' : 'Task Info'}
                     </span>
                     <div className="flex items-center gap-1">
                       {canModifySelected && !isEditing && (
-                        <button onClick={() => setIsEditing(true)} className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100" title="Edit Item">
+                        <button onClick={() => setIsEditing(true)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary" title="Edit Item">
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                       )}
-                      <button onClick={() => setSelectedTaskId(null)} className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100">
+                      <button onClick={() => setSelectedTaskId(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -402,16 +402,16 @@ export default function BoardPage() {
                   {isEditing ? (
                     <div className="mt-4 space-y-4 text-xs">
                       <div>
-                        <label className="font-medium text-zinc-400">Title</label>
-                        <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100" />
+                        <label className="font-medium text-muted-foreground">Title</label>
+                        <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
                       </div>
                       <div>
-                        <label className="font-medium text-zinc-400">Description</label>
-                        <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="mt-1 min-h-[90px] w-full rounded-md border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-500" />
+                        <label className="font-medium text-muted-foreground">Description</label>
+                        <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="mt-1 min-h-[90px] w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500" />
                       </div>
 
                       <div>
-                        <label className="font-medium text-zinc-400 block mb-1">Priority</label>
+                        <label className="font-medium text-muted-foreground block mb-1">Priority</label>
                         <div className="grid grid-cols-3 gap-1.5">
                           <button
                             type="button"
@@ -419,7 +419,7 @@ export default function BoardPage() {
                             className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
                               editPriority === 'low'
                                 ? 'bg-emerald-950 border-emerald-500 text-emerald-300'
-                                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'
+                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
                             }`}
                           >
                             <span className="h-2 w-2 rounded-full bg-emerald-500" /> Low
@@ -430,7 +430,7 @@ export default function BoardPage() {
                             className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
                               editPriority === 'medium'
                                 ? 'bg-amber-950 border-amber-500 text-amber-300'
-                                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'
+                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
                             }`}
                           >
                             <span className="h-2 w-2 rounded-full bg-amber-500" /> Medium
@@ -441,7 +441,7 @@ export default function BoardPage() {
                             className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
                               editPriority === 'high'
                                 ? 'bg-red-950 border-red-500 text-red-300'
-                                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'
+                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
                             }`}
                           >
                             <span className="h-2 w-2 rounded-full bg-red-500" /> High
@@ -450,11 +450,11 @@ export default function BoardPage() {
                       </div>
 
                       <div>
-                        <label className="font-medium text-zinc-400 block mb-1">Assignee</label>
+                        <label className="font-medium text-muted-foreground block mb-1">Assignee</label>
                         <select
                           value={editAssigneeId || ''}
                           onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
-                          className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+                          className="w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500"
                         >
                           <option value="">Unassigned</option>
                           {groupMembers.map((m) => (
@@ -467,7 +467,7 @@ export default function BoardPage() {
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="font-medium text-zinc-400">Start Date</label>
+                          <label className="font-medium text-muted-foreground">Start Date</label>
                           <Input
                             type="date"
                             value={editStart}
@@ -475,20 +475,20 @@ export default function BoardPage() {
                               setEditStart(e.target.value)
                               if (selectedTask.type === 'event') setEditEnd(e.target.value)
                             }}
-                            className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
+                            className="mt-1 border-border bg-zinc-900 text-foreground-secondary"
                           />
                         </div>
                         {selectedTask.type !== 'event' && (
                           <div>
-                            <label className="font-medium text-zinc-400">End Date</label>
-                            <Input type="date" value={editEnd} onChange={(e) => setEditEnd(e.target.value)} className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100" />
+                            <label className="font-medium text-muted-foreground">End Date</label>
+                            <Input type="date" value={editEnd} onChange={(e) => setEditEnd(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
                           </div>
                         )}
                       </div>
 
                       <div className="mt-4 flex gap-2">
-                        <Button size="sm" onClick={handleSaveEdit} className="flex-1 bg-zinc-50 text-zinc-950 hover:bg-zinc-200">Save</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-zinc-400">Cancel</Button>
+                        <Button size="sm" onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground hover:bg-zinc-200">Save</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground">Cancel</Button>
                       </div>
                     </div>
                   ) : (
@@ -504,34 +504,34 @@ export default function BoardPage() {
                                   : 'bg-emerald-500'
                             }`}
                           />
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                             {selectedTask.priority || 'medium'} priority
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-zinc-100">{selectedTask.title}</h3>
-                        <p className="mt-2 text-xs leading-relaxed text-zinc-400 whitespace-pre-wrap">
-                          {selectedTask.description || <span className="italic text-zinc-600">No description provided.</span>}
+                        <h3 className="text-lg font-semibold text-foreground-secondary">{selectedTask.title}</h3>
+                        <p className="mt-2 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                          {selectedTask.description || <span className="italic text-muted-foreground-subtle">No description provided.</span>}
                         </p>
                       </div>
 
-                      <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs">
+                      <div className="space-y-2 rounded-xl border border-border bg-zinc-900/50 p-3 text-xs">
                         <div>
-                          <span className="font-medium text-zinc-500 block">Author:</span>
-                          <span className="text-zinc-200">{selectedTask.author?.username || 'Unknown'}</span>
+                          <span className="font-medium text-foreground0 block">Author:</span>
+                          <span className="text-foreground-secondary">{selectedTask.author?.username || 'Unknown'}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-zinc-500 block">Assignee:</span>
-                          <span className="text-zinc-200 font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
+                          <span className="font-medium text-foreground0 block">Assignee:</span>
+                          <span className="text-foreground-secondary font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
                         </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
+                        <div className="flex items-center justify-between pt-2 border-t border-border/60">
                           <div>
-                            <span className="font-medium text-zinc-500 block">Start:</span>
-                            <span className="text-zinc-200">{selectedTask.startDate || '-'}</span>
+                            <span className="font-medium text-foreground0 block">Start:</span>
+                            <span className="text-foreground-secondary">{selectedTask.startDate || '-'}</span>
                           </div>
                           {selectedTask.type !== 'event' && (
                             <div>
-                              <span className="font-medium text-zinc-500 block">End:</span>
-                              <span className="text-zinc-200">{selectedTask.endDate || '-'}</span>
+                              <span className="font-medium text-foreground0 block">End:</span>
+                              <span className="text-foreground-secondary">{selectedTask.endDate || '-'}</span>
                             </div>
                           )}
                         </div>
@@ -541,7 +541,7 @@ export default function BoardPage() {
                 </div>
 
                 {!isEditing && canModifySelected && (
-                  <div className="pt-4 border-t border-zinc-800 mt-4">
+                  <div className="pt-4 border-t border-border mt-4">
                     <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-red-400 hover:bg-red-950/30 hover:text-red-300">
                       <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete {selectedTask.type === 'event' ? 'Event' : 'Task'}
                     </Button>

@@ -17,11 +17,11 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true }) => {
   const s = sizeMap[size]
   return (
     <div className="flex items-center gap-3 select-none" data-testid="brand-logo">
-      <div className={`${s.icon} shrink-0 text-zinc-50`}>
+      <div className={`${s.icon} shrink-0 text-foreground`}>
         <Squares2X2Icon />
       </div>
       {showText && (
-        <span className={`${s.text} font-heading font-light tracking-tighter text-zinc-50`}>
+        <span className={`${s.text} font-heading font-light tracking-tighter text-foreground`}>
           Our<span className="font-medium">Kanban</span>
         </span>
       )}
