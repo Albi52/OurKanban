@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@context/AuthContext'
+
+import { ThemeProvider, useTheme } from '@/context/ThemeContext'
 import ProtectedRoute from '@components/account/auth/ProtectedRoute'
 import LandingPage from '@pages/LandingPage'
 import AuthPage from '@pages/auth/AuthPage'
@@ -23,9 +25,11 @@ export default function App() {
         };
     }, []);
 
+  const { theme } = useTheme()
   return (
+    <ThemeProvider>
     <AuthProvider>
-      <Toaster theme="dark" position="top-right" />
+      <Toaster theme={theme} position="top-right" />
       <BrowserRouter>
       <AuthGate />
         <Routes>
@@ -40,5 +44,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
