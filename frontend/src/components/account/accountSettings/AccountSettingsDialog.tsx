@@ -144,17 +144,17 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-md" data-testid="account-settings-dialog">
+      <DialogContent className="border-border bg-background text-foreground sm:max-w-md" data-testid="account-settings-dialog">
         <DialogHeader>
-          <div className="flex items-center gap-4 border-b border-zinc-900 pb-6">
+          <div className="flex items-center gap-4 border-b border-border pb-6">
             <UserAvatar
               username={user?.username ?? ''}
               profilePicture={user?.profilePicture}
               avatarColor={user?.avatarColor ?? '#666'}
-              className="h-16 w-16 border border-zinc-800"
+              className="h-16 w-16 border border-border"
             />
             <div className="flex flex-col gap-2">
-              <label className="cursor-pointer text-xs text-zinc-300 underline hover:text-zinc-50">
+              <label className="cursor-pointer text-xs text-foreground-secondary underline hover:text-foreground">
                 {pictureBusy ? 'Uploading...' : 'Upload picture'}
                 <input
                   type="file"
@@ -172,7 +172,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
                 ) : (
                   <button
                     onClick={() => setShowGoogleRefetch(true)}
-                    className="text-left text-xs text-zinc-300 underline hover:text-zinc-50"
+                    className="text-left text-xs text-foreground-secondary underline hover:text-foreground"
                   >
                     {me?.hasGoogleAccount ? 'Use my Google picture' : 'Verify with Google & use picture'}
                   </button>
@@ -183,7 +183,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
                 <button
                   onClick={handleRemovePicture}
                   disabled={pictureBusy}
-                  className="text-left text-xs text-zinc-400 hover:text-zinc-200"
+                  className="text-left text-xs text-muted-foreground hover:text-foreground-secondary"
                 >
                   Keep default (remove picture)
                 </button>
@@ -193,23 +193,23 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">Account settings</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleUsernameSubmit} className="space-y-3 border-b border-zinc-900 pb-6">
-          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Username</Label>
+        <form onSubmit={handleUsernameSubmit} className="space-y-3 border-b border-border pb-6">
+          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Username</Label>
           <div className="flex gap-2">
             <Input
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
-              className="border-zinc-800 bg-zinc-900/60 text-zinc-100 focus-visible:ring-zinc-500"
+              className="border-border bg-card/60 text-foreground-secondary focus-visible:ring-zinc-500"
               data-testid="settings-username-input"
             />
-            <Button type="submit" disabled={usernameBusy || newUsername === user?.username} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
+            <Button type="submit" disabled={usernameBusy || newUsername === user?.username} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Save
             </Button>
           </div>
         </form>
 
         <form onSubmit={handlePasswordSubmit} className="space-y-3 pt-2">
-          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">
             {me?.hasLocalPassword ? 'Change password' : 'Set a password'}
           </Label>
 
@@ -219,7 +219,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
               placeholder="Current password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+              className="border-border bg-card/60 text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:ring-zinc-500"
               data-testid="settings-current-password-input"
             />
           )}
@@ -229,28 +229,28 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
             placeholder={me?.hasLocalPassword ? 'New password' : 'Choose a password'}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+            className="border-border bg-card/60 text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:ring-zinc-500"
             data-testid="settings-new-password-input"
           />
 
           {!me?.hasLocalPassword && me?.hasGoogleAccount && (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-foreground0">
               Set a password to enable signing in without Google. 
             </p>
           )}
           {me?.hasLocalPassword && me?.hasGoogleAccount && (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-foreground0">
               Set a new password. Google verified, no previous password required. 
             </p>
           )}
 
-          <Button type="submit" disabled={passwordBusy || !newPassword.trim()} className="w-full bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
+          <Button type="submit" disabled={passwordBusy || !newPassword.trim()} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             {passwordBusy ? 'Saving...' : me?.hasLocalPassword ? 'Update password' : 'Set password'}
           </Button>
         </form>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">
             Close
           </Button>
         </DialogFooter>

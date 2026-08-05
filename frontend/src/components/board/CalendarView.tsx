@@ -183,7 +183,7 @@ export function CalendarView({
       case 'high':
         return 'bg-red-950/80 border-red-700/80 text-red-200 hover:bg-red-900'
       case 'medium':
-        return 'bg-amber-950/80 border-amber-700/80 text-amber-200 hover:bg-amber-900'
+        return 'bg-amber-950/80 border-amber-700/80 text-warning-foreground hover:bg-amber-900'
       case 'low':
       default:
         return 'bg-emerald-950/80 border-emerald-700/80 text-emerald-200 hover:bg-emerald-900'
@@ -192,11 +192,11 @@ export function CalendarView({
 
   return (
     <div className="flex h-full flex-1 overflow-hidden" data-testid="calendar-view">
-      <div className="flex flex-1 flex-col h-full rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 md:p-6 min-w-0">
+      <div className="flex flex-1 flex-col h-full rounded-xl border border-border bg-card/40 p-4 md:p-6 min-w-0">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <CalendarIcon className="h-5 w-5 text-zinc-400" />
-            <h2 className="font-heading text-xl font-medium tracking-tight text-zinc-100">
+            <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+            <h2 className="font-heading text-xl font-medium tracking-tight text-foreground-secondary">
               {MONTH_NAMES[month]} {year}
             </h2>
           </div>
@@ -206,7 +206,7 @@ export function CalendarView({
               size="sm"
               variant="ghost"
               onClick={handleToday}
-              className="border border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50"
+              className="border border-border text-xs text-foreground-secondary hover:bg-zinc-800 hover:text-foreground"
             >
               Today
             </Button>
@@ -214,7 +214,7 @@ export function CalendarView({
               size="sm"
               variant="ghost"
               onClick={handlePrevMonth}
-              className="h-8 w-8 p-0 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+              className="h-8 w-8 p-0 text-muted-foreground hover:bg-zinc-800 hover:text-foreground"
               aria-label="Previous month"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -223,7 +223,7 @@ export function CalendarView({
               size="sm"
               variant="ghost"
               onClick={handleNextMonth}
-              className="h-8 w-8 p-0 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+              className="h-8 w-8 p-0 text-muted-foreground hover:bg-zinc-800 hover:text-foreground"
               aria-label="Next month"
             >
               <ChevronRight className="h-4 w-4" />
@@ -231,13 +231,13 @@ export function CalendarView({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 border-b border-zinc-800 pb-2 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500 shrink-0">
+        <div className="grid grid-cols-7 border-b border-border pb-2 text-center text-xs font-semibold uppercase tracking-wider text-foreground0 shrink-0">
           {WEEKDAYS.map((day) => (
             <div key={day}>{day}</div>
           ))}
         </div>
 
-        <div className="flex-1 grid grid-rows-none divide-y divide-zinc-800/60 border-b border-l border-r border-zinc-800/60 overflow-hidden">
+        <div className="flex-1 grid grid-rows-none divide-y divide-zinc-800/60 border-b border-l border-r border-border/60 overflow-hidden">
           {weeks.map((week, weekIndex) => {
             const weekStart = week[0].dateStr
             const weekEnd = week[6].dateStr
@@ -260,7 +260,7 @@ export function CalendarView({
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDropOnDay(item.dateStr, e)}
                         className={`h-full p-2 transition-colors flex flex-col justify-between ${
-                          item.isCurrentMonth ? 'bg-zinc-950/40' : 'bg-zinc-950/10 text-zinc-700'
+                          item.isCurrentMonth ? 'bg-background/40' : 'bg-background/10 text-zinc-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -269,8 +269,8 @@ export function CalendarView({
                               isToday
                                 ? 'bg-zinc-50 font-bold text-zinc-950'
                                 : item.isCurrentMonth
-                                  ? 'text-zinc-300'
-                                  : 'text-zinc-600'
+                                  ? 'text-foreground-secondary'
+                                  : 'text-muted-foreground-subtle'
                             }`}
                           >
                             {item.day}
@@ -278,7 +278,7 @@ export function CalendarView({
 
                           <button
                             onClick={() => setAddingEventDate(item.dateStr)}
-                            className="text-zinc-600 hover:text-zinc-300 p-0.5 rounded"
+                            className="text-muted-foreground-subtle hover:text-foreground-secondary p-0.5 rounded"
                             title="Add Event"
                           >
                             <Plus className="h-3 w-3" />
@@ -296,7 +296,7 @@ export function CalendarView({
                                 if (e.key === 'Enter') handleCreateEvent(item.dateStr)
                                 if (e.key === 'Escape') setAddingEventDate(null)
                               }}
-                              className="h-6 text-[10px] bg-zinc-900 border-zinc-700 text-zinc-100 p-1"
+                              className="h-6 text-[10px] bg-zinc-900 border-border-hover text-foreground-secondary p-1"
                             />
                           </div>
                         )}

@@ -33,7 +33,7 @@ export const CreateGroupDialog: React.FC<Props> = ({ open, onOpenChange, onCreat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-md" data-testid="create-group-dialog">
+      <DialogContent className="border-border bg-background text-foreground sm:max-w-md" data-testid="create-group-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">New working group</DialogTitle>
         </DialogHeader>
@@ -41,13 +41,13 @@ export const CreateGroupDialog: React.FC<Props> = ({ open, onOpenChange, onCreat
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Group name"
-          className="border-zinc-800 bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+          className="border-border bg-card/60 text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:ring-zinc-500"
           data-testid="create-group-input"
           autoFocus
         />
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50">Cancel</Button>
-          <Button onClick={submit} disabled={busy || !name.trim()} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200" data-testid="create-group-submit">Create</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
+          <Button onClick={submit} disabled={busy || !name.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="create-group-submit">Create</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

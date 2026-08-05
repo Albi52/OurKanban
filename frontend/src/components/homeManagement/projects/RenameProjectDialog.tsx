@@ -38,14 +38,14 @@ export const RenameProjectDialog: React.FC<Props> = ({ project, open, onOpenChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-md" data-testid="rename-project-dialog">
+      <DialogContent className="border-border bg-background text-foreground sm:max-w-md" data-testid="rename-project-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">Rename project</DialogTitle>
         </DialogHeader>
-        <Input value={name} onChange={(e) => setName(e.target.value)} className="border-zinc-800 bg-zinc-900/60 text-zinc-100 focus-visible:ring-zinc-500" data-testid="rename-project-input" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} className="border-border bg-card/60 text-foreground-secondary focus-visible:ring-zinc-500" data-testid="rename-project-input" />
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50">Cancel</Button>
-          <Button onClick={submit} disabled={busy} className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200" data-testid="rename-project-submit">Save</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
+          <Button onClick={submit} disabled={busy} className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="rename-project-submit">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -31,16 +31,16 @@ export const DeleteProjectDialog: React.FC<Props> = ({ project, open, onOpenChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-md" data-testid="delete-project-dialog">
+      <DialogContent className="border-border bg-background text-foreground sm:max-w-md" data-testid="delete-project-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">Delete project</DialogTitle>
-          <DialogDescription className="text-zinc-500">
-            Delete <span className="text-zinc-200">{project.name}</span>? This cannot be undone.
+          <DialogDescription className="text-foreground0">
+            Delete <span className="text-foreground-secondary">{project.name}</span>? This cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50">Cancel</Button>
-          <Button onClick={submit} disabled={busy} className="bg-red-500 text-zinc-50 hover:bg-red-600" data-testid="delete-project-confirm">Delete</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
+          <Button onClick={submit} disabled={busy} className="bg-destructive text-foreground hover:bg-red-600" data-testid="delete-project-confirm">Delete</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

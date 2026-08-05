@@ -20,7 +20,7 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
   return (
     <>
       <div
-        className="group relative flex h-40 flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 transition-transform transition-colors duration-200 ease-out hover:-translate-y-1 hover:border-zinc-600"
+        className="group relative flex h-40 flex-col justify-between rounded-xl border border-border bg-card/40 p-5 transition-transform transition-colors duration-200 ease-out hover:-translate-y-1 hover:border-border-hover"
         data-testid={`project-card-${project.id}`}
       >
         {canManage && (
@@ -28,18 +28,18 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-800 bg-zinc-950/70 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background/70 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
                   data-testid={`project-menu-${project.id}`}
                   aria-label="Project actions"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="border-zinc-800 bg-zinc-950 text-zinc-100">
-                <DropdownMenuItem onClick={() => setRenameOpen(true)} data-testid={`project-rename-${project.id}`} className="focus:bg-zinc-900 focus:text-zinc-50">
+              <DropdownMenuContent align="end" className="border-border bg-background text-foreground-secondary">
+                <DropdownMenuItem onClick={() => setRenameOpen(true)} data-testid={`project-rename-${project.id}`} className="focus:bg-zinc-900 focus:text-foreground">
                   Rename
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDeleteOpen(true)} data-testid={`project-delete-${project.id}`} className="text-red-400 focus:bg-red-500/10 focus:text-red-300">
+                <DropdownMenuItem onClick={() => setDeleteOpen(true)} data-testid={`project-delete-${project.id}`} className="text-destructive focus:bg-destructive/10 focus:text-red-300">
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -48,11 +48,11 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
         )}
 
         <button type="button" onClick={() => navigate(`/board/${project.id}`)} className="text-left" data-testid={`project-open-${project.id}`}>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Project</p>
-          <h3 className="mt-2 font-heading text-xl font-medium tracking-tight text-zinc-50">{project.name}</h3>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Project</p>
+          <h3 className="mt-2 font-heading text-xl font-medium tracking-tight text-foreground">{project.name}</h3>
         </button>
 
-        <button onClick={() => navigate(`/board/${project.id}`)} className="flex items-center gap-1 self-end text-xs text-zinc-400 hover:text-zinc-50" data-testid={`project-open-arrow-${project.id}`}>
+        <button onClick={() => navigate(`/board/${project.id}`)} className="flex items-center gap-1 self-end text-xs text-muted-foreground hover:text-foreground" data-testid={`project-open-arrow-${project.id}`}>
           Open
           <ArrowUpRight className="h-3.5 w-3.5" />
         </button>

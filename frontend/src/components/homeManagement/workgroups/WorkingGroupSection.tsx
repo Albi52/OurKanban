@@ -31,7 +31,7 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
 
     return (
     <section data-testid={`group-section-${group.id}`}>
-      <div className="mb-6 flex flex-col gap-4 border-b border-zinc-900 pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
                <button
           onClick={() => setCollapsed((c) => !c)}
           className="flex items-start gap-2 text-left"
@@ -40,22 +40,22 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
         >
           <ChevronDown
             className={cn(
-              'mt-1.5 h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200',
+              'mt-1.5 h-4 w-4 shrink-0 text-foreground0 transition-transform duration-200',
               collapsed && '-rotate-90'
             )}
           />
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Working group</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Working group</p>
             <div className="mt-2 flex items-center gap-3">
-              <h2 className="font-heading text-xl font-medium tracking-tight text-zinc-50 sm:text-2xl md:text-3xl">
+              <h2 className="font-heading text-xl font-medium tracking-tight text-foreground sm:text-2xl md:text-3xl">
                 {group.name}
               </h2>
               {group.isLeader && (
-                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-emerald-300">
+                <span className="rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-success">
                   Leader
                 </span>
               )}
-              <span className="text-xs text-zinc-600">
+              <span className="text-xs text-muted-foreground-subtle">
                 {group.projects.length} project{group.projects.length === 1 ? '' : 's'}
               </span>
             </div>
@@ -63,17 +63,17 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
         </button>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setParticipantsOpen(true)} className="border-zinc-800 bg-transparent text-zinc-200 hover:bg-zinc-900 hover:text-zinc-50" data-testid={`view-participants-${group.id}`}>
+          <Button variant="outline" size="sm" onClick={() => setParticipantsOpen(true)} className="border-border bg-transparent text-foreground-secondary hover:bg-accent hover:text-accent-foreground hover:text-foreground" data-testid={`view-participants-${group.id}`}>
             <Users className="mr-2 h-4 w-4" />
             {group.isLeader ? `Manage (${group.members.length})` : `Members (${group.members.length})`}
           </Button>
           {group.isLeader && (
-            <Button size="sm" onClick={onCreateProject} className="rounded-md bg-zinc-50 text-zinc-950 hover:bg-zinc-200" data-testid={`create-project-${group.id}`}>
+            <Button size="sm" onClick={onCreateProject} className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90" data-testid={`create-project-${group.id}`}>
               <Plus className="mr-2 h-4 w-4" />
               New project
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleLeave} className="text-red-400 hover:bg-red-500/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
+          <Button variant="ghost" size="sm" onClick={handleLeave} className="text-destructive hover:bg-destructive/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
             <LogOut className="mr-2 h-4 w-4" />
             Leave
           </Button>
@@ -81,7 +81,7 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
       </div>
 
       {!collapsed && (group.projects.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center text-sm text-zinc-500 sm:p-10">
+        <div className="rounded-xl border border-dashed border-border bg-zinc-900/20 p-8 text-center text-sm text-foreground0 sm:p-10">
           No projects here yet.
         </div>
       ) : (
