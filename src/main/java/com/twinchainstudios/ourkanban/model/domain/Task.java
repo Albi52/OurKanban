@@ -16,18 +16,18 @@ public class Task {
 
     private String title;
 
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority;
+
     @ManyToOne
     @JoinColumn(name = "column_id")
     private DashboardColumn column;
 
     private LocalDate startDate;
 
-    private LocalDate endDate;    
-
-    @Enumerated(EnumType.STRING)
-    private TaskPriority priority;
-
-    //private 
+    private LocalDate endDate;
 
     @ManyToOne
     @JoinColumn(name = "assignee_id")
@@ -40,6 +40,9 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
+
+    @Version
+    private Long version;
 
     public Long getId() {
         return id;
@@ -55,6 +58,22 @@ public class Task {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
     }
 
     public DashboardColumn getColumn() {
@@ -103,5 +122,13 @@ public class Task {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

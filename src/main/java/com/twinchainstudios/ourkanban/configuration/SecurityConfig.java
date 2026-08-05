@@ -45,6 +45,8 @@ SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/", "/error", "/auth/register", "/auth/login", "/auth/login/google",
                               "/auth/verify-email", "/uploads/**").permitAll()
+            .requestMatchers("/ws/**", "/ws").permitAll()
+            .requestMatchers("/auth/**").permitAll()
             .anyRequest().authenticated()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

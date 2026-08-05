@@ -10,8 +10,19 @@ import VerifyEmailPage from '@pages/auth/VerifyEmailPage'
 import TermsPage from '@pages/auth/TermsPage'
 import PrivacyPolicyPage from '@pages/auth/PrivacyPolicyPage'
 import { AuthGate } from '@components/account/auth/AuthGate'
+import stompService from "./components/webSockets/StompService";
+import { useEffect } from 'react'
+
 
 export default function App() {
+  useEffect(() => {
+        stompService.connect();
+
+        return () => {
+            stompService.disconnect();
+        };
+    }, []);
+
   return (
     <AuthProvider>
       <Toaster theme="dark" position="top-right" />

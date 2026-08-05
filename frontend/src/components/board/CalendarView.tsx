@@ -1,22 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
   Trash2,
-  X,
-  Pencil,
   Plus,
 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import type { Task } from './KanbanView'
-import type { ProjectSummary } from '../../types/workgroup'
+import type { Member, ProjectSummary } from '../../types/workgroup'
 
 interface Props {
   project?: ProjectSummary
   tasks: Task[]
-  currentUser: { id: number; name: string }
+  currentUser: Member
   selectedTaskId: string | null
   onSelectTaskId: (taskId: string | null) => void
   onDeleteTask?: (taskId: string) => void
@@ -28,14 +26,6 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
-]
-
-const TASK_COLORS = [
-  'bg-indigo-950/80 border-indigo-700/80 text-indigo-200 hover:bg-indigo-900',
-  'bg-emerald-950/80 border-emerald-700/80 text-emerald-200 hover:bg-emerald-900',
-  'bg-amber-950/80 border-amber-700/80 text-amber-200 hover:bg-amber-900',
-  'bg-rose-950/80 border-rose-700/80 text-rose-200 hover:bg-rose-900',
-  'bg-cyan-950/80 border-cyan-700/80 text-cyan-200 hover:bg-cyan-900',
 ]
 
 interface CalendarDay {
@@ -56,26 +46,8 @@ export function CalendarView({
   onCreateTask,
 }: Props) {
   const [currentDate, setCurrentDate] = useState(() => new Date())
-  const [isEditing, setIsEditing] = useState(false)
   const [addingEventDate, setAddingEventDate] = useState<string | null>(null)
   const [newEventTitle, setNewEventTitle] = useState('')
-
-  const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
-
-  const [editTitle, setEditTitle] = useState('')
-  const [editDesc, setEditDesc] = useState('')
-  const [editStart, setEditStart] = useState('')
-  const [editEnd, setEditEnd] = useState('')
-
-  useEffect(() => {
-    if (selectedTask) {
-      setEditTitle(selectedTask.title)
-      setEditDesc(selectedTask.description)
-      setEditStart(selectedTask.startDate)
-      setEditEnd(selectedTask.endDate)
-      setIsEditing(false)
-    }
-  }, [selectedTaskId, selectedTask])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -157,11 +129,9 @@ export function CalendarView({
     const task = tasks.find((t) => t.id === taskId)
     if (!task) return
 
-    // Comprobar permisos antes de mover
-    const canModify = project?.isLeader || task.assigneeId === currentUser.id
+    const canModify = project?.isLeader || task.author?.id === currentUser.id
     if (!canModify) return
 
-    // Si es un evento de un solo día, solo cambiamos la fecha manteniendo inicio = fin
     if (task.type === 'event') {
       onUpdateTask({
         ...task,
@@ -192,13 +162,14 @@ export function CalendarView({
     if (!newEventTitle.trim() || !onCreateTask) return
 
     onCreateTask({
-      id: `event-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: '', // Dejado en blanco para que el servidor lo asigne
       columnId: -1,
       title: newEventTitle.trim(),
       description: 'Single day calendar event',
       startDate: dateStr,
       endDate: dateStr,
-      assigneeId: currentUser.id,
+      priority: 'low',
+      author: currentUser,
       type: 'event',
     })
 
@@ -206,24 +177,21 @@ export function CalendarView({
     setAddingEventDate(null)
   }
 
-  function handleSaveEdit() {
-    if (!selectedTask || !onUpdateTask) return
-
-    onUpdateTask({
-      ...selectedTask,
-      title: editTitle.trim(),
-      description: editDesc.trim(),
-      startDate: editStart,
-      endDate: editEnd,
-    })
-    setIsEditing(false)
+  // Asignar colores según la prioridad
+  function getTaskColorClass(priority?: string) {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-950/80 border-red-700/80 text-red-200 hover:bg-red-900'
+      case 'medium':
+        return 'bg-amber-950/80 border-amber-700/80 text-amber-200 hover:bg-amber-900'
+      case 'low':
+      default:
+        return 'bg-emerald-950/80 border-emerald-700/80 text-emerald-200 hover:bg-emerald-900'
+    }
   }
 
-  const canModifySelected =
-    project?.isLeader || (selectedTask && selectedTask.assigneeId === currentUser.id)
-
   return (
-    <div className="flex h-full flex-1 gap-4 overflow-hidden" data-testid="calendar-view">
+    <div className="flex h-full flex-1 overflow-hidden" data-testid="calendar-view">
       <div className="flex flex-1 flex-col h-full rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 md:p-6 min-w-0">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -317,7 +285,6 @@ export function CalendarView({
                           </button>
                         </div>
 
-                        {/* Input rápido para agregar evento en este día */}
                         {addingEventDate === item.dateStr && (
                           <div className="mt-1 z-20">
                             <Input
@@ -356,14 +323,15 @@ export function CalendarView({
 
                     const isStart = taskStart >= weekStart
                     const isEnd = taskEnd <= weekEnd
-                    const colorClass = TASK_COLORS[taskIdx % TASK_COLORS.length]
+                    const colorClass = getTaskColorClass(task.priority)
                     const isSelected = task.id === selectedTaskId
-                    const canModify = project?.isLeader || task.assigneeId === currentUser.id
+                    const canModify = project?.isLeader || task.author?.id === currentUser.id
 
                     return (
                       <div
-                        key={task.id}
+                        key={task.id || taskIdx}
                         draggable
+                        data-task-item="true"
                         onDragStart={(e) => {
                           e.dataTransfer.setData('taskId', task.id)
                         }}
@@ -374,7 +342,6 @@ export function CalendarView({
                           width: `${widthPercent}%`,
                         }}
                       >
-                        {/* Renderizado especial para EVENTOS de un solo día */}
                         {isEvent ? (
                           <div
                             className={`group flex h-full items-center justify-between rounded-full border border-purple-500/60 bg-purple-950/80 px-2.5 text-xs text-purple-200 shadow-sm transition hover:bg-purple-900/90 ${
@@ -404,7 +371,6 @@ export function CalendarView({
                             )}
                           </div>
                         ) : (
-                          /* Renderizado estándar para TAREAS multidía */
                           <div
                             className={`group flex h-full items-center justify-between border px-2 text-xs transition ${colorClass} ${
                               isStart ? 'rounded-l-md' : 'rounded-l-none border-l-0'
@@ -441,142 +407,6 @@ export function CalendarView({
           })}
         </div>
       </div>
-
-      {/* Panel Lateral Derecho para Calendario */}
-      {selectedTask && (
-        <div className="w-80 shrink-0 h-full rounded-xl border border-zinc-800 bg-zinc-950 p-5 flex flex-col justify-between overflow-y-auto">
-          <div>
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                {selectedTask.type === 'event' ? 'Event Info' : 'Task Info'}
-              </span>
-              <div className="flex items-center gap-1">
-                {canModifySelected && !isEditing && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-                    title="Edit Item"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                <button
-                  onClick={() => onSelectTaskId(null)}
-                  className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {isEditing ? (
-              <div className="mt-4 space-y-4 text-xs">
-                <div>
-                  <label className="font-medium text-zinc-400">Title</label>
-                  <Input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-zinc-400">Description</label>
-                  <textarea
-                    value={editDesc}
-                    onChange={(e) => setEditDesc(e.target.value)}
-                    className="mt-1 min-h-[90px] w-full rounded-md border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-zinc-400">Date</label>
-                  <Input
-                    type="date"
-                    value={editStart}
-                    onChange={(e) => {
-                      setEditStart(e.target.value)
-                      if (selectedTask.type === 'event') setEditEnd(e.target.value)
-                    }}
-                    className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
-                  />
-                </div>
-
-                {selectedTask.type !== 'event' && (
-                  <div>
-                    <label className="font-medium text-zinc-400">End Date</label>
-                    <Input
-                      type="date"
-                      value={editEnd}
-                      onChange={(e) => setEditEnd(e.target.value)}
-                      className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
-                    />
-                  </div>
-                )}
-
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleSaveEdit}
-                    className="flex-1 bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsEditing(false)}
-                    className="text-zinc-400"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-zinc-100">{selectedTask.title}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-zinc-400 whitespace-pre-wrap">
-                    {selectedTask.description || (
-                      <span className="italic text-zinc-600">No description provided.</span>
-                    )}
-                  </p>
-                </div>
-
-                <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs">
-                  <div>
-                    <span className="font-medium text-zinc-500 block">
-                      {selectedTask.type === 'event' ? 'Event Date:' : 'Start Date:'}
-                    </span>
-                    <span className="text-zinc-200">{selectedTask.startDate || '-'}</span>
-                  </div>
-                  {selectedTask.type !== 'event' && (
-                    <div>
-                      <span className="font-medium text-zinc-500 block">End Date:</span>
-                      <span className="text-zinc-200">{selectedTask.endDate || '-'}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {!isEditing && canModifySelected && onDeleteTask && (
-            <div className="pt-4 border-t border-zinc-800 mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  onDeleteTask(selectedTask.id)
-                  onSelectTaskId(null)
-                }}
-                className="w-full text-red-400 hover:bg-red-950/30 hover:text-red-300"
-              >
-                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Delete {selectedTask.type === 'event' ? 'Event' : 'Task'}
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

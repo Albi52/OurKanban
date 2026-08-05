@@ -11,7 +11,7 @@ import {
   type DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
 import { addColumn } from '../../api/columnAPI'
-import type { ProjectSummary } from '../../types/workgroup'
+import type { Member, ProjectSummary } from '../../types/workgroup'
 import type { BoardColumn } from '../../types/board'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -24,10 +24,11 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Pencil,
-  X,
+  User as UserIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
+
+export type Priority = 'low' | 'medium' | 'high'
 
 export interface Task {
   id: string
@@ -36,7 +37,9 @@ export interface Task {
   description: string
   startDate: string
   endDate: string
-  assigneeId?: number
+  priority: Priority
+  author: Member
+  assignee?: Member
   type?: 'task' | 'event'
 }
 
@@ -44,11 +47,13 @@ interface Props {
   project: ProjectSummary
   columns: BoardColumn[]
   tasks: Task[]
-  currentUser: { id: number; name: string }
+  currentUser: Member
+  groupMembers: Member[]
   selectedTaskId: string | null
   onSelectTaskId: (taskId: string | null) => void
   onTasksChange: React.Dispatch<React.SetStateAction<Task[]>>
   onColumnsChanged: () => void
+  onCreateTask?: (columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) => void // <-- Nueva prop opcional
 }
 
 const defaultColumns: BoardColumn[] = [
@@ -62,10 +67,12 @@ export function KanbanView({
   columns,
   tasks,
   currentUser,
+  groupMembers = [],
   selectedTaskId,
   onSelectTaskId,
   onTasksChange,
   onColumnsChanged,
+  onCreateTask,
 }: Props) {
   const [boardColumns, setBoardColumns] = useState<BoardColumn[]>(() =>
     columns.length > 0 ? columns : defaultColumns,
@@ -74,27 +81,9 @@ export function KanbanView({
   const [newColumnName, setNewColumnName] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const [isEditing, setIsEditing] = useState(false)
-  const [editTitle, setEditTitle] = useState('')
-  const [editDesc, setEditDesc] = useState('')
-  const [editStart, setEditStart] = useState('')
-  const [editEnd, setEditEnd] = useState('')
-
-  const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
-
   useEffect(() => {
     setBoardColumns(columns.length > 0 ? columns : defaultColumns)
   }, [columns])
-
-  useEffect(() => {
-    if (selectedTask) {
-      setEditTitle(selectedTask.title)
-      setEditDesc(selectedTask.description)
-      setEditStart(selectedTask.startDate)
-      setEditEnd(selectedTask.endDate)
-      setIsEditing(false)
-    }
-  }, [selectedTaskId, selectedTask])
 
   function onDragEnd(result: DropResult) {
     const { destination, source, draggableId, type } = result
@@ -134,7 +123,6 @@ export function KanbanView({
       })
     }
   }
-
   async function handleAddColumn() {
     if (!newColumnName.trim()) return
 
@@ -170,269 +158,130 @@ export function KanbanView({
     onTasksChange((current) => current.filter((task) => task.columnId !== columnId))
   }
 
-  function handleCreateTask(columnId: number, task: Omit<Task, 'id' | 'columnId'>) {
-    onTasksChange((current) => [
-      ...current,
-      {
-        id: `task-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        columnId,
-        title: task.title,
-        description: task.description,
-        startDate: task.startDate,
-        endDate: task.endDate,
-        assigneeId: currentUser.id,
-        type: 'task',
-      },
-    ])
+  function handleCreateTask(columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) {
+    if (onCreateTask) {
+      // Envía el mensaje por el WebSocket a través de la función que pasamos desde BoardPage
+      onCreateTask(columnId, taskData)
+    } else {
+      // Fallback local por si acaso
+      onTasksChange((current) => [
+        ...current,
+        {
+          id: '',
+          columnId,
+          title: taskData.title,
+          description: taskData.description,
+          startDate: taskData.startDate,
+          endDate: taskData.endDate,
+          priority: taskData.priority || 'medium',
+          author: currentUser,
+          assignee: taskData.assignee,
+          type: 'task',
+        },
+      ])
+    }
   }
+
 
   function handleDeleteTask(taskId: string) {
     onTasksChange((current) => current.filter((task) => task.id !== taskId))
     if (selectedTaskId === taskId) onSelectTaskId(null)
   }
 
-  function handleSaveEdit() {
-    if (!selectedTask) return
-
-    onTasksChange((prev) =>
-      prev.map((t) =>
-        t.id === selectedTask.id
-          ? {
-              ...t,
-              title: editTitle.trim(),
-              description: editDesc.trim(),
-              startDate: editStart,
-              endDate: editEnd,
-            }
-          : t
-      )
-    )
-    setIsEditing(false)
-  }
-
-  // Comprueba si el usuario tiene permiso para modificar/borrar la tarea
-  const canModifySelected =
-    project.isLeader || (selectedTask && selectedTask.assigneeId === currentUser.id)
-
   return (
-    <div className="flex h-full w-full flex-1 gap-4 overflow-hidden" data-testid="kanban-view">
-      {/* Contenedor Kanban que siempre se expande al máximo disponible */}
-      <div className="flex-1 flex flex-col h-full min-w-0">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="board" direction="horizontal" type="COLUMN">
-            {(provided: DroppableProvided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="flex flex-1 snap-x snap-mandatory gap-5 overflow-x-auto pb-4 h-full w-full"
-              >
-                {boardColumns.map((column, index) => (
-                  <Draggable
-                    key={column.id}
-                    draggableId={`col-${column.id}`}
-                    index={index}
-                    isDragDisabled={!project.isLeader}
-                  >
-                    {(dragProvided: DraggableProvided) => (
-                      <div
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        className="snap-center h-full"
-                      >
-                        <BoardColumnView
-                          column={column}
-                          project={project}
-                          currentUser={currentUser}
-                          tasks={tasks.filter(
-                            (task) => task.columnId === column.id && task.type !== 'event'
-                          )}
-                          selectedTaskId={selectedTaskId}
-                          onAddTask={handleCreateTask}
-                          onDeleteTask={handleDeleteTask}
-                          onSelectTask={(task) => onSelectTaskId(task.id)}
-                          onRemoveColumn={project.isLeader ? handleRemoveColumn : undefined}
-                          canRemoveColumn={project.isLeader && boardColumns.length > 1}
-                          dragHandleProps={dragProvided.dragHandleProps}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-
-                {project.isLeader && (
-                  <div className="flex w-80 shrink-0 flex-col">
-                    {adding ? (
-                      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
-                        <Input
-                          value={newColumnName}
-                          onChange={(e) => setNewColumnName(e.target.value)}
-                          placeholder="Column name"
-                          autoFocus
-                          onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
-                          className="border-zinc-800 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
-                          data-testid="new-column-input"
-                        />
-                        <div className="mt-2 flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            onClick={handleAddColumn}
-                            disabled={busy || !newColumnName.trim()}
-                            className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
-                            data-testid="new-column-confirm"
-                          >
-                            {busy ? 'Adding...' : 'Add'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setAdding(false)}
-                            className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setAdding(true)}
-                        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-800 text-sm text-zinc-500 hover:border-zinc-600 hover:text-zinc-200"
-                        data-testid="add-column-btn"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add column
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-
-      {/* Panel Lateral de Detalle */}
-      {selectedTask && (
-        <div className="w-80 shrink-0 h-full rounded-xl border border-zinc-800 bg-zinc-950 p-5 flex flex-col justify-between overflow-y-auto">
-          <div>
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                Task Info
-              </span>
-              <div className="flex items-center gap-1">
-                {canModifySelected && !isEditing && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-                    title="Edit Task"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                <button
-                  onClick={() => onSelectTaskId(null)}
-                  className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+    <div className="flex h-full w-full flex-1 overflow-hidden" data-testid="kanban-view">
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="board" direction="horizontal" type="COLUMN">
+          {(provided: DroppableProvided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="flex flex-1 snap-x snap-mandatory gap-5 overflow-x-auto pb-4 h-full w-full"
+            >
+              {boardColumns.map((column, index) => (
+                <Draggable
+                  key={column.id}
+                  draggableId={`col-${column.id}`}
+                  index={index}
+                  isDragDisabled={!project.isLeader}
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                  {(dragProvided: DraggableProvided) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      className="snap-center h-full"
+                    >
+                      <BoardColumnView
+                        column={column}
+                        project={project}
+                        currentUser={currentUser}
+                        groupMembers={groupMembers}
+                        tasks={tasks.filter(
+                          (task) => task.columnId === column.id && task.type !== 'event'
+                        )}
+                        selectedTaskId={selectedTaskId}
+                        onAddTask={handleCreateTask}
+                        onDeleteTask={handleDeleteTask}
+                        onSelectTask={(task) => onSelectTaskId(task.id)}
+                        onRemoveColumn={project.isLeader ? handleRemoveColumn : undefined}
+                        canRemoveColumn={project.isLeader && boardColumns.length > 1}
+                        dragHandleProps={dragProvided.dragHandleProps}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
 
-            {isEditing ? (
-              <div className="mt-4 space-y-4 text-xs">
-                <div>
-                  <label className="font-medium text-zinc-400">Title</label>
-                  <Input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
-                  />
+              {project.isLeader && (
+                <div className="flex w-80 shrink-0 flex-col">
+                  {adding ? (
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+                      <Input
+                        value={newColumnName}
+                        onChange={(e) => setNewColumnName(e.target.value)}
+                        placeholder="Column name"
+                        autoFocus
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
+                        className="border-zinc-800 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+                        data-testid="new-column-input"
+                      />
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleAddColumn}
+                          disabled={busy || !newColumnName.trim()}
+                          className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
+                          data-testid="new-column-confirm"
+                        >
+                          {busy ? 'Adding...' : 'Add'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setAdding(false)}
+                          className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setAdding(true)}
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-800 text-sm text-zinc-500 hover:border-zinc-600 hover:text-zinc-200"
+                      data-testid="add-column-btn"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add column
+                    </button>
+                  )}
                 </div>
-                <div>
-                  <label className="font-medium text-zinc-400">Description</label>
-                  <textarea
-                    value={editDesc}
-                    onChange={(e) => setEditDesc(e.target.value)}
-                    className="mt-1 min-h-[90px] w-full rounded-md border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-zinc-400">Start Date</label>
-                  <Input
-                    type="date"
-                    value={editStart}
-                    onChange={(e) => setEditStart(e.target.value)}
-                    className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-zinc-400">End Date</label>
-                  <Input
-                    type="date"
-                    value={editEnd}
-                    onChange={(e) => setEditEnd(e.target.value)}
-                    className="mt-1 border-zinc-800 bg-zinc-900 text-zinc-100"
-                  />
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleSaveEdit}
-                    className="flex-1 bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsEditing(false)}
-                    className="text-zinc-400"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-zinc-100">{selectedTask.title}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-zinc-400 whitespace-pre-wrap">
-                    {selectedTask.description || (
-                      <span className="italic text-zinc-600">No description provided.</span>
-                    )}
-                  </p>
-                </div>
-
-                <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs">
-                  <div>
-                    <span className="font-medium text-zinc-500 block">Start Date:</span>
-                    <span className="text-zinc-200">{selectedTask.startDate || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-zinc-500 block">End Date:</span>
-                    <span className="text-zinc-200">{selectedTask.endDate || '-'}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {!isEditing && canModifySelected && (
-            <div className="pt-4 border-t border-zinc-800 mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteTask(selectedTask.id)}
-                className="w-full text-red-400 hover:bg-red-950/30 hover:text-red-300"
-              >
-                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Delete Task
-              </Button>
+              )}
             </div>
           )}
-        </div>
-      )}
+        </Droppable>
+      </DragDropContext>
     </div>
   )
 }
@@ -441,6 +290,7 @@ function BoardColumnView({
   column,
   project,
   currentUser,
+  groupMembers = [],
   tasks,
   selectedTaskId,
   onAddTask,
@@ -452,10 +302,11 @@ function BoardColumnView({
 }: {
   column: BoardColumn
   project: ProjectSummary
-  currentUser: { id: number; name: string }
+  currentUser: Member
+  groupMembers: Member[]
   tasks: Task[]
   selectedTaskId: string | null
-  onAddTask: (columnId: number, task: Omit<Task, 'id' | 'columnId'>) => void
+  onAddTask: (columnId: number, task: Omit<Task, 'id' | 'columnId' | 'author'>) => void
   onDeleteTask: (taskId: string) => void
   onSelectTask: (task: Task) => void
   onRemoveColumn?: (columnId: number) => void
@@ -467,6 +318,8 @@ function BoardColumnView({
   const [description, setDescription] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [priority, setPriority] = useState<Priority>('medium')
+  const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -481,6 +334,8 @@ function BoardColumnView({
     setDescription('')
     setStartDate('')
     setEndDate('')
+    setPriority('medium')
+    setAssigneeId(undefined)
     setError(null)
     setBusy(false)
     setOpenStartPicker(false)
@@ -493,12 +348,16 @@ function BoardColumnView({
       return
     }
 
+    const chosenAssignee = groupMembers.find((m) => m.id === assigneeId)
+
     setBusy(true)
     onAddTask(column.id, {
       title: title.trim(),
       description: description.trim(),
       startDate,
       endDate,
+      priority,
+      assignee: chosenAssignee,
     })
     resetTaskForm()
     setAddingTask(false)
@@ -548,17 +407,30 @@ function BoardColumnView({
             {tasks.length > 0 ? (
               tasks.map((task, index) => {
                 const isSelected = task.id === selectedTaskId
-                const canModify = project.isLeader || task.assigneeId === currentUser.id
+                const isAssignedToMe = task.assignee?.id === currentUser.id
+                const canDelete = project.isLeader || task.author?.id === currentUser.id
+
+                const priorityBorder =
+                  task.priority === 'high'
+                    ? 'border-l-4 border-l-red-500'
+                    : task.priority === 'medium'
+                      ? 'border-l-4 border-l-amber-500'
+                      : 'border-l-4 border-l-emerald-500'
 
                 return (
-                  <Draggable key={task.id} draggableId={task.id} index={index}>
+                  <Draggable key={task.id || index} draggableId={task.id || `temp-${index}`} index={index}>
                     {(taskProvided: DraggableProvided, taskSnapshot: DraggableStateSnapshot) => (
                       <div
                         ref={taskProvided.innerRef}
                         {...taskProvided.draggableProps}
                         {...taskProvided.dragHandleProps}
+                        data-task-item="true"
                         onClick={() => onSelectTask(task)}
-                        className={`group relative rounded-2xl border bg-zinc-950 p-4 transition cursor-pointer ${
+                        className={`group relative rounded-2xl border bg-zinc-950 p-4 transition cursor-pointer ${priorityBorder} ${
+                          isAssignedToMe
+                            ? 'ring-2 ring-indigo-500/80 shadow-md shadow-indigo-950/50'
+                            : ''
+                        } ${
                           isSelected
                             ? 'border-zinc-500 ring-2 ring-zinc-500/40 shadow-lg shadow-black/80'
                             : 'border-zinc-800 hover:border-zinc-700'
@@ -567,44 +439,38 @@ function BoardColumnView({
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-semibold text-zinc-100">{task.title}</p>
-                            <p className="mt-2 text-sm leading-6 text-zinc-400 line-clamp-2">
+                            <p className="mt-1 text-xs leading-5 text-zinc-400 line-clamp-2">
                               {task.description || (
                                 <span className="italic text-zinc-600">No description</span>
                               )}
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-1">
-                            {canModify && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onSelectTask(task)
-                                  }}
-                                  className="rounded-full p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-900 hover:text-zinc-100"
-                                  title="Edit Task"
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  className="rounded-full p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-900 hover:text-zinc-100"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onDeleteTask(task.id)
-                                  }}
-                                  aria-label={`Delete ${task.title}`}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </>
-                            )}
-                          </div>
+                          {canDelete && (
+                            <button
+                              type="button"
+                              className="rounded-full p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-900 hover:text-zinc-100 shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onDeleteTask(task.id)
+                              }}
+                              aria-label={`Delete ${task.title}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
 
-                        <div className="mt-3 grid gap-2 text-xs text-zinc-500">
+                        {/* Mostrar Responsable si existe */}
+                        {task.assignee && (
+                          <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-medium text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-full w-max border border-indigo-800/40">
+                            <UserIcon className="h-3 w-3 text-indigo-400" />
+                            <span className="truncate">{task.assignee.username}</span>
+                          </div>
+                        )}
+
+                        {/* Fechas horizontales */}
+                        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-zinc-500 border-t border-zinc-900 pt-2">
                           <span>
                             <span className="font-medium text-zinc-400">Start:</span>{' '}
                             {task.startDate || '-'}
@@ -640,8 +506,76 @@ function BoardColumnView({
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Description"
-                    className="min-h-[90px] w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+                    className="min-h-[80px] w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
                   />
+
+                  {/* Selección de Prioridad con Colores Visuales */}
+                  <div>
+                    <label className="text-[10px] font-semibold text-zinc-500 uppercase block mb-1">
+                      Priority
+                    </label>
+                    <div className="grid grid-cols-3 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setPriority('low')}
+                        className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
+                          priority === 'low'
+                            ? 'bg-emerald-950 border border-emerald-500 text-emerald-300'
+                            : 'bg-zinc-900 border border-zinc-800 text-zinc-500'
+                        }`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Low
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPriority('medium')}
+                        className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
+                          priority === 'medium'
+                            ? 'bg-amber-950 border border-amber-500 text-amber-300'
+                            : 'bg-zinc-900 border border-zinc-800 text-zinc-500'
+                        }`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        Med
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPriority('high')}
+                        className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
+                          priority === 'high'
+                            ? 'bg-red-950 border border-red-500 text-red-300'
+                            : 'bg-zinc-900 border border-zinc-800 text-zinc-500'
+                        }`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                        High
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dropdown de Responsables de Grupo */}
+                  <div>
+                    <label className="text-[10px] font-semibold text-zinc-500 uppercase block mb-1">
+                      Assignee
+                    </label>
+                    <select
+                      value={assigneeId || ''}
+                      onChange={(e) =>
+                        setAssigneeId(
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
+                      className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-1.5 text-xs text-zinc-100 focus:outline-none"
+                    >
+                      <option value="">Unassigned</option>
+                      {groupMembers.map((member) => (
+                        <option key={member.id} value={member.id}>
+                          {member.username} {member.id === currentUser.id ? '(You)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div>

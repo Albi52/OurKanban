@@ -9,7 +9,7 @@ public class EventDto {
     public Long id;
     public String text;
     public LocalDateTime date;
-    public EventType type; 
+    public String type; 
     public Long projectId;
     public Long authorId;
     public String authorName;
@@ -20,7 +20,7 @@ public class EventDto {
         this.id = id;
         this.text = text;
         this.date = date;
-        this.type = type;
+        this.type = type.toString();
         this.projectId = projectId;
         this.authorId = authorId;
         this.authorName = authorName;
