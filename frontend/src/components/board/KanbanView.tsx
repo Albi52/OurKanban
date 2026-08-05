@@ -10,11 +10,11 @@ import {
   type DroppableStateSnapshot,
   type DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
-import { addColumn } from '../../api/columnAPI'
+import { addColumn } from '@api/board/columnAPI'
 import type { Member, ProjectSummary } from '../../types/workgroup'
 import type { BoardColumn } from '../../types/board'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
 import {
   Plus,
   Trash2,

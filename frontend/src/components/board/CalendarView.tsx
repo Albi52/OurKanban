@@ -6,8 +6,8 @@ import {
   Trash2,
   Plus,
 } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
+import { Button } from '@components/shared/ui/button'
+import { Input } from '@components/shared/ui/input'
 import type { Task } from './KanbanView'
 import type { Member, ProjectSummary } from '../../types/workgroup'
 
