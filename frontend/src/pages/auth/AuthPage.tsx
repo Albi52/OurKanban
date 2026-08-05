@@ -178,7 +178,7 @@ const [showPassword, setShowPassword] = useState(false)
             </Field>
           )}
 
-          <Button type="submit" disabled={busy} className="mt-2 w-full rounded-full bg-primary text-primary-foreground hover:bg-zinc-200 h-11" data-testid="auth-submit-btn">
+          <Button type="submit" disabled={busy} className="mt-2 w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90 h-11" data-testid="auth-submit-btn">
             {busy ? '...' : mode === 'login' ? 'Sign in' : 'Create account'}
           </Button>
         </form>

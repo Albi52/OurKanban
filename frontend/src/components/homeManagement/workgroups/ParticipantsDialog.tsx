@@ -106,7 +106,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                   {m.username}
 
                   {m.username === group.leaderUsername && (
-                    <Crown className="ml-1 h-3.5 w-3.5 text-amber-400" />
+                    <Crown className="ml-1 h-3.5 w-3.5 text-warning" />
                   )}
                 </span>
               </div>
@@ -116,7 +116,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                   size="icon"
                   variant="ghost"
                   onClick={() => handleRemove(m.id)}
-                  className="h-8 w-8 text-foreground0 hover:bg-red-500/10 hover:text-red-400"
+                  className="h-8 w-8 text-foreground0 hover:bg-destructive/10 hover:text-destructive"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -168,7 +168,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                 </ul>
               )}
               </div>
-              <Button onClick={handleAdd} disabled={busy} className="bg-primary text-primary-foreground hover:bg-zinc-200" data-testid="participant-add-btn">
+              <Button onClick={handleAdd} disabled={busy} className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="participant-add-btn">
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add
               </Button>

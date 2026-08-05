@@ -272,8 +272,8 @@ export default function BoardPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4 text-center px-6">
-        <p className="text-red-400 font-semibold">{error}</p>
-        <Button onClick={() => navigate('/home')} className="bg-primary text-primary-foreground hover:bg-zinc-200">
+        <p className="text-destructive font-semibold">{error}</p>
+        <Button onClick={() => navigate('/home')} className="bg-primary text-primary-foreground hover:bg-primary/90">
           Back to home
         </Button>
       </div>
@@ -418,7 +418,7 @@ export default function BoardPage() {
                             onClick={() => setEditPriority('low')}
                             className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
                               editPriority === 'low'
-                                ? 'bg-emerald-950 border-emerald-500 text-emerald-300'
+                                ? 'bg-emerald-950 border-emerald-500 text-success'
                                 : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
                             }`}
                           >
@@ -440,11 +440,11 @@ export default function BoardPage() {
                             onClick={() => setEditPriority('high')}
                             className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
                               editPriority === 'high'
-                                ? 'bg-red-950 border-red-500 text-red-300'
+                                ? 'bg-red-950 border-destructive text-red-300'
                                 : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
                             }`}
                           >
-                            <span className="h-2 w-2 rounded-full bg-red-500" /> High
+                            <span className="h-2 w-2 rounded-full bg-destructive" /> High
                           </button>
                         </div>
                       </div>
@@ -487,7 +487,7 @@ export default function BoardPage() {
                       </div>
 
                       <div className="mt-4 flex gap-2">
-                        <Button size="sm" onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground hover:bg-zinc-200">Save</Button>
+                        <Button size="sm" onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Save</Button>
                         <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground">Cancel</Button>
                       </div>
                     </div>
@@ -498,7 +498,7 @@ export default function BoardPage() {
                           <span
                             className={`h-2.5 w-2.5 rounded-full ${
                               selectedTask.priority === 'high'
-                                ? 'bg-red-500'
+                                ? 'bg-destructive'
                                 : selectedTask.priority === 'medium'
                                   ? 'bg-amber-500'
                                   : 'bg-emerald-500'
@@ -542,7 +542,7 @@ export default function BoardPage() {
 
                 {!isEditing && canModifySelected && (
                   <div className="pt-4 border-t border-border mt-4">
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-red-400 hover:bg-red-950/30 hover:text-red-300">
+                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
                       <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete {selectedTask.type === 'event' ? 'Event' : 'Task'}
                     </Button>
                   </div>

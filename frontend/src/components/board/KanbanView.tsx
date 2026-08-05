@@ -251,7 +251,7 @@ export function KanbanView({
                           size="sm"
                           onClick={handleAddColumn}
                           disabled={busy || !newColumnName.trim()}
-                          className="bg-primary text-primary-foreground hover:bg-zinc-200"
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
                           data-testid="new-column-confirm"
                         >
                           {busy ? 'Adding...' : 'Add'}
@@ -432,7 +432,7 @@ function BoardColumnView({
                             : ''
                         } ${
                           isSelected
-                            ? 'border-zinc-500 ring-2 ring-zinc-500/40 shadow-lg shadow-black/80'
+                            ? 'border-input ring-2 ring-zinc-500/40 shadow-lg shadow-black/80'
                             : 'border-border hover:border-border-hover'
                         } ${taskSnapshot.isDragging ? 'shadow-lg shadow-black/60 ring-1 ring-zinc-700' : ''}`}
                       >
@@ -520,7 +520,7 @@ function BoardColumnView({
                         onClick={() => setPriority('low')}
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'low'
-                            ? 'bg-emerald-950 border border-emerald-500 text-emerald-300'
+                            ? 'bg-emerald-950 border border-emerald-500 text-success'
                             : 'bg-zinc-900 border border-border text-foreground0'
                         }`}
                       >
@@ -544,11 +544,11 @@ function BoardColumnView({
                         onClick={() => setPriority('high')}
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'high'
-                            ? 'bg-red-950 border border-red-500 text-red-300'
+                            ? 'bg-red-950 border border-destructive text-red-300'
                             : 'bg-zinc-900 border border-border text-foreground0'
                         }`}
                       >
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
                         High
                       </button>
                     </div>
@@ -638,7 +638,7 @@ function BoardColumnView({
                     </div>
                   </div>
 
-                  {error ? <p className="text-xs text-red-400">{error}</p> : null}
+                  {error ? <p className="text-xs text-destructive">{error}</p> : null}
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -646,7 +646,7 @@ function BoardColumnView({
                     size="sm"
                     onClick={handleSaveTask}
                     disabled={busy}
-                    className="bg-primary text-primary-foreground hover:bg-zinc-200"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     {busy ? 'Adding...' : 'Add task'}
                   </Button>

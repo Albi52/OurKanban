@@ -47,7 +47,7 @@ export const CreateGroupDialog: React.FC<Props> = ({ open, onOpenChange, onCreat
         />
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
-          <Button onClick={submit} disabled={busy || !name.trim()} className="bg-primary text-primary-foreground hover:bg-zinc-200" data-testid="create-group-submit">Create</Button>
+          <Button onClick={submit} disabled={busy || !name.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="create-group-submit">Create</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

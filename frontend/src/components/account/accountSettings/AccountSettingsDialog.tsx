@@ -202,7 +202,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
               className="border-border bg-card/60 text-foreground-secondary focus-visible:ring-zinc-500"
               data-testid="settings-username-input"
             />
-            <Button type="submit" disabled={usernameBusy || newUsername === user?.username} className="bg-primary text-primary-foreground hover:bg-zinc-200">
+            <Button type="submit" disabled={usernameBusy || newUsername === user?.username} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Save
             </Button>
           </div>
@@ -244,7 +244,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
             </p>
           )}
 
-          <Button type="submit" disabled={passwordBusy || !newPassword.trim()} className="w-full bg-primary text-primary-foreground hover:bg-zinc-200">
+          <Button type="submit" disabled={passwordBusy || !newPassword.trim()} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             {passwordBusy ? 'Saving...' : me?.hasLocalPassword ? 'Update password' : 'Set password'}
           </Button>
         </form>

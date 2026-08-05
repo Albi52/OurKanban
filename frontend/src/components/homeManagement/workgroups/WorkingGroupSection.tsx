@@ -51,7 +51,7 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
                 {group.name}
               </h2>
               {group.isLeader && (
-                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-emerald-300">
+                <span className="rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-success">
                   Leader
                 </span>
               )}
@@ -68,12 +68,12 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
             {group.isLeader ? `Manage (${group.members.length})` : `Members (${group.members.length})`}
           </Button>
           {group.isLeader && (
-            <Button size="sm" onClick={onCreateProject} className="rounded-md bg-primary text-primary-foreground hover:bg-zinc-200" data-testid={`create-project-${group.id}`}>
+            <Button size="sm" onClick={onCreateProject} className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90" data-testid={`create-project-${group.id}`}>
               <Plus className="mr-2 h-4 w-4" />
               New project
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleLeave} className="text-red-400 hover:bg-red-500/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
+          <Button variant="ghost" size="sm" onClick={handleLeave} className="text-destructive hover:bg-destructive/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
             <LogOut className="mr-2 h-4 w-4" />
             Leave
           </Button>

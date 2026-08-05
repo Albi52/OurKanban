@@ -183,7 +183,7 @@ export function CalendarView({
       case 'high':
         return 'bg-red-950/80 border-red-700/80 text-red-200 hover:bg-red-900'
       case 'medium':
-        return 'bg-amber-950/80 border-amber-700/80 text-amber-200 hover:bg-amber-900'
+        return 'bg-amber-950/80 border-amber-700/80 text-warning-foreground hover:bg-amber-900'
       case 'low':
       default:
         return 'bg-emerald-950/80 border-emerald-700/80 text-emerald-200 hover:bg-emerald-900'

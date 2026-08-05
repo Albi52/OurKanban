@@ -44,7 +44,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             <Link to="/home">
-              <Button className="rounded-full bg-zinc-50 px-4 text-zinc-950 hover:bg-zinc-200 sm:px-5" data-testid="nav-go-home-btn">
+              <Button className="rounded-full bg-zinc-50 px-4 text-zinc-950 hover:bg-primary/90 sm:px-5" data-testid="nav-go-home-btn">
                 Go to home
                 <ArrowUpRight className="ml-1 h-4 w-4" />
               </Button>
@@ -63,7 +63,7 @@ const LandingPage: React.FC = () => {
         ) : (
           <div className="flex items-center gap-2">
             <Link to="/login">
-              <Button className="bg-primary text-primary-foreground hover:bg-zinc-200 rounded-full px-5" data-testid="nav-register-btn">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5" data-testid="nav-register-btn">
                 Sign in
               </Button>
             </Link>
@@ -78,7 +78,7 @@ const LandingPage: React.FC = () => {
 
       <main className="relative z-10 mx-auto flex max-w-[1400px] flex-col items-start justify-center px-6 py-24 md:px-12 md:py-32">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-zinc-900/50 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-muted-foreground sm:mb-8">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
           Collaborative Kanban
         </span>
 
@@ -95,7 +95,7 @@ const LandingPage: React.FC = () => {
         <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-12">
           {user ? (
             <Link to="/home">
-              <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-go-home-btn">
+              <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-primary/90 sm:px-8" data-testid="hero-go-home-btn">
                 Go to your workspace
                 <ArrowUpRight className="ml-1 h-4 w-4" />
               </Button>
@@ -103,7 +103,7 @@ const LandingPage: React.FC = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-zinc-200 sm:px-8" data-testid="hero-signin-btn">
+                <Button size="lg" className="h-12 rounded-full bg-zinc-50 px-6 text-base text-zinc-950 transition-transform hover:-translate-y-0.5 hover:bg-primary/90 sm:px-8" data-testid="hero-signin-btn">
                   Sign in
                   <ArrowUpRight className="ml-1 h-4 w-4" />
                 </Button>

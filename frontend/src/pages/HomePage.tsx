@@ -59,7 +59,7 @@ const HomePage: React.FC = () => {
                 {groups.length} working group{groups.length === 1 ? '' : 's'} · {projectCount} projects
               </p>
             </div>
-            <Button onClick={() => setCreateGroupOpen(true)} className="bg-primary text-primary-foreground hover:bg-zinc-200 rounded-full" data-testid="new-group-btn">
+            <Button onClick={() => setCreateGroupOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full" data-testid="new-group-btn">
               <Plus className="mr-2 h-4 w-4" />
               New group
             </Button>

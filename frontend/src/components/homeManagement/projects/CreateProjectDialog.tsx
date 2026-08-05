@@ -50,7 +50,7 @@ export const CreateProjectDialog: React.FC<Props> = ({ group, onClose, onCreated
         />
         <DialogFooter>
           <Button variant="ghost" onClick={onClose} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
-          <Button onClick={submit} disabled={busy || !name.trim()} className="bg-primary text-primary-foreground hover:bg-zinc-200" data-testid="create-project-submit">Create</Button>
+          <Button onClick={submit} disabled={busy || !name.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="create-project-submit">Create</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

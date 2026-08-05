@@ -28,14 +28,14 @@ export function VerifyEmailBanner() {
   }
 
   return (
-    <div className="mb-6 flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+    <div className="mb-6 flex items-center justify-between rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
       <span>
         {status.localCredentialsPending
           ? 'Verify your email to finish setting up password login for this account.'
           : 'Your email is not verified yet.'}
       </span>
       <Button size="sm" variant="outline" onClick={handleResend} disabled={sending}
-        className="border-amber-500/40 text-amber-200 hover:bg-amber-500/20">
+        className="border-amber-500/40 text-warning-foreground hover:bg-amber-500/20">
         {sending ? 'Sending...' : 'Verify Email'}
       </Button>
     </div>

@@ -39,7 +39,7 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
                 <DropdownMenuItem onClick={() => setRenameOpen(true)} data-testid={`project-rename-${project.id}`} className="focus:bg-zinc-900 focus:text-foreground">
                   Rename
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDeleteOpen(true)} data-testid={`project-delete-${project.id}`} className="text-red-400 focus:bg-red-500/10 focus:text-red-300">
+                <DropdownMenuItem onClick={() => setDeleteOpen(true)} data-testid={`project-delete-${project.id}`} className="text-destructive focus:bg-destructive/10 focus:text-red-300">
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>

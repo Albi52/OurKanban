@@ -45,7 +45,7 @@ export const RenameProjectDialog: React.FC<Props> = ({ project, open, onOpenChan
         <Input value={name} onChange={(e) => setName(e.target.value)} className="border-border bg-card/60 text-foreground-secondary focus-visible:ring-zinc-500" data-testid="rename-project-input" />
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
-          <Button onClick={submit} disabled={busy} className="bg-primary text-primary-foreground hover:bg-zinc-200" data-testid="rename-project-submit">Save</Button>
+          <Button onClick={submit} disabled={busy} className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="rename-project-submit">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

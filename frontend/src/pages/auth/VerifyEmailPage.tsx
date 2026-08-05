@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4">
       {status === 'loading' && <p>Verifying...</p>}
       {status === 'success' && <p className="text-emerald-400">{message}</p>}
-      {status === 'error' && <p className="text-red-400">{message}</p>}
+      {status === 'error' && <p className="text-destructive">{message}</p>}
       <Link to="/login" className="underline text-muted-foreground hover:text-foreground">Back to sign in</Link>
     </div>
   )

@@ -40,7 +40,7 @@ export const DeleteProjectDialog: React.FC<Props> = ({ project, open, onOpenChan
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground">Cancel</Button>
-          <Button onClick={submit} disabled={busy} className="bg-red-500 text-foreground hover:bg-red-600" data-testid="delete-project-confirm">Delete</Button>
+          <Button onClick={submit} disabled={busy} className="bg-destructive text-foreground hover:bg-red-600" data-testid="delete-project-confirm">Delete</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
