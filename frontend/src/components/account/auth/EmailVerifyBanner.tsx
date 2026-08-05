@@ -8,11 +8,11 @@ export function VerifyEmailBanner() {
   const [sending, setSending] = useState(false)
 
   useEffect(() => {
-    getMe().then(setStatus).catch(() => {})
+    getMe().then(setStatus).catch(() => { })
   }, [])
 
   if (!status) return null
-  const needsVerification = !status.emailVerified 
+  const needsVerification = !status.emailVerified
   if (!needsVerification) return null
 
   async function handleResend() {
@@ -28,14 +28,29 @@ export function VerifyEmailBanner() {
   }
 
   return (
-    <div className="mb-6 flex items-center justify-between rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
+    <div className="mb-6 flex items-center justify-between rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
       <span>
         {status.localCredentialsPending
           ? 'Verify your email to finish setting up password login for this account.'
           : 'Your email is not verified yet.'}
       </span>
-      <Button size="sm" variant="outline" onClick={handleResend} disabled={sending}
-        className="border-amber-500/40 text-warning-foreground hover:bg-amber-500/20">
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={handleResend}
+        disabled={sending}
+        className="    
+   
+  border-warning/40
+  bg-warning/40
+  text-foreground
+  hover:bg-warning/80
+  dark:bg-warning/40
+  dark:hover:bg-warning/80
+
+    
+  "
+      >
         {sending ? 'Sending...' : 'Verify Email'}
       </Button>
     </div>
