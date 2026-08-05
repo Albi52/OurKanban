@@ -5,6 +5,7 @@ import { useAuth } from '@context/AuthContext'
 import { Button } from '@components/shared/ui/button'
 import { UserAvatar } from '@components/shared/UserAvatar'
 import { AccountSettingsDialog } from '@components/account/accountSettings/AccountSettingsDialog'
+import { ThemeToggle } from '@components/shared/ThemeToggle'
 import { LogOut } from 'lucide-react'
 
 export const TopBar: React.FC = () => {
@@ -23,7 +24,8 @@ export const TopBar: React.FC = () => {
         <Link to="/" data-testid="top-bar-logo-link" className="shrink-0">
           <Logo size="sm" />
         </Link>
-
+        <div className="flex items-center gap-2 sm:gap-4">
+          <ThemeToggle />
         {user && (
           <div className="flex items-center gap-2 sm:gap-4">
             <button
@@ -56,6 +58,7 @@ export const TopBar: React.FC = () => {
             </Button>
           </div>
         )}
+      </div>
       </div>
 
       <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
