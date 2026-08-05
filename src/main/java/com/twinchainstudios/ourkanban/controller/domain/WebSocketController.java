@@ -8,10 +8,9 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 
@@ -48,20 +47,31 @@ public class WebSocketController {
         if (msg.type == null || msg.data == null) {
             return; // Invalid message
         }
-        Authentication authentication =
-            (Authentication) SecurityContextHolder.getContext().getAuthentication();
 
-        UserPrincipal userPrincipal =
-                (UserPrincipal) authentication.getPrincipal();
+        UserPrincipal userPrincipal = null;
+
+        // Prefer the Principal argument set by the ChannelInterceptor. In our setup the interceptor
+        // sets an Authentication as the Principal, whose getPrincipal() returns UserPrincipal.
+        if (principal instanceof Authentication) {
+            Object p = ((Authentication) principal).getPrincipal();
+            if (p instanceof UserPrincipal) {
+                userPrincipal = (UserPrincipal) p;
+            }
+        } else if (principal instanceof UserPrincipal) {
+            userPrincipal = (UserPrincipal) principal;
+        }
+
+        if (userPrincipal == null) {
+            System.out.println("WebSocket message received without authenticated principal; principal=" + principal);
+            return; // No authenticated user available for this message
+        }
 
         Long userId = userPrincipal.getId();
 
         System.out.println("Principal = " + principal);
-
         if (principal != null) {
             System.out.println(principal.getClass().getName());
         }
-
 
         switch (msg.type) {
             case Task:

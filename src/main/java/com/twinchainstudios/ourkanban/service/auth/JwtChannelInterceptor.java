@@ -52,9 +52,25 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                                 user.getAuthorities());
 
                 accessor.setUser(authentication);
+
+                // Populate Spring Security context for the current thread so @MessageMapping handlers
+                // that read SecurityContextHolder.getContext() will find the authentication.
+                org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } else {
+            // For non-CONNECT frames ensure the SecurityContextHolder contains the user from the message headers
+            if (accessor.getUser() instanceof org.springframework.security.core.Authentication) {
+                org.springframework.security.core.context.SecurityContextHolder.getContext()
+                        .setAuthentication((org.springframework.security.core.Authentication) accessor.getUser());
             }
         }
 
         return message;
+    }
+
+    @Override
+    public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+        // Clear the SecurityContext to avoid leaking authentication between threads
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
 }
