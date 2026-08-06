@@ -6,6 +6,8 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
 
 import com.twinchainstudios.ourkanban.service.auth.JwtChannelInterceptor;
+import com.twinchainstudios.ourkanban.service.auth.JwtHandshakeInterceptor;
+import com.twinchainstudios.ourkanban.service.auth.UserHandshakeHandler;
 
 @Configuration
 @EnableWebSocketMessageBroker
