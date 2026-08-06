@@ -12,6 +12,8 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { VerifyEmailBanner } from '@components/account/auth/EmailVerifyBanner'
 
+import { getGroupRecency, getProjectRecency } from '@lib/recentActivity'
+
 const HomePage: React.FC = () => {
   const { user } = useAuth()
   const [groups, setGroups] = useState<WorkGroup[]>([])
@@ -19,10 +21,25 @@ const HomePage: React.FC = () => {
   const [createInGroup, setCreateInGroup] = useState<WorkGroup | null>(null)
   const [createGroupOpen, setCreateGroupOpen] = useState(false)
 
+
+
+
   async function refresh() {
     setLoading(true)
     try {
-      setGroups(await getMyWorkGroups())
+      const data = await getMyWorkGroups()
+      const username = user?.username ?? ''
+
+      const sorted = data
+        .map((g) => ({
+          ...g,
+          projects: [...g.projects].sort(
+            (a, b) => getProjectRecency(username, b.id) - getProjectRecency(username, a.id)
+          ),
+        }))
+        .sort((a, b) => getGroupRecency(username, b.id) - getGroupRecency(username, a.id))
+
+      setGroups(sorted)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load groups')
     } finally {

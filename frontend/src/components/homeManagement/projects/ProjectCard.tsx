@@ -5,7 +5,8 @@ import { MoreHorizontal, ArrowUpRight } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@components/shared/ui/dropdown-menu'
 import { RenameProjectDialog } from '@components/homeManagement/projects/RenameProjectDialog'
 import { DeleteProjectDialog } from '@components/homeManagement/projects/DeleteProjectDialog'
-
+import { recordGroupOpened, recordProjectOpened } from '@lib/recentActivity'
+import { useAuth } from '@/context/AuthContext'
 interface Props {
   project: ProjectSummary
   canManage: boolean
@@ -16,7 +17,15 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
   const navigate = useNavigate()
   const [renameOpen, setRenameOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const { user } = useAuth()
+  function handleOpen() {
+    navigate(`/board/${project.id}`)
+    if (user) {
 
+      recordProjectOpened(user.username, project.id, project.workGroupId)
+      recordGroupOpened(user.username, project.workGroupId)
+    }
+  }
   return (
     <>
       <div
@@ -47,12 +56,12 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
           </div>
         )}
 
-        <button type="button" onClick={() => navigate(`/board/${project.id}`)} className="text-left" data-testid={`project-open-${project.id}`}>
+        <button type="button" onClick={() => handleOpen()  } className="text-left" data-testid={`project-open-${project.id}`}>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Project</p>
           <h3 className="mt-2 font-heading text-xl font-medium tracking-tight text-foreground">{project.name}</h3>
         </button>
 
-        <button onClick={() => navigate(`/board/${project.id}`)} className="flex items-center gap-1 self-end text-xs text-muted-foreground hover:text-foreground" data-testid={`project-open-arrow-${project.id}`}>
+        <button onClick={() => handleOpen()} className="flex items-center gap-1 self-end text-xs text-muted-foreground hover:text-foreground" data-testid={`project-open-arrow-${project.id}`}>
           Open
           <ArrowUpRight className="h-3.5 w-3.5" />
         </button>
