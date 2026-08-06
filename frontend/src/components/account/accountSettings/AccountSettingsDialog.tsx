@@ -194,7 +194,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
         </DialogHeader>
 
         <form onSubmit={handleUsernameSubmit} className="space-y-3 border-b border-border pb-6">
-          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Username</Label>
+          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Username</Label>
           <div className="flex gap-2">
             <Input
               value={newUsername}
@@ -209,7 +209,7 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
         </form>
 
         <form onSubmit={handlePasswordSubmit} className="space-y-3 pt-2">
-          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">
+          <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             {me?.hasLocalPassword ? 'Change password' : 'Set a password'}
           </Label>
 
@@ -234,12 +234,12 @@ export const AccountSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) =
           />
 
           {!me?.hasLocalPassword && me?.hasGoogleAccount && (
-            <p className="text-xs text-foreground0">
+            <p className="text-xs text-muted-foreground">
               Set a password to enable signing in without Google. 
             </p>
           )}
           {me?.hasLocalPassword && me?.hasGoogleAccount && (
-            <p className="text-xs text-foreground0">
+            <p className="text-xs text-muted-foreground">
               Set a new password. Google verified, no previous password required. 
             </p>
           )}

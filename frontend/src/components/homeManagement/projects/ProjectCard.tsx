@@ -69,7 +69,7 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
         )}
 
         <button type="button" onClick={() => handleOpen()} className="text-left" data-testid={`project-open-${project.id}`}>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Project</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Project</p>
           <h3 className="mt-2 font-heading text-xl font-medium tracking-tight text-foreground">{project.name}</h3>
         </button>
 

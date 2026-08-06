@@ -82,6 +82,15 @@ const [showPassword, setShowPassword] = useState(false)
   }
   return (
     <div className="min-h-screen bg-background text-foreground">
+            <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+      />
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between px-6 md:px-10">
           <Link to="/" data-testid="auth-top-logo-link"><Logo size="sm" /></Link>
@@ -98,7 +107,7 @@ const [showPassword, setShowPassword] = useState(false)
           <h1 className="font-heading text-4xl font-light tracking-tighter text-foreground" data-testid="auth-title">
             {mode === 'login' ? 'Sign in' : 'Create account'}
           </h1>
-          <p className="mt-3 text-sm text-foreground0">
+          <p className="mt-3 text-sm text-muted-foreground">
             {mode === 'login' ? 'Use your username or email to continue.' : 'Set up your workspace in a minute.'}
           </p>
         </div>
@@ -155,7 +164,7 @@ const [showPassword, setShowPassword] = useState(false)
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground0 hover:text-foreground-secondary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground-secondary"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 data-testid="auth-password-toggle"
               >
@@ -193,7 +202,7 @@ const [showPassword, setShowPassword] = useState(false)
           <GoogleSignInButton onCredential={handleGoogleCredential} />
         </div>
 
-        <p className="mt-10 text-sm text-foreground0">
+        <p className="mt-10 text-sm text-muted-foreground">
           {mode === 'login' ? (
             <>
               New to OurKanban?{' '}
@@ -225,7 +234,7 @@ const [showPassword, setShowPassword] = useState(false)
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div>
-    <Label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">{label}</Label>
+    <Label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</Label>
     {children}
   </div>
 )

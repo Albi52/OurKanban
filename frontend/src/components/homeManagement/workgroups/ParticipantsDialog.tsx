@@ -83,7 +83,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
       <DialogContent className="border-border bg-background text-foreground sm:max-w-lg" data-testid="participants-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl font-medium tracking-tight">{group.name}</DialogTitle>
-          <DialogDescription className="text-foreground0">
+          <DialogDescription className="text-muted-foreground">
             {group.members.length} participant{group.members.length === 1 ? '' : 's'}
           </DialogDescription>
         </DialogHeader>
@@ -116,7 +116,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
                   size="icon"
                   variant="ghost"
                   onClick={() => handleRemove(m.id)}
-                  className="h-8 w-8 text-foreground0 hover:bg-destructive/10 hover:text-destructive"
+                  className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -127,7 +127,7 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
 
         {group.isLeader && (
           <div className="mt-4 space-y-2 border-t border-border pt-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Add member</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Add member</p>
             <div className="flex gap-2">
               <div className="relative flex-1">
               <Input

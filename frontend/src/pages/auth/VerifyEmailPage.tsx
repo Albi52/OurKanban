@@ -31,6 +31,15 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4">
+            <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+      />
       {status === 'loading' && <p>Verifying...</p>}
       {status === 'success' && <p className="text-emerald-400">{message}</p>}
       {status === 'error' && <p className="text-destructive">{message}</p>}

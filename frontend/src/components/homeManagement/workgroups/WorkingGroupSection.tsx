@@ -56,12 +56,12 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
         >
           <ChevronDown
             className={cn(
-              'mt-1.5 h-4 w-4 shrink-0 text-foreground0 transition-transform duration-200',
+              'mt-1.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
               collapsed && '-rotate-90'
             )}
           />
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Working group</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Working group</p>
             <div className="mt-2 flex items-center gap-3">
               <h2 className="font-heading text-xl font-medium tracking-tight text-foreground sm:text-2xl md:text-3xl">
                 {group.name}
@@ -97,7 +97,7 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
       </div>
 
       {!collapsed && (group.projects.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-zinc-900/20 p-8 text-center text-sm text-foreground0 sm:p-10">
+        <div className="rounded-xl border border-dashed border-border bg-zinc-900/20 p-8 text-center text-sm text-muted-foreground sm:p-10">
           No projects here yet.
         </div>
       ) : (

@@ -64,7 +64,7 @@ export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => 
         </div>
 
         <div className="rounded-xl border border-border bg-card/40 p-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">At a glance</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">At a glance</p>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <Stat icon={<Users className="h-4 w-4" />} value={groups.length} label="Groups" />
             <Stat icon={<LayoutGrid className="h-4 w-4" />} value={projectCount} label="Projects" />
@@ -72,7 +72,7 @@ export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => 
         </div>
 
         <div className="rounded-xl border border-border bg-card/40 p-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Your groups</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Your groups</p>
           <ul className="mt-4 space-y-2">
             {groups.map((g) => (
               <li key={g.id} className="flex items-center justify-between rounded-md px-2 py-2 text-sm text-foreground-secondary hover:bg-accent hover:text-accent-foreground">
@@ -92,8 +92,8 @@ export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => 
 
 const Stat: React.FC<{ icon: React.ReactNode; value: number; label: string }> = ({ icon, value, label }) => (
   <div>
-    <div className="flex items-center gap-2 text-foreground0">{icon}</div>
+    <div className="flex items-center gap-2 text-muted-foreground">{icon}</div>
     <div className="mt-2 font-heading text-2xl font-light text-foreground">{value}</div>
-    <div className="text-[10px] uppercase tracking-[0.2em] text-foreground0">{label}</div>
+    <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
   </div>
 )

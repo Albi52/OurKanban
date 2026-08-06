@@ -54,7 +54,17 @@ const HomePage: React.FC = () => {
   const projectCount = groups.reduce((n, g) => n + g.projects.length, 0)
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+      <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+      />
+     
       <TopBar />
 
       <div className="mx-auto flex max-w-[1600px] gap-8 px-6 py-10 md:px-10">
@@ -63,14 +73,14 @@ const HomePage: React.FC = () => {
         <main className="flex-1 min-w-0">
           <div className="mb-8 flex flex-col items-start gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Workspace</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Workspace</p>
               <h1 className="mt-2 font-heading text-3xl font-light tracking-tighter text-foreground sm:text-4xl md:text-5xl" data-testid="dashboard-title">
                 Good to see you, <span className="font-medium">{user.username}</span>.
               </h1>
               <div className="my-4">
                 <VerifyEmailBanner />
               </div>
-              <p className="mt-2 text-sm text-foreground0">
+              <p className="mt-2 text-sm text-muted-foreground">
                 {groups.length} working group{groups.length === 1 ? '' : 's'} · {projectCount} projects
               </p>
             </div>
@@ -81,11 +91,11 @@ const HomePage: React.FC = () => {
           </div>
 
           {loading ? (
-            <p className="text-foreground0">Loading...</p>
+            <p className="text-muted-foreground">Loading...</p>
           ) : (
             <div className="space-y-14">
               {groups.length === 0 && (
-                <div className="rounded-xl border border-border bg-card/40 p-12 text-center text-foreground0">
+                <div className="rounded-xl border border-border bg-card/40 p-12 text-center text-muted-foreground">
                   You're not in any working groups yet.
                 </div>
               )}

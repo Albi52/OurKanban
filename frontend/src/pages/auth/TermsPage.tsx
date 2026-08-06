@@ -1,13 +1,22 @@
 import { Link } from 'react-router-dom'
-import { TopBar } from '@components/shared/TopBar'
+import { LandingTopBar } from '@/components/shared/LandingTopBar'
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <TopBar />
+            <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+      />
+      <LandingTopBar />
       <div className="mx-auto max-w-2xl px-6 py-16">
         <h1 className="font-heading text-4xl font-light tracking-tighter mb-2">Terms of Service</h1>
-        <p className="text-sm text-foreground0 mb-10">Last updated: July 2026</p>
+        <p className="text-sm text-muted-foreground mb-10">Last updated: July 2026</p>
 
         <div className="space-y-8 text-foreground-secondary leading-relaxed">
           <section>
@@ -67,7 +76,7 @@ export default function TermsPage() {
           </section>
         </div>
 
-        <Link to="/" className="inline-block mt-12 text-sm text-foreground0 underline hover:text-foreground-secondary">
+        <Link to="/" className="inline-block mt-12 text-sm text-muted-foreground underline hover:text-foreground-secondary">
           Back to home
         </Link>
       </div>

@@ -269,7 +269,7 @@ export function KanbanView({
                   ) : (
                     <button
                       onClick={() => setAdding(true)}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-foreground0 hover:border-border-hover hover:text-foreground-secondary"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:border-border-hover hover:text-foreground-secondary"
                       data-testid="add-column-btn"
                     >
                       <Plus className="h-4 w-4" />
@@ -386,7 +386,7 @@ function BoardColumnView({
         {canRemoveColumn && onRemoveColumn ? (
           <button
             type="button"
-            className="rounded-full p-2 text-foreground0 transition hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
+            className="rounded-full p-2 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
             onClick={() => onRemoveColumn(column.id)}
             aria-label={`Remove ${column.name}`}
           >
@@ -449,7 +449,7 @@ function BoardColumnView({
                           {canDelete && (
                             <button
                               type="button"
-                              className="rounded-full p-1 text-foreground0 opacity-0 transition group-hover:opacity-100 hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary shrink-0"
+                              className="rounded-full p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary shrink-0"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 onDeleteTask(task.id)
@@ -470,7 +470,7 @@ function BoardColumnView({
                         )}
 
                         {/* Fechas horizontales */}
-                        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-foreground0 border-t border-border pt-2">
+                        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground border-t border-border pt-2">
                           <span>
                             <span className="font-medium text-muted-foreground">Start:</span>{' '}
                             {task.startDate || '-'}
@@ -486,7 +486,7 @@ function BoardColumnView({
                 )
               })
             ) : (
-              <div className="rounded-xl border border-dashed border-border bg-card/60 p-4 text-center text-xs text-foreground0">
+              <div className="rounded-xl border border-dashed border-border bg-card/60 p-4 text-center text-xs text-muted-foreground">
                 No tasks yet. Add one to this column.
               </div>
             )}
@@ -511,7 +511,7 @@ function BoardColumnView({
 
                   {/* Selección de Prioridad con Colores Visuales */}
                   <div>
-                    <label className="text-[10px] font-semibold text-foreground0 uppercase block mb-1">
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase block mb-1">
                       Priority
                     </label>
                     <div className="grid grid-cols-3 gap-1">
@@ -521,7 +521,7 @@ function BoardColumnView({
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'low'
                             ? 'bg-emerald-950 border border-emerald-500 text-success'
-                            : 'bg-zinc-900 border border-border text-foreground0'
+                            : 'bg-zinc-900 border border-border text-muted-foreground'
                         }`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -533,7 +533,7 @@ function BoardColumnView({
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'medium'
                             ? 'bg-amber-950 border border-amber-500 text-amber-300'
-                            : 'bg-zinc-900 border border-border text-foreground0'
+                            : 'bg-zinc-900 border border-border text-muted-foreground'
                         }`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
@@ -545,7 +545,7 @@ function BoardColumnView({
                         className={`flex items-center justify-center gap-1 py-1 rounded text-[11px] font-medium transition ${
                           priority === 'high'
                             ? 'bg-red-950 border border-destructive text-red-300'
-                            : 'bg-zinc-900 border border-border text-foreground0'
+                            : 'bg-zinc-900 border border-border text-muted-foreground'
                         }`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
@@ -556,7 +556,7 @@ function BoardColumnView({
 
                   {/* Dropdown de Responsables de Grupo */}
                   <div>
-                    <label className="text-[10px] font-semibold text-foreground0 uppercase block mb-1">
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase block mb-1">
                       Assignee
                     </label>
                     <select
@@ -666,7 +666,7 @@ function BoardColumnView({
             ) : (
               <button
                 type="button"
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-foreground0 hover:border-border-hover hover:text-foreground-secondary"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:border-border-hover hover:text-foreground-secondary"
                 onClick={() => setAddingTask(true)}
                 data-testid={`add-task-${column.id}`}
               >
@@ -837,7 +837,7 @@ function DatePickerPopover({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 text-center text-[10px] font-bold uppercase text-foreground0">
+      <div className="grid grid-cols-7 text-center text-[10px] font-bold uppercase text-muted-foreground">
         <span>Mo</span>
         <span>Tu</span>
         <span>We</span>

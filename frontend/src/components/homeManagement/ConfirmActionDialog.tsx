@@ -73,7 +73,7 @@ export const ConfirmActionDialog: React.FC<Props> = ({
             {title}
           </DialogTitle>
 
-          <DialogDescription className="text-foreground0">
+          <DialogDescription className="text-muted-foreground">
             {description}
           </DialogDescription>
         </DialogHeader>

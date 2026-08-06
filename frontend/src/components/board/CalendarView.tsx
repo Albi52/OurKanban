@@ -231,7 +231,7 @@ export function CalendarView({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 border-b border-border pb-2 text-center text-xs font-semibold uppercase tracking-wider text-foreground0 shrink-0">
+        <div className="grid grid-cols-7 border-b border-border pb-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
           {WEEKDAYS.map((day) => (
             <div key={day}>{day}</div>
           ))}

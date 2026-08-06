@@ -304,7 +304,7 @@ export default function BoardPage() {
         <Tabs defaultValue="kanban" className="flex flex-1 flex-col overflow-hidden">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0 mb-6">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Project</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Project</p>
               <h1 className="font-heading text-3xl font-light tracking-tighter text-foreground sm:text-4xl">
                 {project.name}
               </h1>
@@ -384,7 +384,7 @@ export default function BoardPage() {
               <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-border bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
                 <div>
                   <div className="flex items-center justify-between border-b border-border pb-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-foreground0">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       {selectedTask.type === 'event' ? 'Event Info' : 'Task Info'}
                     </span>
                     <div className="flex items-center gap-1">
@@ -516,21 +516,21 @@ export default function BoardPage() {
 
                       <div className="space-y-2 rounded-xl border border-border bg-zinc-900/50 p-3 text-xs">
                         <div>
-                          <span className="font-medium text-foreground0 block">Author:</span>
+                          <span className="font-medium text-muted-foreground block">Author:</span>
                           <span className="text-foreground-secondary">{selectedTask.author?.username || 'Unknown'}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-foreground0 block">Assignee:</span>
+                          <span className="font-medium text-muted-foreground block">Assignee:</span>
                           <span className="text-foreground-secondary font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
                         </div>
                         <div className="flex items-center justify-between pt-2 border-t border-border/60">
                           <div>
-                            <span className="font-medium text-foreground0 block">Start:</span>
+                            <span className="font-medium text-muted-foreground block">Start:</span>
                             <span className="text-foreground-secondary">{selectedTask.startDate || '-'}</span>
                           </div>
                           {selectedTask.type !== 'event' && (
                             <div>
-                              <span className="font-medium text-foreground0 block">End:</span>
+                              <span className="font-medium text-muted-foreground block">End:</span>
                               <span className="text-foreground-secondary">{selectedTask.endDate || '-'}</span>
                             </div>
                           )}

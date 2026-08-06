@@ -1,19 +1,13 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Logo } from '@components/shared/Logo'
 import { Button } from '@components/shared/ui/button'
-import { ArrowUpRight, LogOut } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { useAuth } from '@context/AuthContext'
-import { UserAvatar } from '@components/shared/UserAvatar'
+import { LandingTopBar } from '@components/shared/LandingTopBar'
 
 const LandingPage: React.FC = () => {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
 
-  function handleLogout() {
-    logout()
-    navigate('/')
-  }
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
@@ -28,53 +22,7 @@ const LandingPage: React.FC = () => {
       />
       <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-white/[0.04] blur-3xl" />
 
-      <nav className="relative z-10 mx-auto flex max-w-[1600px] items-center justify-between px-6 py-8 md:px-12">
-        <Logo size="md" />
-
-        {user ? (
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <div className="hidden items-center gap-2 sm:flex">
-              <UserAvatar
-                username={user.username}
-                profilePicture={user.profilePicture}
-                avatarColor={user.avatarColor}
-                className="h-8 w-8 border border-border"
-              />
-              <span className="text-sm text-foreground-secondary" data-testid="nav-username">{user.username}</span>
-            </div>
-
-            <Link to="/home">
-              <Button className="rounded-full bg-zinc-50 px-4 text-zinc-950 hover:bg-primary/90 sm:px-5" data-testid="nav-go-home-btn">
-                Go to home
-                <ArrowUpRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
-
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="text-foreground-secondary hover:bg-accent hover:text-accent-foreground hover:text-foreground"
-              data-testid="nav-logout-btn"
-            >
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Log out</span>
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Link to="/login">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5" data-testid="nav-register-btn">
-                Sign in
-              </Button>
-            </Link>
-            <Link to="/login?mode=register">
-              <Button variant="ghost" className="text-foreground-secondary hover:text-foreground hover:bg-accent hover:text-accent-foreground" data-testid="nav-signin-btn">
-                Register
-              </Button>
-            </Link>
-          </div>
-        )}
-      </nav>
+      <LandingTopBar />
 
       <main className="relative z-10 mx-auto flex max-w-[1400px] flex-col items-start justify-center px-6 py-24 md:px-12 md:py-32">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-zinc-900/50 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-muted-foreground sm:mb-8">
