@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Button } from '@components/shared/ui/button'
 import { ArrowUpRight } from 'lucide-react'
 import { useAuth } from '@context/AuthContext'
