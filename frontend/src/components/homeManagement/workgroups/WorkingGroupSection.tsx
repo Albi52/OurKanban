@@ -7,6 +7,9 @@ import { ParticipantsDialog } from '@components/homeManagement/workgroups/Partic
 import { leaveWorkGroup } from '@api/homeManagement/workGroupAPI'
 import { toast } from 'sonner'
 import { cn } from '@lib/utils'
+import { ConfirmActionDialog } from '@components/homeManagement/ConfirmActionDialog'
+import { useAuth } from '@/context/AuthContext'
+import { recordGroupOpened } from '@/lib/recentActivity'
 
 interface Props {
   group: WorkGroup
@@ -18,10 +21,10 @@ interface Props {
 export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreateProject, initiallyCollapsed }) => {
   const [participantsOpen, setParticipantsOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(initiallyCollapsed)
+  const [leaveOpen, setLeaveOpen] = useState(false)
+    const { user } = useAuth()
 
   async function handleLeave() {
-    const confirmed = window.confirm('Leave this group? If you are the last member, it will be permanently deleted.')
-    if (!confirmed) return
     try {
       await leaveWorkGroup(group.id)
       toast.success('Left group')
@@ -30,11 +33,22 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
       toast.error(err instanceof Error ? err.message : 'Failed to leave group')
     }
   }
+  function handleCreateProject() {
 
-    return (
+    setCollapsed(false)
+    onCreateProject()
+     if (user) {
+    
+         
+          recordGroupOpened(user.username, group.id)
+        }
+  }
+  
+
+  return (
     <section data-testid={`group-section-${group.id}`}>
       <div className="mb-6 flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
-               <button
+        <button
           onClick={() => setCollapsed((c) => !c)}
           className="flex items-start gap-2 text-left"
           data-testid={`toggle-group-${group.id}`}
@@ -70,12 +84,12 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
             {group.isLeader ? `Manage (${group.members.length})` : `Members (${group.members.length})`}
           </Button>
           {group.isLeader && (
-            <Button size="sm" onClick={onCreateProject} className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90" data-testid={`create-project-${group.id}`}>
+            <Button size="sm" onClick={handleCreateProject} className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90" data-testid={`create-project-${group.id}`}>
               <Plus className="mr-2 h-4 w-4" />
               New project
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleLeave} className="text-destructive hover:bg-destructive/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
+          <Button variant="ghost" size="sm" onClick={() => setLeaveOpen(true)} className="text-destructive hover:bg-destructive/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
             <LogOut className="mr-2 h-4 w-4" />
             Leave
           </Button>
@@ -96,6 +110,30 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
       )}
 
       <ParticipantsDialog open={participantsOpen} onOpenChange={setParticipantsOpen} group={group} onChanged={onChanged} />
+      <ConfirmActionDialog
+        open={leaveOpen}
+        onOpenChange={setLeaveOpen}
+        title="Leave working group"
+        description={
+          <>
+            Leave{' '}
+            <span className="text-foreground-secondary">
+              {group.name}
+            </span>
+            ? You will lose access to all projects in this group.
+          </>
+        }
+        confirmText="Leave"
+        successMessage="Successfully left working group"
+        errorMessage="Failed to leave working group"
+        onConfirm={handleLeave}
+        testId="leave-group-dialog"
+      />
+
+
     </section>
   )
 }
+         
+
+   

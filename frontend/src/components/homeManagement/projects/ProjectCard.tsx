@@ -4,9 +4,11 @@ import type { ProjectSummary } from '@app-types/workgroup'
 import { MoreHorizontal, ArrowUpRight } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@components/shared/ui/dropdown-menu'
 import { RenameProjectDialog } from '@components/homeManagement/projects/RenameProjectDialog'
-import { DeleteProjectDialog } from '@components/homeManagement/projects/DeleteProjectDialog'
 import { recordGroupOpened, recordProjectOpened } from '@lib/recentActivity'
 import { useAuth } from '@/context/AuthContext'
+import { ConfirmActionDialog } from '../ConfirmActionDialog'
+import { deleteProject } from '@/api/homeManagement/projectAPI'
+import { toast } from 'sonner'
 interface Props {
   project: ProjectSummary
   canManage: boolean
@@ -26,6 +28,16 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
       recordGroupOpened(user.username, project.workGroupId)
     }
   }
+  async function handleDelete() {
+     try {
+      await deleteProject(project.id)
+      toast.success('Project deleted')
+      onChanged()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete project')
+    }
+  }
+
   return (
     <>
       <div
@@ -56,7 +68,7 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
           </div>
         )}
 
-        <button type="button" onClick={() => handleOpen()  } className="text-left" data-testid={`project-open-${project.id}`}>
+        <button type="button" onClick={() => handleOpen()} className="text-left" data-testid={`project-open-${project.id}`}>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground0">Project</p>
           <h3 className="mt-2 font-heading text-xl font-medium tracking-tight text-foreground">{project.name}</h3>
         </button>
@@ -68,7 +80,26 @@ export const ProjectCard: React.FC<Props> = ({ project, canManage, onChanged }) 
       </div>
 
       <RenameProjectDialog project={project} open={renameOpen} onOpenChange={setRenameOpen} onDone={onChanged} />
-      <DeleteProjectDialog project={project} open={deleteOpen} onOpenChange={setDeleteOpen} onDone={onChanged} />
+      
+      <ConfirmActionDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete project"
+        description={
+          <>
+            Delete{' '}
+            <span className="text-foreground-secondary">
+              {project.name}
+            </span>
+            ? This cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        successMessage="Project deleted"
+        errorMessage="Failed to delete project"
+        onConfirm={handleDelete}
+        testId="delete-project-dialog"
+      />
     </>
   )
 }
