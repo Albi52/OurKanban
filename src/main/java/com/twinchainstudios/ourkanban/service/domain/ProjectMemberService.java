@@ -11,7 +11,6 @@ import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectMemberRepository;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,7 +86,7 @@ public class ProjectMemberService {
             UpdateDisplayNameRequest request,
             String username) {
         User requester = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         ProjectMember member = projectMemberRepository.findById(memberId)
                 .filter(m -> m.getProject().getId().equals(projectId))

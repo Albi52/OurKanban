@@ -22,7 +22,7 @@ public class ProjectController {
     @PostMapping("/workgroups/{workGroupId}/projects")
     public ResponseEntity<ProjectCapsuleResponse> createProject(
             @PathVariable Long workGroupId,
-            @Valid@RequestBody CreateProjectRequest request,
+            @Valid @RequestBody CreateProjectRequest request,
             Authentication authentication) {
         return ResponseEntity.ok(
                 projectService.createProject(workGroupId, request, authentication.getName()));
@@ -35,18 +35,20 @@ public class ProjectController {
         projectService.deleteProject(projectId, authentication.getName());
         return ResponseEntity.noContent().build();
     }
+
     @PatchMapping("/projects/{projectId}")
-public ResponseEntity<ProjectCapsuleResponse> renameProject(
-        @PathVariable Long projectId,
-        @Valid @RequestBody UpdateProjectRequest request,
-        Authentication authentication) {
-    return ResponseEntity.ok(
-            projectService.renameProject(projectId, request, authentication.getName()));
-}
+    public ResponseEntity<ProjectCapsuleResponse> renameProject(
+            @PathVariable Long projectId,
+            @Valid @RequestBody UpdateProjectRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                projectService.renameProject(projectId, request, authentication.getName()));
+    }
+
     @GetMapping("/projects/{projectId}")
-public ResponseEntity<ProjectCapsuleResponse> getProject(
-        @PathVariable Long projectId,
-        Authentication authentication) {
-    return ResponseEntity.ok(projectService.getProject(projectId, authentication.getName()));
-}
+    public ResponseEntity<ProjectCapsuleResponse> getProject(
+            @PathVariable Long projectId,
+            Authentication authentication) {
+        return ResponseEntity.ok(projectService.getProject(projectId, authentication.getName()));
+    }
 }

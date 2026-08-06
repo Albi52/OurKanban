@@ -12,6 +12,8 @@ import com.twinchainstudios.ourkanban.repository.domain.EventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.twinchainstudios.ourkanban.exception.NotFoundException;
+
 @Service
 public class EventService {
 
@@ -60,7 +62,7 @@ public class EventService {
 
         if (msg.projectId != null) {    
             Project p = projectRepository.findById(msg.projectId)
-                    .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+                    .orElseThrow(() -> new NotFoundException("Project not found"));
             event.setProject(p);
         }
         Event saved = EventRepository.save(event);
@@ -70,7 +72,7 @@ public class EventService {
 
     private EventDto moveEvent(EventMessage msg) {
         Event event = EventRepository.findById(msg.eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+                .orElseThrow(() -> new NotFoundException("Event not found"));
         if (msg.date != null) {
             event.setDate(msg.date);
         }
@@ -80,7 +82,7 @@ public class EventService {
 
     private EventDto updateEvent(EventMessage msg) {
         Event event = EventRepository.findById(msg.eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+                .orElseThrow(() -> new NotFoundException("Event not found"));
         if (msg.text != null) event.setText(msg.text);
         if (msg.date != null) event.setDate(msg.date);
         if (msg.type != null) event.setType(msg.type);

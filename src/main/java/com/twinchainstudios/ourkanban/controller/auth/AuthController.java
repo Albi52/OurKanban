@@ -29,10 +29,6 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping("/protected")
-    public String protectd() {
-        return "Welcome to the protected section of the OurKanban API!";
-    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {

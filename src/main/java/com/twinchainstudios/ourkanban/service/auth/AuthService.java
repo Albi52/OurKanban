@@ -147,34 +147,6 @@ public class AuthService {
         return new AuthResponse(token, null);
     }
 
-    /**
-     * Keeps a non-custom profile picture in sync with the user's current Google
-     * picture. Only writes to the DB when the value actually changed, so a
-     * returning user logging in repeatedly with an unchanged Google picture
-     * causes zero extra writes.
-     */
-    private void syncGooglePictureIfNotCustom(User user, String googlePictureUrl) {
-        if (user.isCustomProfilePicture()) {
-            return;
-        }
-        if (googlePictureUrl == null) {
-            return;
-        }
-
-        try {
-            String localUrl = imageStorageService.storeFromUrl(googlePictureUrl, user.getId());
-            if (!localUrl.equals(user.getProfilePicture())) {
-                user.setProfilePicture(localUrl);
-                userRepository.save(user);
-            }
-        } catch (Exception e) {
-            // If Google's CDN is rate-limiting or briefly unreachable, don't
-            // block login over an avatar sync failure — just skip this round,
-            // the next login will retry.
-            System.err.println("Failed to sync Google profile picture: " + e.getMessage());
-        }
-    }
-
     private User linkOrCreateGoogleUser(GoogleIdToken.Payload payload) {
         String email = payload.getEmail();
         String googleId = payload.getSubject();
@@ -342,44 +314,44 @@ public class AuthService {
     }
 
     @Transactional
-public AuthResponse updatePassword(String username, UpdatePasswordRequest request) {
-    User user = getUserOrThrow(username);
+    public AuthResponse updatePassword(String username, UpdatePasswordRequest request) {
+        User user = getUserOrThrow(username);
 
-    boolean isGoogleLinked = user.getProviderId() != null;
+        boolean isGoogleLinked = user.getProviderId() != null;
 
-    if (isGoogleLinked) {
-        // Being authenticated on a session for an account already linked to
-        // a verified Google identity is treated as sufficient proof of
-        // ownership on its own — no need to also prove knowledge of any
-        // prior local password. This action itself fully verifies the
-        // account for local login going forward, regardless of whatever
-        // password state existed before.
+        if (isGoogleLinked) {
+            // Being authenticated on a session for an account already linked to
+            // a verified Google identity is treated as sufficient proof of
+            // ownership on its own — no need to also prove knowledge of any
+            // prior local password. This action itself fully verifies the
+            // account for local login going forward, regardless of whatever
+            // password state existed before.
+            user.setPassword(passwordEncoder.encode(request.newPassword()));
+            user.setLocalPasswordSet(true);
+            user.setLocalCredentialsPending(false);
+            user.setEmailVerified(true);
+            userRepository.save(user);
+
+            String token = jwtService.generateToken(user.getUsername());
+            return new AuthResponse(token, "Password updated");
+        }
+
+        // Not Google-linked — a pure local account, so the current password is
+        // the only available proof it's really them.
+        if (user.isLocalPasswordSet()) {
+            if (request.currentPassword() == null
+                    || !passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+                throw new ConflictException("Current password is incorrect");
+            }
+        }
+
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         user.setLocalPasswordSet(true);
-        user.setLocalCredentialsPending(false);
-        user.setEmailVerified(true);
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getUsername());
         return new AuthResponse(token, "Password updated");
     }
-
-    // Not Google-linked — a pure local account, so the current password is
-    // the only available proof it's really them.
-    if (user.isLocalPasswordSet()) {
-        if (request.currentPassword() == null
-                || !passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new ConflictException("Current password is incorrect");
-        }
-    }
-
-    user.setPassword(passwordEncoder.encode(request.newPassword()));
-    user.setLocalPasswordSet(true);
-    userRepository.save(user);
-
-    String token = jwtService.generateToken(user.getUsername());
-    return new AuthResponse(token, "Password updated");
-}
 
     @Transactional
     public MeResponse updateProfilePicture(String username, MultipartFile file) {
@@ -401,55 +373,54 @@ public AuthResponse updatePassword(String username, UpdatePasswordRequest reques
         return getMe(username);
     }
 
-   
     @Transactional
-public MeResponse refreshGoogleProfilePicture(String username, GoogleLoginRequest request) {
-    User user = getUserOrThrow(username);
-    GoogleIdToken.Payload payload = verifyGoogleToken(request.idToken());
+    public MeResponse refreshGoogleProfilePicture(String username, GoogleLoginRequest request) {
+        User user = getUserOrThrow(username);
+        GoogleIdToken.Payload payload = verifyGoogleToken(request.idToken());
 
-    Boolean googleEmailVerified = payload.getEmailVerified();
-    if (googleEmailVerified == null || !googleEmailVerified) {
-        throw new InvalidTokenException("Google account email is not verified");
-    }
-
-    String googleId = payload.getSubject();
-    String googleEmail = payload.getEmail();
-
-    if (user.getProviderId() == null) {
-        // Never linked to Google before. Only proceed if this Google
-        // account's verified email matches the local account's email —
-        // that's the same proof of ownership we trust during normal
-        // Google sign-in, just triggered from settings instead of login.
-        if (!googleEmail.equalsIgnoreCase(user.getEmail())) {
-            throw new InvalidTokenException(
-                    "That Google account's email doesn't match your account email");
+        Boolean googleEmailVerified = payload.getEmailVerified();
+        if (googleEmailVerified == null || !googleEmailVerified) {
+            throw new InvalidTokenException("Google account email is not verified");
         }
 
-        userRepository.findByProviderId(googleId).ifPresent(existing -> {
-            if (!existing.getId().equals(user.getId())) {
+        String googleId = payload.getSubject();
+        String googleEmail = payload.getEmail();
+
+        if (user.getProviderId() == null) {
+            // Never linked to Google before. Only proceed if this Google
+            // account's verified email matches the local account's email —
+            // that's the same proof of ownership we trust during normal
+            // Google sign-in, just triggered from settings instead of login.
+            if (!googleEmail.equalsIgnoreCase(user.getEmail())) {
                 throw new InvalidTokenException(
-                        "That Google account is already linked to a different user");
+                        "That Google account's email doesn't match your account email");
             }
-        });
 
-        user.setProviderId(googleId);
-        user.setEmailVerified(true);
-        user.setLocalCredentialsPending(false);
+            userRepository.findByProviderId(googleId).ifPresent(existing -> {
+                if (!existing.getId().equals(user.getId())) {
+                    throw new InvalidTokenException(
+                            "That Google account is already linked to a different user");
+                }
+            });
 
-    } else if (!payload.getSubject().equals(user.getProviderId())) {
-        throw new InvalidTokenException("This Google account doesn't match your linked account");
+            user.setProviderId(googleId);
+            user.setEmailVerified(true);
+            user.setLocalCredentialsPending(false);
+
+        } else if (!payload.getSubject().equals(user.getProviderId())) {
+            throw new InvalidTokenException("This Google account doesn't match your linked account");
+        }
+
+        String googlePictureUrl = (String) payload.get("picture");
+        if (googlePictureUrl == null) {
+            throw new InvalidTokenException("Google did not provide a profile picture");
+        }
+
+        String localUrl = imageStorageService.storeFromUrl(googlePictureUrl, user.getId());
+        user.setProfilePicture(localUrl);
+        user.setCustomProfilePicture(false);
+        userRepository.save(user);
+
+        return getMe(username);
     }
-
-    String googlePictureUrl = (String) payload.get("picture");
-    if (googlePictureUrl == null) {
-        throw new InvalidTokenException("Google did not provide a profile picture");
-    }
-
-    String localUrl = imageStorageService.storeFromUrl(googlePictureUrl, user.getId());
-    user.setProfilePicture(localUrl);
-    user.setCustomProfilePicture(false);
-    userRepository.save(user);
-
-    return getMe(username);
-}
 }

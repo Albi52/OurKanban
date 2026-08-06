@@ -39,19 +39,20 @@ public class WorkGroupController {
         workGroupService.leaveWorkGroup(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/{id}/members")
-public ResponseEntity<WorkGroupResponse> addMember(
-        @PathVariable Long id,
-        @Valid @RequestBody AddMemberRequest request,
-        Authentication authentication) {
-    return ResponseEntity.ok(workGroupService.addMember(id, request, authentication.getName()));
-}
 
-@DeleteMapping("/{id}/members/{userId}")
-public ResponseEntity<WorkGroupResponse> removeMember(
-        @PathVariable Long id,
-        @PathVariable Long userId,
-        Authentication authentication) {
-    return ResponseEntity.ok(workGroupService.removeMember(id, userId, authentication.getName()));
-}
+    @PostMapping("/{id}/members")
+    public ResponseEntity<WorkGroupResponse> addMember(
+            @PathVariable Long id,
+            @Valid @RequestBody AddMemberRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(workGroupService.addMember(id, request, authentication.getName()));
+    }
+
+    @DeleteMapping("/{id}/members/{userId}")
+    public ResponseEntity<WorkGroupResponse> removeMember(
+            @PathVariable Long id,
+            @PathVariable Long userId,
+            Authentication authentication) {
+        return ResponseEntity.ok(workGroupService.removeMember(id, userId, authentication.getName()));
+    }
 }

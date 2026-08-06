@@ -2,6 +2,8 @@ package com.twinchainstudios.ourkanban.service.domain.websockets;
 
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
+import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
+import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.PermissionCodes;
 import com.twinchainstudios.ourkanban.model.domain.Project;
@@ -45,11 +47,11 @@ public class TaskService {
         Project p;
         if(msg.projectId != null) {
             p = projectRepository.findById(msg.projectId)
-                    .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+                    .orElseThrow(() -> new NotFoundException("Project not found"));
                     
             ProjectMember user = p.getMembers().stream().filter(
                     m -> m.getId().equals(userId)).findFirst().orElseThrow(
-                () -> new IllegalArgumentException("User not found in project")
+                () -> new NotFoundException("User not found in project")
                 );
 
             switch (msg.action.toUpperCase()) {
@@ -60,7 +62,7 @@ public class TaskService {
                         ))
                     )
                     {
-                        throw new IllegalArgumentException("User does not have permission to create tasks");
+                        throw new ForbiddenOperationException("User does not have permission to create tasks");
                     }else{
                         return createTask(msg, userId);
                     }
@@ -69,7 +71,7 @@ public class TaskService {
                         r.getPermissions().stream().anyMatch(perm -> 
                             perm.getCode().equals(PermissionCodes.TASK_EDIT)))) 
                     {
-                        throw new IllegalArgumentException("User does not have permission to move tasks");
+                        throw new ForbiddenOperationException("User does not have permission to move tasks");
                     }else{
                         return moveTask(msg, userId);
                     }
@@ -77,7 +79,7 @@ public class TaskService {
                     if(user.getRoles().stream().noneMatch(r -> 
                         r.getPermissions().stream().anyMatch(perm -> 
                             perm.getCode().equals(PermissionCodes.TASK_EDIT)))) {
-                        throw new IllegalArgumentException("User does not have permission to update tasks");
+                        throw new ForbiddenOperationException("User does not have permission to update tasks");
                     }
                     else{
                         return updateTask(msg);
@@ -88,7 +90,7 @@ public class TaskService {
                             perm.getCode().equals(PermissionCodes.TASK_DELETE)))
                         ) 
                     {
-                        throw new IllegalArgumentException("User does not have permission to delete tasks");
+                        throw new ForbiddenOperationException("User does not have permission to delete tasks");
                     }else{
                         deleteTask(msg);
                     }
@@ -107,22 +109,22 @@ public class TaskService {
         t.setTitle(msg.title);
         if (msg.projectId != null) {
             Project p = projectRepository.findById(msg.projectId)
-                    .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+                    .orElseThrow(() -> new NotFoundException("Project not found"));
             t.setProject(p);
             
             ProjectMember user = memberRepository.findByProjectIdAndUserId(msg.projectId, userId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found in project"));
+                    .orElseThrow(() -> new NotFoundException("User not found in project"));
 
             t.setAuthor(user);
         }
         if (msg.columnId != null) {
             DashboardColumn c = columnRepository.findById(msg.columnId)
-                    .orElseThrow(() -> new IllegalArgumentException("Column not found"));
+                    .orElseThrow(() -> new NotFoundException("Column not found"));
             t.setColumn(c);
         }
         if (msg.assigneeId != null) {
             ProjectMember m = memberRepository.findById(msg.assigneeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Assignee not found"));
+                    .orElseThrow(() -> new NotFoundException("Assignee not found"));
             t.setAssignee(m);
         }
         Task saved = taskRepository.save(t);
@@ -134,12 +136,12 @@ public class TaskService {
         Task saved = taskRepository.save(t);
 
         String moverName = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"))
+                .orElseThrow(() -> new NotFoundException("User not found"))
                 .getUsername();
 
         if (msg.columnId != null) {
             DashboardColumn c = columnRepository.findById(msg.columnId)
-                    .orElseThrow(() -> new IllegalArgumentException("Column not found"));
+                    .orElseThrow(() -> new NotFoundException("Column not found"));
             t.setColumn(c);
         }
 
@@ -159,7 +161,7 @@ public class TaskService {
         //Asignados
         if (msg.assigneeId != null) {
             ProjectMember m = memberRepository.findById(msg.assigneeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Assignee not found"));
+                    .orElseThrow(() -> new NotFoundException("Assignee not found"));
             t.setAssignee(m);
         }
 
@@ -179,7 +181,7 @@ public class TaskService {
     private Task getLockedTask(Long taskId) {
         if (taskId == null) throw new IllegalArgumentException("taskId required");
         return taskRepository.findByIdForUpdate(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new NotFoundException("Task not found"));
     }
 
     private TaskDto toDto(Task t) {

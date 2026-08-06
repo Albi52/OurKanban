@@ -13,34 +13,42 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-@ExceptionHandler(MethodArgumentNotValidException.class)
-public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
-    Map<String, String> errors = new LinkedHashMap<>();
-    for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-        errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-}
 
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<Map<String, String>> handleAlreadyExists(AlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidToken(InvalidTokenException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
-    }
-    @ExceptionHandler(ForbiddenOperationException.class)
-    public ResponseEntity<Map<String, String>> handleForbiddenOperation(ForbiddenOperationException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
-    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handleAuthenticationException(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
     }
+
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<Map<String, String>> handleConflictException(ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<Map<String, String>> handleForbiddenOperation(ForbiddenOperationException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
 }
