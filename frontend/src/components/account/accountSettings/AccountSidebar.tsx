@@ -6,20 +6,32 @@ import { useState } from 'react'
 import { Settings } from 'lucide-react'
 import { AccountSettingsDialog } from '@components/account/accountSettings/AccountSettingsDialog'
 import { UserAvatar } from '@components/shared/UserAvatar'
+import { recordGroupOpened } from '@/lib/recentActivity'
 
 
 interface Props {
   groups: WorkGroup[]
+  refreshFunction: () => void
 }
 
-export const AccountSidebar: React.FC<Props> = ({ groups }) => {
+export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => {
   const { user } = useAuth()
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   if (!user) return null
 
   const projectCount = groups.reduce((n, g) => n + g.projects.length, 0)
+  function handleClickProject( groupID: number) {
+ 
+        if (user) {
+    
+         
+          recordGroupOpened(user.username, groupID)
+          refreshFunction()
 
+        }
+
+  }
   return (
     <aside className="hidden w-72 shrink-0 lg:block" data-testid="account-sidebar">
       <div className="sticky top-24 space-y-6">
@@ -64,7 +76,9 @@ export const AccountSidebar: React.FC<Props> = ({ groups }) => {
           <ul className="mt-4 space-y-2">
             {groups.map((g) => (
               <li key={g.id} className="flex items-center justify-between rounded-md px-2 py-2 text-sm text-foreground-secondary hover:bg-accent hover:text-accent-foreground">
-                <span className="truncate">{g.name}</span>
+                <button onClick={() => handleClickProject(g.id)}>
+                  <span className="truncate">{g.name}</span>
+                </button>
                 <span className="text-xs text-muted-foreground-subtle">{g.members.length}</span>
               </li>
             ))}

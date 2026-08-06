@@ -22,8 +22,6 @@ const HomePage: React.FC = () => {
   const [createGroupOpen, setCreateGroupOpen] = useState(false)
 
 
-
-
   async function refresh() {
     setLoading(true)
     try {
@@ -60,7 +58,7 @@ const HomePage: React.FC = () => {
       <TopBar />
 
       <div className="mx-auto flex max-w-[1600px] gap-8 px-6 py-10 md:px-10">
-        <AccountSidebar groups={groups} />
+        <AccountSidebar groups={groups} refreshFunction={refresh} />
 
         <main className="flex-1 min-w-0">
           <div className="mb-8 flex flex-col items-start gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
@@ -91,8 +89,8 @@ const HomePage: React.FC = () => {
                   You're not in any working groups yet.
                 </div>
               )}
-              {groups.map((group) => (
-                <WorkingGroupSection key={group.id} group={group} onChanged={refresh} onCreateProject={() => setCreateInGroup(group)} />
+              {groups.map((group, index) => (
+                <WorkingGroupSection key={group.id} group={group} onChanged={refresh} onCreateProject={() => setCreateInGroup(group)} initiallyCollapsed={index !== 0} />
               ))}
             </div>
           )}

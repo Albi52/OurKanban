@@ -12,11 +12,13 @@ interface Props {
   group: WorkGroup
   onChanged: () => void
   onCreateProject: () => void
+  initiallyCollapsed: boolean
 }
 
-export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreateProject }) => {
+export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreateProject, initiallyCollapsed }) => {
   const [participantsOpen, setParticipantsOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(initiallyCollapsed)
+
   async function handleLeave() {
     const confirmed = window.confirm('Leave this group? If you are the last member, it will be permanently deleted.')
     if (!confirmed) return
