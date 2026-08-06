@@ -76,10 +76,10 @@ export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => 
           <ul className="mt-4 space-y-2">
             {groups.map((g) => (
               <li key={g.id} className="flex items-center justify-between rounded-md px-2 py-2 text-sm text-foreground-secondary hover:bg-accent hover:text-accent-foreground">
-                <button onClick={() => handleClickProject(g.id)}>
+                <button onClick={() => handleClickProject(g.id)} className="flex-1 min-w-0 text-left">
                   <span className="truncate">{g.name}</span>
                 </button>
-                <span className="text-xs text-muted-foreground-subtle">{g.members.length}</span>
+                <span className="ml-2 shrink-0 text-xs text-muted-foreground-subtle">{g.members.length}</span>
               </li>
             ))}
             {groups.length === 0 && <li className="text-sm text-muted-foreground-subtle">No groups yet</li>}
