@@ -89,7 +89,7 @@ export const WorkingGroupSection: React.FC<Props> = ({ group, onChanged, onCreat
               New project
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => setLeaveOpen(true)} className="text-destructive hover:bg-destructive/10 hover:text-red-300" data-testid={`leave-group-${group.id}`}>
+          <Button variant="ghost" size="sm" onClick={() => setLeaveOpen(true)} className="text-destructive hover:bg-destructive/10 hover:text-destructive" data-testid={`leave-group-${group.id}`}>
             <LogOut className="mr-2 h-4 w-4" />
             Leave
           </Button>
