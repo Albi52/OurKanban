@@ -15,30 +15,29 @@ class StompService {
     private eventListeners = new Set<EventListener>();
 
 
-    connect() {
+    connect(token?: string | null, projectId?: number) {
         if (this.client) return;
-        const BACKEND_WS_URL =
-            import.meta.env.VITE_WS_URL || "http://localhost:8080/ws";
+        const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || "/ws";
 
-        const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-        console.log("Token:", token);
-        
+        const resolvedToken = token ?? localStorage.getItem(TOKEN_STORAGE_KEY);
+        console.log("Token:", resolvedToken);
+
         this.client = new Client({
             webSocketFactory: () => new SockJS(BACKEND_WS_URL),
             connectHeaders: token
-                ? { Authorization: `Bearer ${token}` }
+               ? { Authorization: `Bearer ${resolvedToken}` }
                 : {},
             reconnectDelay: 5000,
 
             onConnect: (_frame: IFrame) => {
                 this.connected = true;
                 this.notifyConnection();
-                this.client?.subscribe("/topic/tasks", msg => {
+                this.client?.subscribe(`/topic/projects/${projectId}/tasks`, msg => {
                     const dto = JSON.parse(msg.body);
                     this.taskListeners.forEach(l => l(dto));
                 });
 
-                this.client?.subscribe("/topic/events", msg => {
+                this.client?.subscribe(`/topic/projects/${projectId}/events`, msg => {
                     const dto = JSON.parse(msg.body);
                     this.eventListeners.forEach(l => l(dto));
                 });

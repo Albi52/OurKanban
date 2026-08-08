@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@context/AuthContext'
 
-import { ThemeProvider, useTheme } from '@/context/ThemeContext'
+import { ThemeProvider} from '@/context/ThemeContext'
 import ProtectedRoute from '@components/account/auth/ProtectedRoute'
 import LandingPage from '@pages/LandingPage'
 import AuthPage from '@pages/auth/AuthPage'
@@ -14,20 +14,10 @@ import PrivacyPolicyPage from '@pages/auth/PrivacyPolicyPage'
 import ErrorPage from '@pages/ErrorPage'
 import { AuthGate } from '@components/account/auth/AuthGate'
 import { AppErrorBoundary } from '@components/shared/ErrorBoundary'
-import stompService from "@components/webSockets/StompService";
-import { useEffect } from 'react'
-
 
 export default function App() {
-  useEffect(() => {
-        stompService.connect();
 
-        return () => {
-            stompService.disconnect();
-        };
-    }, []);
 
-  //const { theme } = useTheme()
   return (
     <ThemeProvider>
     <AuthProvider>

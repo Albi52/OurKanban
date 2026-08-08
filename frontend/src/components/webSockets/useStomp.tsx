@@ -55,7 +55,7 @@ export function useStomp() {
 
     useEffect(() => {
 
-        stompService.connect();
+        //stompService.connect();
 
         const unsubscribe =
             stompService.subscribeConnection(setConnected);

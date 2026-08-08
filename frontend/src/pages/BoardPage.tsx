@@ -12,10 +12,12 @@ import { TopBar } from '@components/shared/TopBar'
 import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
 import { KanbanView, type Task, type Priority } from '@components/board/KanbanView'
-import { CalendarView } from '@components/board/CalendarView'
+import { CalendarView } from '@components/board/CalendarView' 
 import { Layout, CalendarDays, Columns, Pencil, Trash2, X } from 'lucide-react'
 import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
+import { useAuth } from '@context/AuthContext'
+import stompService from '@/components/webSockets/StompService'
 
 // Asegurar la presencia de 'global' para compatibilidad de SockJS
 if (typeof window !== 'undefined' && !(window as any).global) {
@@ -26,6 +28,7 @@ export default function BoardPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const projectId = Number(id) || 0
+    const { token } = useAuth()
 
   console.log("🔍 DEBUG BoardPage - ID del proyecto:", projectId, "Tipo:", typeof projectId)
 
@@ -50,6 +53,15 @@ export default function BoardPage() {
     sendTaskMessage,
     subscribeTaskMessages
 } = useStomp();
+
+ useEffect(() => {
+    if (!token) return
+    stompService.connect(token, projectId)
+    return () => {
+      stompService.disconnect()
+    }
+  }, [token, projectId])
+
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
   const mainBoardRef = useRef<HTMLDivElement>(null)

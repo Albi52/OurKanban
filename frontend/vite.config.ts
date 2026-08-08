@@ -27,6 +27,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+      '/ws': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        ws: true, // required — proxies the WebSocket upgrade, not just plain HTTP
+      },
     },
   },
 })

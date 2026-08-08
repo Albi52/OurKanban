@@ -59,9 +59,9 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                                 
                 System.out.println(authentication.getClass().getName());           // después de crear authentication
                 System.out.println(authentication.getPrincipal().getClass().getName());
-
+                accessor.setLeaveMutable(true);
                 accessor.setUser(authentication);
-                //accessor.setLeaveMutable(true);
+                
                 org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
                 System.out.println("Username: " + username);
                 System.out.println("UserDetails: " + user);

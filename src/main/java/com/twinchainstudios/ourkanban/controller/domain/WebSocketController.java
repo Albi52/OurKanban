@@ -8,20 +8,16 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
-tools.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 
 import java.security.Principal;
 
-import org.springframework.messaging.handler.annotation.Header;
-//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 

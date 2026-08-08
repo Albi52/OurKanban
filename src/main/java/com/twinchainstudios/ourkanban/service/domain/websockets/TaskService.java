@@ -29,11 +29,10 @@ public class TaskService {
     private final UserRepository userRepository;
 
     public TaskService(TaskRepository taskRepository,
-                        UserRepository userRepository,
-                        DashboardColumnRepository columnRepository,
-                        ProjectRepository projectRepository,
-                        ProjectMemberRepository memberRepository
-                    ) {
+            UserRepository userRepository,
+            DashboardColumnRepository columnRepository,
+            ProjectRepository projectRepository,
+            ProjectMemberRepository memberRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.columnRepository = columnRepository;
@@ -43,63 +42,55 @@ public class TaskService {
 
     @Transactional
     public TaskDto handleMessage(TaskMessage msg, Long userId) {
-        if (msg.action == null) throw new IllegalArgumentException("action required");
+        if (msg.action == null)
+            throw new IllegalArgumentException("action required");
         Project p;
-        if(msg.projectId != null) {
+        if (msg.projectId != null) {
             p = projectRepository.findById(msg.projectId)
                     .orElseThrow(() -> new NotFoundException("Project not found"));
-                    
-            ProjectMember user = p.getMembers().stream().filter(
-                    m -> m.getId().equals(userId)).findFirst().orElseThrow(
-                () -> new NotFoundException("User not found in project")
-                );
 
+            ProjectMember user = p.getMembers().stream()
+                    .filter(m -> m.getUser().getId().equals(userId))
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException("User not found in project"));
             switch (msg.action.toUpperCase()) {
                 case "CREATE":
-                    if(user.getRoles().stream().noneMatch(r -> 
-                        r.getPermissions().stream().anyMatch(perm -> 
-                            perm.getCode().equals(PermissionCodes.TASK_CREATE)
-                        ))
-                    )
-                    {
-                        throw new ForbiddenOperationException("User does not have permission to create tasks");
-                    }else{
+                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_CREATE)))) {
+                        return createTask(msg, userId);
+                        // throw new ForbiddenOperationException("User does not have permission to create tasks");
+                    } else {
                         return createTask(msg, userId);
                     }
                 case "MOVE":
-                    if(user.getRoles().stream().noneMatch(r -> 
-                        r.getPermissions().stream().anyMatch(perm -> 
-                            perm.getCode().equals(PermissionCodes.TASK_EDIT)))) 
-                    {
-                        throw new ForbiddenOperationException("User does not have permission to move tasks");
-                    }else{
+                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))) {
+                        return moveTask(msg, userId);
+                       // throw new ForbiddenOperationException("User does not have permission to move tasks");
+                    } else {
                         return moveTask(msg, userId);
                     }
                 case "UPDATE":
-                    if(user.getRoles().stream().noneMatch(r -> 
-                        r.getPermissions().stream().anyMatch(perm -> 
-                            perm.getCode().equals(PermissionCodes.TASK_EDIT)))) {
-                        throw new ForbiddenOperationException("User does not have permission to update tasks");
-                    }
-                    else{
+                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))) {
+                        return updateTask(msg);
+                        //throw new ForbiddenOperationException("User does not have permission to update tasks");
+                    } else {
                         return updateTask(msg);
                     }
                 case "DELETE":
-                    if(user.getRoles().stream().noneMatch(r -> 
-                        r.getPermissions().stream().anyMatch(perm -> 
-                            perm.getCode().equals(PermissionCodes.TASK_DELETE)))
-                        ) 
-                    {
-                        throw new ForbiddenOperationException("User does not have permission to delete tasks");
-                    }else{
+                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_DELETE)))) {
+                        deleteTask(msg);
+                        //throw new ForbiddenOperationException("User does not have permission to delete tasks");
+                    } else {
                         deleteTask(msg);
                     }
                     return null;
                 default:
                     throw new IllegalArgumentException("Unknown action: " + msg.action);
             }
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Project ID is required");
         }
     }
@@ -111,7 +102,7 @@ public class TaskService {
             Project p = projectRepository.findById(msg.projectId)
                     .orElseThrow(() -> new NotFoundException("Project not found"));
             t.setProject(p);
-            
+
             ProjectMember user = memberRepository.findByProjectIdAndUserId(msg.projectId, userId)
                     .orElseThrow(() -> new NotFoundException("User not found in project"));
 
@@ -151,35 +142,40 @@ public class TaskService {
     private TaskDto updateTask(TaskMessage msg) {
         Task t = getLockedTask(msg.taskId);
 
-        //Info task
-        if (msg.title != null) t.setTitle(msg.title);
+        // Info task
+        if (msg.title != null)
+            t.setTitle(msg.title);
 
-        if(msg.description != null) t.setDescription(msg.description);
+        if (msg.description != null)
+            t.setDescription(msg.description);
 
-        if(msg.priority != null) t.setPriority(TaskPriority.valueOf(msg.priority.toString().toUpperCase()));
-        
-        //Asignados
+        if (msg.priority != null)
+            t.setPriority(TaskPriority.valueOf(msg.priority.toString().toUpperCase()));
+
+        // Asignados
         if (msg.assigneeId != null) {
             ProjectMember m = memberRepository.findById(msg.assigneeId)
                     .orElseThrow(() -> new NotFoundException("Assignee not found"));
             t.setAssignee(m);
         }
 
-        if(msg.dateStart != null) t.setStartDate(msg.dateStart);
-        if(msg.dateEnd != null) t.setEndDate(msg.dateEnd);
+        if (msg.dateStart != null)
+            t.setStartDate(msg.dateStart);
+        if (msg.dateEnd != null)
+            t.setEndDate(msg.dateEnd);
 
         Task saved = taskRepository.save(t);
         return toDto(saved);
     }
 
-    
     private void deleteTask(TaskMessage msg) {
         Task t = getLockedTask(msg.taskId);
         taskRepository.delete(t);
     }
 
     private Task getLockedTask(Long taskId) {
-        if (taskId == null) throw new IllegalArgumentException("taskId required");
+        if (taskId == null)
+            throw new IllegalArgumentException("taskId required");
         return taskRepository.findByIdForUpdate(taskId)
                 .orElseThrow(() -> new NotFoundException("Task not found"));
     }
@@ -194,23 +190,23 @@ public class TaskService {
         String authorName = t.getAuthor() != null ? t.getAuthor().getUser().getUsername() : null;
 
         return new TaskDto(
-            t.getId(), 
-            t.getTitle(), 
-            t.getDescription(),
-            priority,
-            columnId, 
-            projectId, 
-            assigneeId,
-            assigneeName,
-            authorId,
-            authorName,
-            0,
-            0,
-            t.getStartDate(),
-            t.getEndDate(),
-            null
-        );
+                t.getId(),
+                t.getTitle(),
+                t.getDescription(),
+                priority,
+                columnId,
+                projectId,
+                assigneeId,
+                assigneeName,
+                authorId,
+                authorName,
+                0,
+                0,
+                t.getStartDate(),
+                t.getEndDate(),
+                null);
     }
+
     private TaskDto toDto(Task t, int positionX, int positionY, String moverName) {
         String priority = t.getPriority() != null ? t.getPriority().name() : null;
         Long columnId = t.getColumn() != null ? t.getColumn().getId() : null;
@@ -221,21 +217,20 @@ public class TaskService {
         String authorName = t.getAuthor() != null ? t.getAuthor().getUser().getUsername() : null;
 
         return new TaskDto(
-            t.getId(), 
-            t.getTitle(), 
-            t.getDescription(),
-            priority,
-            columnId, 
-            projectId, 
-            assigneeId,
-            assigneeName,
-            authorId,
-            authorName,
-            positionX,
-            positionY,
-            t.getStartDate(),
-            t.getEndDate(),
-            moverName
-        );
+                t.getId(),
+                t.getTitle(),
+                t.getDescription(),
+                priority,
+                columnId,
+                projectId,
+                assigneeId,
+                assigneeName,
+                authorId,
+                authorName,
+                positionX,
+                positionY,
+                t.getStartDate(),
+                t.getEndDate(),
+                moverName);
     }
 }
