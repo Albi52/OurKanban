@@ -8,7 +8,7 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+tools.jackson.databind.ObjectMapper
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +20,7 @@ import java.security.Principal;
 import org.springframework.messaging.handler.annotation.Header;
 //import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -51,13 +52,25 @@ public class WebSocketController {
 
         System.out.println(principal);
 
-        Authentication authentication =
-                (Authentication) principal;
+        UserPrincipal userPrincipal = null;
 
-        UserPrincipal user =
-                (UserPrincipal) authentication.getPrincipal();
+        // Prefer the Principal argument set by the ChannelInterceptor. In our setup the interceptor
+        // sets an Authentication as the Principal, whose getPrincipal() returns UserPrincipal.
+        if (principal instanceof Authentication) {
+            Object p = ((Authentication) principal).getPrincipal();
+            if (p instanceof UserPrincipal) {
+                userPrincipal = (UserPrincipal) p;
+            }
+        } else if (principal instanceof UserPrincipal) {
+            userPrincipal = (UserPrincipal) principal;
+        }
 
-        Long userId = user.getId();
+        if (userPrincipal == null) {
+            System.out.println("WebSocket message received without authenticated principal; principal=" + principal);
+            return; // No authenticated user available for this message
+        }
+
+        Long userId = userPrincipal.getId();
 
         System.out.println("Principal = " + principal);
 

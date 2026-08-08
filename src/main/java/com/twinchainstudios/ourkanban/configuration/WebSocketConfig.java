@@ -6,22 +6,26 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.twinchainstudios.ourkanban.service.auth.JwtHandshakeHandler;
+import com.twinchainstudios.ourkanban.service.auth.JwtChannelInterceptor;
 import com.twinchainstudios.ourkanban.service.auth.JwtHandshakeInterceptor;
+import com.twinchainstudios.ourkanban.service.auth.UserHandshakeHandler;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
-    private final JwtHandshakeHandler jwtHandshakeHandler;
+    private final UserHandshakeHandler userHandshakeHandler;
+    private JwtChannelInterceptor jwtChannelInterceptor;
 
     public WebSocketConfig(
+            JwtChannelInterceptor jwtChannelInterceptor,
             JwtHandshakeInterceptor jwtHandshakeInterceptor,
-            JwtHandshakeHandler jwtHandshakeHandler) {
+            UserHandshakeHandler userHandshakeHandler) {
 
         this.jwtHandshakeInterceptor = jwtHandshakeInterceptor;
-        this.jwtHandshakeHandler = jwtHandshakeHandler;
+        this.userHandshakeHandler = userHandshakeHandler;
+        this.jwtChannelInterceptor = jwtChannelInterceptor;
     }
 
     @Override
@@ -30,9 +34,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("http://localhost:5173")
                 .addInterceptors(jwtHandshakeInterceptor)
-                .setHandshakeHandler(jwtHandshakeHandler)
+                .setHandshakeHandler(userHandshakeHandler)
+                .addInterceptors(jwtHandshakeInterceptor)
                 .withSockJS();
     }
+    
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
