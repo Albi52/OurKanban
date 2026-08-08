@@ -8,7 +8,7 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
-import tools.jackson.databind.ObjectMapper;
+tools.jackson.databind.ObjectMapper
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +17,11 @@ import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 
 import java.security.Principal;
 
+import org.springframework.messaging.handler.annotation.Header;
 //import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -44,28 +47,41 @@ public class WebSocketController {
     }
 
     @MessageMapping("/board")
-    public void onBoardMessage(BoardMessage msg, Principal principal) {
-        if (msg.type == null || msg.data == null) {
-            return; // Invalid message
-        }
-        Authentication authentication =
-            (Authentication) SecurityContextHolder.getContext().getAuthentication();
+    public void onBoardMessage(
+        BoardMessage msg, Principal principal) {
 
-        UserPrincipal userPrincipal =
-                (UserPrincipal) authentication.getPrincipal();
+        System.out.println(principal);
+
+        UserPrincipal userPrincipal = null;
+
+        // Prefer the Principal argument set by the ChannelInterceptor. In our setup the interceptor
+        // sets an Authentication as the Principal, whose getPrincipal() returns UserPrincipal.
+        if (principal instanceof Authentication) {
+            Object p = ((Authentication) principal).getPrincipal();
+            if (p instanceof UserPrincipal) {
+                userPrincipal = (UserPrincipal) p;
+            }
+        } else if (principal instanceof UserPrincipal) {
+            userPrincipal = (UserPrincipal) principal;
+        }
+
+        if (userPrincipal == null) {
+            System.out.println("WebSocket message received without authenticated principal; principal=" + principal);
+            return; // No authenticated user available for this message
+        }
 
         Long userId = userPrincipal.getId();
 
         System.out.println("Principal = " + principal);
 
         if (principal != null) {
-            System.out.println(principal.getClass().getName());
+            System.out.println("Principal name"+principal.getClass().getName());
         }
 
 
         switch (msg.type) {
             case Task:
-                System.out.println("Received Task message: " + msg.data);
+                //System.out.println("Received Task message: " + msg.data);
                 TaskMessage taskMessage = objectMapper.convertValue(msg.data, TaskMessage.class);
                 TaskDto taskDto = taskService.handleMessage(taskMessage, userId);
 
@@ -76,7 +92,7 @@ public class WebSocketController {
                 }
                 break;
             case Event:
-                System.out.println("Received Event message: " + msg.data);
+                //System.out.println("Received Event message: " + msg.data);
                 EventDto eventsDto= eventService.handleMessage((EventMessage) msg.data, userId);
                 messagingTemplate.convertAndSend("/topic/events", eventsDto);
                 break;

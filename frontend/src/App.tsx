@@ -27,11 +27,11 @@ export default function App() {
         };
     }, []);
 
-  const { theme } = useTheme()
+  //const { theme } = useTheme()
   return (
     <ThemeProvider>
     <AuthProvider>
-      <Toaster theme={theme} position="top-right" />
+      <Toaster theme="dark" position="top-right" />
       <BrowserRouter>
       <AuthGate />
       <AppErrorBoundary>

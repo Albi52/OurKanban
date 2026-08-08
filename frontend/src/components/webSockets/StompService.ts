@@ -1,4 +1,5 @@
 import type { EventDto, TaskDto, TaskMessage } from "@/components/webSockets/useStomp";
+import { TOKEN_STORAGE_KEY } from "@/constants";
 import { Client, type IFrame } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
@@ -19,7 +20,9 @@ class StompService {
         const BACKEND_WS_URL =
             import.meta.env.VITE_WS_URL || "http://localhost:8080/ws";
 
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+        console.log("Token:", token);
+        
         this.client = new Client({
             webSocketFactory: () => new SockJS(BACKEND_WS_URL),
             connectHeaders: token
