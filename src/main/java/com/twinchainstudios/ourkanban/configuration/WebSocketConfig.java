@@ -1,5 +1,6 @@
 package com.twinchainstudios.ourkanban.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,6 +20,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final UserHandshakeHandler userHandshakeHandler;
     private JwtChannelInterceptor jwtChannelInterceptor;
 
+        @Value("${app.frontend-url}")
+    private String frontendUrl;
+
+    @Value("${app.frontend-url-www}")
+    private String frontendUrlWww;
+
     public WebSocketConfig(
             JwtChannelInterceptor jwtChannelInterceptor,
             JwtHandshakeInterceptor jwtHandshakeInterceptor,
@@ -34,8 +41,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("http://localhost:5173",
-                    "${app.frontend-url}",
-                    "${app.frontend-url-www}"
+                    frontendUrl,
+                    frontendUrlWww
                 )
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setHandshakeHandler(userHandshakeHandler)
