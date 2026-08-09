@@ -35,7 +35,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("http://localhost:5173",
                     "${app.frontend-url}",
-                    "${app.frontend-url-www}"
+                    "${app.frontend-url-www}", "*"
                 )
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setHandshakeHandler(userHandshakeHandler)
