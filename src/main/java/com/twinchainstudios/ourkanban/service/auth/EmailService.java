@@ -35,14 +35,14 @@ public class EmailService {
     }
     @Async
     public void sendJoinRequestEmail(String to, String workGroupName, String invitorUsername) {
-        String link = frontendUrl + "/join";
+        String link = frontendUrl + "/home";
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("[OurKanban] Join Request for " + workGroupName);
         message.setText(
                 "Hello " + to + ",\n\n" +
                 invitorUsername + " has invited you to join the work group '" + workGroupName + "'.\n\n" +
-                "Please review the join request by clicking the link below:\n\n" +
+                "Please review the join request by clicking the link below (home page of OurKanban):\n\n" +
                 link + "\n\n" +
                 "Thank you!"
         );

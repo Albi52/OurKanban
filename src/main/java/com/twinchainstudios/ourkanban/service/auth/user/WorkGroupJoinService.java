@@ -37,7 +37,7 @@ public class WorkGroupJoinService {
     }
 
     @Transactional(readOnly = true)
-    public List<WorkGroupJoinResponse> getWorkGroupsJoinInvitationsForUser(String username) {
+    public List<WorkGroupJoinResponse> getPendingJoinRequestsForUser(String username) {
         User user = getUserOrThrow(username);
         return workGroupJoinRequestRepository.findByUserAndStatus(user, JoinRequestStatus.PENDING)
                 .stream()
@@ -46,11 +46,12 @@ public class WorkGroupJoinService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserSearchResult> getUsersOfWorkGroup(Long workGroupId) {
+    public List<UserSearchResult> getPendingJoinRequestOfGroup(Long workGroupId, String username) {
         WorkGroup workGroup = workGroupRepository.findById(workGroupId)
                 .orElseThrow(() -> new NotFoundException("Work group not found"));
+        workGroupService.requireLeader(workGroup, getUserOrThrow(username));
 
-        return workGroupJoinRequestRepository.findByWorkGroup(workGroup)
+        return workGroupJoinRequestRepository.findByWorkGroupAndStatus(workGroup, JoinRequestStatus.PENDING)
                 .stream()
                 .map(joinRequest -> new UserSearchResult(joinRequest.getUser().getUsername(),
                         joinRequest.getUser().getProfilePicture()))

@@ -17,6 +17,6 @@ public interface WorkGroupJoinRequestRepository extends JpaRepository<WorkGroupJ
             JoinRequestStatus status);
     
             List<WorkGroupJoin> findByWorkGroup(WorkGroup workGroup);
-            
+    List<WorkGroupJoin> findByWorkGroupAndStatus(WorkGroup workGroup, JoinRequestStatus status);
     Optional<WorkGroupJoin> findByUserAndWorkGroup(User user, WorkGroup workGroup);
 }
