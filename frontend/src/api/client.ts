@@ -23,9 +23,18 @@ async function request<TResponse>(
     },
     body: body ? JSON.stringify(body) : undefined,
   })
-    if (res.status === 401) {
-    notifyUnauthorized()
-    throw new Error('Session expired. Please log in again.')
+  if (res.status === 401) {
+    // Only a genuine session-expiry case if this request WAS carrying a token
+    // and got rejected anyway. A request with no token (e.g. login) that comes
+    // back 401 was never an authenticated session to begin with — it's a fresh
+    // credentials check, so let the backend's specific error message through
+    // instead of overwriting it with "session expired".
+    if (token) {
+      notifyUnauthorized()
+      throw new Error('Session expired. Please log in again.')
+    }
+    const errorBody = await res.json().catch(() => null)
+    throw new Error(errorBody?.error ?? 'Invalid credentials')
   }
 
   if (!res.ok) {
