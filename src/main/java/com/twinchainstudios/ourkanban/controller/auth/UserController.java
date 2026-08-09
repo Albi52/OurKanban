@@ -1,7 +1,8 @@
 package com.twinchainstudios.ourkanban.controller.auth;
 
 import com.twinchainstudios.ourkanban.dto.auth.response.UserSearchResult;
-import com.twinchainstudios.ourkanban.service.auth.UserSearchService;
+import com.twinchainstudios.ourkanban.service.auth.user.UserSearchService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

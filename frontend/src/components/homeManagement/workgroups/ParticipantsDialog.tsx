@@ -147,13 +147,13 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
               {showSuggestions && suggestions.length > 0 && (
                 <ul className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-background shadow-lg">
                   {suggestions.map((s) => (
-                    <li key={s.id}>
+                    <li key={s.username}>
                       <button
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => selectSuggestion(s.username)}
                         className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground-secondary hover:bg-accent hover:text-accent-foreground"
-                        data-testid={`user-suggestion-${s.id}`}
+                        
                       >
                         <UserAvatar
                           username={s.username}

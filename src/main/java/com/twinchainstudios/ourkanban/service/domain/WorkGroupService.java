@@ -72,7 +72,7 @@ public class WorkGroupService {
 
         workGroupRepository.save(workGroup);
     }
-
+//TODO: remove this method of including someone, move to invitation based.
     /**
      * Adds a user to the group directly.
      * NOTE: this is a placeholder for a future invitation flow — when that's built,
@@ -103,6 +103,21 @@ public class WorkGroupService {
 
         return toResponse(workGroup, requester);
     }
+///Version con aceptar ivitacion
+    @Transactional
+    public void addMember(WorkGroup workGroup, User newMember) {
+
+        boolean alreadyMember = workGroup.getUsers().stream()
+                .anyMatch(u -> u.getId().equals(newMember.getId()));
+        if (alreadyMember) {
+            throw new ConflictException("User is already a member of this group");
+        }
+
+        workGroup.getUsers().add(newMember);
+        workGroupRepository.save(workGroup);
+
+        return;
+    }
 
     @Transactional
     public WorkGroupResponse removeMember(Long workGroupId, Long memberUserId, String requesterUsername) {
@@ -126,7 +141,7 @@ public class WorkGroupService {
         return toResponse(workGroup, requester);
     }
 
-    private void requireLeader(WorkGroup workGroup, User user) {
+    public void requireLeader(WorkGroup workGroup, User user) {
         if (!workGroup.getLeader().getId().equals(user.getId())) {
             throw new ForbiddenOperationException("Only the group leader can do this");
         }

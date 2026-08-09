@@ -7,7 +7,7 @@ import com.twinchainstudios.ourkanban.dto.auth.request.UpdatePasswordRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.UpdateUsernameRequest;
 import com.twinchainstudios.ourkanban.dto.auth.response.AuthResponse;
 import com.twinchainstudios.ourkanban.dto.auth.response.MeResponse;
-import com.twinchainstudios.ourkanban.service.auth.AuthService;
+import com.twinchainstudios.ourkanban.service.auth.user.AuthService;
 
 import jakarta.validation.Valid;
 

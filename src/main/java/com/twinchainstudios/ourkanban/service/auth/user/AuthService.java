@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.service.auth;
+package com.twinchainstudios.ourkanban.service.auth.user;
 
 import com.twinchainstudios.ourkanban.dto.auth.request.GoogleLoginRequest;
 import com.twinchainstudios.ourkanban.dto.auth.request.LoginRequest;
@@ -13,6 +13,8 @@ import com.twinchainstudios.ourkanban.model.auth.EmailVerificationToken;
 import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.repository.auth.EmailVerificationTokenRepository;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
+import com.twinchainstudios.ourkanban.service.auth.EmailService;
+import com.twinchainstudios.ourkanban.service.auth.JwtService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;

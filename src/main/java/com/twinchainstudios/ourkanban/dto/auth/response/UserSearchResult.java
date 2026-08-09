@@ -1,3 +1,3 @@
 package com.twinchainstudios.ourkanban.dto.auth.response;
 
-public record UserSearchResult(Long id, String username, String profilePicture) {}
+public record UserSearchResult(String username, String profilePicture) {}
