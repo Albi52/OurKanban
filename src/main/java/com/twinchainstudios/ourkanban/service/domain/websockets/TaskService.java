@@ -103,7 +103,13 @@ public class TaskService {
                     .orElseThrow(() -> new NotFoundException("Project not found"));
             t.setProject(p);
 
-            ProjectMember user = memberRepository.findByProjectIdAndUserId(msg.projectId, userId)
+            Long userMemberId = p.getMembers().stream()
+                    .filter(m -> m.getUser().getId().equals(userId))
+                    .map(ProjectMember::getId)
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException("User not found in project"));
+                    
+            ProjectMember user = memberRepository.findByProjectIdAndUserId(msg.projectId, userMemberId)
                     .orElseThrow(() -> new NotFoundException("User not found in project"));
 
             t.setAuthor(user);
