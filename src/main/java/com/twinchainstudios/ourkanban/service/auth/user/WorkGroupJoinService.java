@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
+@Service 
 public class WorkGroupJoinService {
 
     private final WorkGroupRepository workGroupRepository;
