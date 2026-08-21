@@ -24,7 +24,9 @@ public class BlackboardElement {
 
     // Top-left corner, absolute grid coordinates (can be negative once the
     // board has grown up/left from its original origin).
+     @Column(name = "grid_row")
     private int row;
+    @Column(name = "grid_col")
     private int col;
 
     // Size in grid cells. Both must be >= 1.

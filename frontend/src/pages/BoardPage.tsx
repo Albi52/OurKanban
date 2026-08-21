@@ -12,8 +12,9 @@ import { TopBar } from '@components/shared/TopBar'
 import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
 import { KanbanView, type Task, type Priority } from '@components/board/KanbanView'
+import { BlackboardView } from '@components/board/BlackboardView'
 import { CalendarView } from '@components/board/CalendarView' 
-import { Layout, CalendarDays, Columns, Pencil, Trash2, X } from 'lucide-react'
+import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X } from 'lucide-react'
 import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
 import { useAuth } from '@context/AuthContext'
@@ -332,6 +333,9 @@ export default function BoardPage() {
               <TabsTrigger value="split" className="text-muted-foreground data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
                 <Columns className="mr-2 h-4 w-4" /> Split View
               </TabsTrigger>
+              <TabsTrigger value="blackboard" className="text-muted-foreground data-[state=active]:bg-zinc-50 data-[state=active]:text-zinc-950">
+                <LayoutGrid className="mr-2 h-4 w-4" /> Blackboard
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -389,6 +393,9 @@ export default function BoardPage() {
                   />
                 </div>
               </TabsContent>
+              <TabsContent value="blackboard" className="m-0 flex-1 flex flex-col min-h-0">
+                <BlackboardView project={project} currentUser={currentUserAsMember} />
+             </TabsContent>
             </div>
 
             {/* Panel lateral para ver / editar tarea o evento */}
