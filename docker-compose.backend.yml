@@ -28,7 +28,8 @@ services:
       - "8080:8080"
     volumes:
     - avatar_uploads:/app/uploads/avatars
-
+    - blackboard_uploads:/app/uploads/blackboard
 volumes:
   mysql_data_dev:
   avatar_uploads:
+  blackboard_uploads:

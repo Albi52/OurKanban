@@ -1,23 +1,16 @@
 package com.twinchainstudios.ourkanban.model.domain;
 
-
 import java.util.*;
 
 import jakarta.persistence.*;
 
-
 @Entity
-@Table(
-    name = "projects",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            columnNames = {
+@Table(name = "projects", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {
                 "work_group_id",
                 "name"
-            }
-        )
-    }
-)
+        })
+})
 public class Project {
 
     @Id
@@ -30,47 +23,26 @@ public class Project {
     @JoinColumn(name = "work_group_id")
     private WorkGroup workGroup;
 
-    @OneToMany(
-        mappedBy = "project",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectMember> members = new ArrayList<>();
 
-    @OneToMany(
-        mappedBy = "project",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
 
-    @OneToMany(
-        mappedBy = "project",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Event> events = new ArrayList<>();
 
-    @OneToMany(
-        mappedBy = "project",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(
-        mappedBy = "project",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Role> roles = new ArrayList<>();
 
-    @OneToMany(
-    mappedBy = "project",
-    cascade = CascadeType.ALL,
-    orphanRemoval = true
-)
-private List<DashboardColumn> columns = new ArrayList<>();
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DashboardColumn> columns = new ArrayList<>();
+
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Blackboard blackboard;
 
     public Long getId() {
         return id;
@@ -135,11 +107,19 @@ private List<DashboardColumn> columns = new ArrayList<>();
     public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
+
     public List<DashboardColumn> getColumns() {
         return columns;
     }
+
     public void setColumns(List<DashboardColumn> columns) {
         this.columns = columns;
     }
-    
+    public Blackboard getBlackboard() {
+        return blackboard;
+    }
+    public void setBlackboard(Blackboard blackboard) {
+        this.blackboard = blackboard;
+    }
+
 }
