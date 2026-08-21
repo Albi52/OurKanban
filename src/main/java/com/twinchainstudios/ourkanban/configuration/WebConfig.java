@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload-dir}")
     private String uploadDir;
 
-    @Value("${app.upload-dir-blackboard}")
+   // @Value("${app.upload-dir-blackboard}")
     private String uploadDirBlackboard;
 
     @Override
