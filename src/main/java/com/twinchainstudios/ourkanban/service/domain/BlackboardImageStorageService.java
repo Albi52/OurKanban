@@ -18,14 +18,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 
-// Mirrors ImageStorageService's structure, but doesn't crop to a square —
-// blackboard elements can be any rectangle, so cropping would destroy
-// arbitrary aspect ratios. Images are only ever downscaled (never enlarged)
-// if they exceed MAX_DIMENSION on their longest edge.
 @Service
 public class BlackboardImageStorageService {
 
-    private static final int MAX_DIMENSION = 1600;
+    private static final int MAX_DIMENSION = 16000;
 
     @Value("${app.upload-dir-blackboard}")
     private String uploadDir;
@@ -39,19 +35,23 @@ public class BlackboardImageStorageService {
         }
 
         if (original == null) {
-            throw new ForbiddenOperationException("File is not a valid image");
+            // Also hit for formats ImageIO has no reader for out of the box —
+            // notably WebP, which needs an extra plugin (see note below).
+            throw new ForbiddenOperationException("File is not a valid image, or its format isn't supported");
         }
 
-        BufferedImage resized = resizeIfLarger(original, MAX_DIMENSION);
+        boolean hasAlpha = original.getColorModel().hasAlpha();
+        BufferedImage resized = resizeIfLarger(original, MAX_DIMENSION, hasAlpha);
 
         deleteExisting(elementId);
 
-        String filename = elementId + "-" + System.currentTimeMillis() + ".jpg";
+        String extension = hasAlpha ? "png" : "jpg";
+        String filename = elementId + "-" + System.currentTimeMillis() + "." + extension;
         Path targetPath = Path.of(uploadDir, filename);
 
         try {
             Files.createDirectories(targetPath.getParent());
-            writeJpeg(resized, targetPath.toFile(), 0.85f);
+            writeImage(resized, targetPath.toFile(), hasAlpha);
         } catch (IOException e) {
             throw new ForbiddenOperationException("Failed to save image");
         }
@@ -73,20 +73,24 @@ public class BlackboardImageStorageService {
         }
     }
 
-    private BufferedImage resizeIfLarger(BufferedImage img, int maxDimension) {
+    private BufferedImage resizeIfLarger(BufferedImage img, int maxDimension, boolean hasAlpha) {
         int width = img.getWidth();
         int height = img.getHeight();
         int longestEdge = Math.max(width, height);
 
-        if (longestEdge <= maxDimension) {
-            return img;
+        // Even when no resize is needed, re-draw into a canonical ARGB/RGB
+        // buffer so downstream writing behaves consistently regardless of
+        // the source image's original color model (e.g. indexed PNGs).
+        int targetWidth = width;
+        int targetHeight = height;
+        if (longestEdge > maxDimension) {
+            double scale = (double) maxDimension / longestEdge;
+            targetWidth = (int) Math.round(width * scale);
+            targetHeight = (int) Math.round(height * scale);
         }
 
-        double scale = (double) maxDimension / longestEdge;
-        int targetWidth = (int) Math.round(width * scale);
-        int targetHeight = (int) Math.round(height * scale);
-
-        BufferedImage resized = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+        int imageType = hasAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+        BufferedImage resized = new BufferedImage(targetWidth, targetHeight, imageType);
         Graphics2D g = resized.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -95,16 +99,23 @@ public class BlackboardImageStorageService {
         return resized;
     }
 
-    private void writeJpeg(BufferedImage image, File output, float quality) throws IOException {
-        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+    private void writeImage(BufferedImage image, File output, boolean hasAlpha) throws IOException {
+        String format = hasAlpha ? "png" : "jpg";
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(format);
         ImageWriter writer = writers.next();
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(quality);
 
         try (ImageOutputStream ios = ImageIO.createImageOutputStream(output)) {
             writer.setOutput(ios);
-            writer.write(null, new IIOImage(image, null, null), param);
+
+            if (hasAlpha) {
+                // PNG is lossless — no compression-quality param to set.
+                writer.write(image);
+            } else {
+                ImageWriteParam param = writer.getDefaultWriteParam();
+                param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                param.setCompressionQuality(0.85f);
+                writer.write(null, new IIOImage(image, null, null), param);
+            }
         } finally {
             writer.dispose();
         }
