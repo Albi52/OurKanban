@@ -12,7 +12,6 @@ import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.domain.*;
 import com.twinchainstudios.ourkanban.repository.domain.BlackboardElementRepository;
 import com.twinchainstudios.ourkanban.repository.domain.BlackboardRepository;
-import com.twinchainstudios.ourkanban.service.domain.ProjectService; // adjust package if different
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
