@@ -121,8 +121,9 @@ export function BlackboardView({ project, currentUser }: Props) {
       return
     }
     setCreating(true)
+    let created: BlackboardElementDto | null = null
     try {
-      let created = await addElement(project.id, {
+      created = await addElement(project.id, {
         row: pendingRect.row,
         col: pendingRect.col,
         width: pendingRect.width,
@@ -135,10 +136,16 @@ export function BlackboardView({ project, currentUser }: Props) {
         created = await uploadElementImage(project.id, created.id, pendingFile)
       }
 
-      setBoard((prev) => (prev ? { ...prev, elements: [...prev.elements, created] } : prev))
+      setBoard((prev) => (prev ? { ...prev, elements: [...prev.elements, created!] } : prev))
       cancelPlacement()
     } catch (err) {
+
       toast.error(err instanceof Error ? err.message : 'Failed to add element')
+      if (created) {
+        // The element record was created but the image failed to attach —
+        // roll it back rather than leaving an incomplete element on the board.
+        deleteElement(project.id, created.id).catch(() => {})
+     }
     } finally {
       setCreating(false)
     }
@@ -408,7 +415,7 @@ export function BlackboardView({ project, currentUser }: Props) {
                   data-testid={`blackboard-element-${el.id}`}
                 >
                   {el.imageUrl && (
-                    <img src={el.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+                    <img src={el.imageUrl} alt="" className="absolute inset-0 h-full w-full bg-zinc-900 object-contain" draggable={false} />
                   )}
 
                   {editingElementId === el.id ? (

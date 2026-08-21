@@ -4,6 +4,8 @@ import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.*;
 import com.twinchainstudios.ourkanban.model.domain.GridEdge;
 import com.twinchainstudios.ourkanban.service.domain.BlackboardService;
 import jakarta.validation.Valid;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -60,9 +62,11 @@ public class BlackboardController {
     }
 
     @DeleteMapping("/elements/{elementId}")
-    public void deleteElement(
+    public ResponseEntity<Void> deleteElement(
+
             @PathVariable Long projectId, @PathVariable Long elementId, Principal principal) {
         blackboardService.deleteElement(projectId, elementId, principal.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/rows/{edge}")
