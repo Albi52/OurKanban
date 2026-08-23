@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record CreateElementRequest(
-        int row,
-        int col,
+        Integer row,
+        Integer col,
         @Positive int width,
         @Positive int height,
         @NotNull ElementType type,

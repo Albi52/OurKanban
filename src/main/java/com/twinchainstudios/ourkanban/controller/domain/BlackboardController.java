@@ -80,4 +80,13 @@ public class BlackboardController {
             @PathVariable Long projectId, @PathVariable GridEdge edge, Principal principal) {
         return blackboardService.addColumn(projectId, principal.getName(), edge);
     }
+        @PostMapping("/shrink-to-fit")
+    public BlackboardDto shrinkToFit(@PathVariable Long projectId, Principal principal) {
+        return blackboardService.shrinkToFit(projectId, principal.getName());
+    }
+        @PatchMapping("/elements/{elementId}/unstage")
+    public BlackboardElementDto unstageElement(
+            @PathVariable Long projectId, @PathVariable Long elementId, Principal principal) {
+        return blackboardService.unstageElement(projectId, elementId, principal.getName());
+    }
 }

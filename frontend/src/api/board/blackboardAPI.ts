@@ -9,7 +9,7 @@ export function getBlackboard(projectId: number) {
 
 export function addElement(
   projectId: number,
-  data: { row: number; col: number; width: number; height: number; type: ElementType; textContent?: string }
+  data: { row?: number; col?: number; width: number; height: number; type: ElementType; textContent?: string }
 ) {
   return apiPost<BlackboardElementDto>(`${base(projectId)}/elements`, data)
 }
@@ -17,7 +17,7 @@ export function addElement(
 export function updateGeometry(
   projectId: number,
   elementId: number,
-  data: { row: number; col: number; width: number; height: number }
+  data: { row?: number; col?: number; width: number; height: number }
 ) {
   return apiPatch<BlackboardElementDto>(`${base(projectId)}/elements/${elementId}/geometry`, data)
 }
@@ -33,6 +33,9 @@ export function uploadElementImage(projectId: number, elementId: number, file: F
 export function deleteElement(projectId: number, elementId: number) {
   return apiDelete<void>(`${base(projectId)}/elements/${elementId}`)
 }
+export function unstageElement(projectId: number, elementId: number) {
+  return apiPatch<BlackboardElementDto>(`${base(projectId)}/elements/${elementId}/unstage`, {})
+}
 
 export function addRow(projectId: number, edge: GridEdge) {
   return apiPost<BlackboardDto>(`${base(projectId)}/rows/${edge}`, {})
@@ -40,4 +43,7 @@ export function addRow(projectId: number, edge: GridEdge) {
 
 export function addColumn(projectId: number, edge: GridEdge) {
   return apiPost<BlackboardDto>(`${base(projectId)}/columns/${edge}`, {})
+}
+export function shrinkToFit(projectId: number) {
+  return apiPost<BlackboardDto>(`${base(projectId)}/shrink-to-fit`, {})
 }

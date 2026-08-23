@@ -1,6 +1,5 @@
 package com.twinchainstudios.ourkanban.service.domain;
 
-
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.BlackboardDto;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.BlackboardElementDto;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.CreateElementRequest;
@@ -12,9 +11,13 @@ import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.domain.*;
 import com.twinchainstudios.ourkanban.repository.domain.BlackboardElementRepository;
 import com.twinchainstudios.ourkanban.repository.domain.BlackboardRepository;
+
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 @Service
 public class BlackboardService {
@@ -48,17 +51,20 @@ public class BlackboardService {
         Blackboard board = getOrCreateBlackboard(project);
         ProjectMember member = resolveMember(project, username);
 
-        validatePlacement(board, request.row(), request.col(), request.width(), request.height(), null);
-
         BlackboardElement element = new BlackboardElement();
         element.setBlackboard(board);
         element.setCreator(member);
         element.setType(request.type());
-        element.setRow(request.row());
-        element.setCol(request.col());
         element.setWidth(request.width());
         element.setHeight(request.height());
         element.setTextContent(request.textContent());
+
+        if (request.row() != null && request.col() != null) {
+            validatePlacement(board, request.row(), request.col(), request.width(), request.height(), null);
+            element.setRow(request.row());
+            element.setCol(request.col());
+        }
+        // else: created directly in the shelf, row/col stay null
 
         element = elementRepository.save(element);
         return BlackboardElementDto.from(element);
@@ -77,6 +83,17 @@ public class BlackboardService {
         element.setCol(request.col());
         element.setWidth(request.width());
         element.setHeight(request.height());
+
+        return BlackboardElementDto.from(element);
+    }
+
+    @Transactional
+    public BlackboardElementDto unstageElement(Long projectId, Long elementId, String username) {
+        Project project = projectService.getProjectAndVerifyMembership(projectId, username);
+        BlackboardElement element = getElementOrThrow(project, elementId);
+
+        element.setRow(null);
+        element.setCol(null);
 
         return BlackboardElementDto.from(element);
     }
@@ -149,6 +166,57 @@ public class BlackboardService {
 
         return BlackboardDto.from(board);
     }
+        private static final int DEFAULT_SIZE = 6;
+
+    @Transactional
+    public BlackboardDto shrinkToFit(Long projectId, String username) {
+        Project project = projectService.getProjectAndVerifyMembership(projectId, username);
+        Blackboard board = getOrCreateBlackboard(project);
+
+        List<BlackboardElement> placed = board.getElements().stream()
+                .filter(e -> e.getRow() != null && e.getCol() != null)
+                .collect(Collectors.toList());
+
+        if (placed.isEmpty()) {
+            // Nothing to fit around — just reset to the original default size.
+            board.setMinRow(0);
+            board.setMaxRow(DEFAULT_SIZE - 1);
+            board.setMinCol(0);
+            board.setMaxCol(DEFAULT_SIZE - 1);
+            return BlackboardDto.from(board);
+        }
+
+        int tightMinRow = placed.stream().mapToInt(BlackboardElement::getRow).min().getAsInt();
+        int tightMaxRow = placed.stream().mapToInt(e -> e.getRow() + e.getHeight() - 1).max().getAsInt();
+        int tightMinCol = placed.stream().mapToInt(BlackboardElement::getCol).min().getAsInt();
+        int tightMaxCol = placed.stream().mapToInt(e -> e.getCol() + e.getWidth() - 1).max().getAsInt();
+
+        int[] rowBounds = expandToMinimum(tightMinRow, tightMaxRow, DEFAULT_SIZE);
+        int[] colBounds = expandToMinimum(tightMinCol, tightMaxCol, DEFAULT_SIZE);
+
+        board.setMinRow(rowBounds[0]);
+        board.setMaxRow(rowBounds[1]);
+        board.setMinCol(colBounds[0]);
+        board.setMaxCol(colBounds[1]);
+
+        return BlackboardDto.from(board);
+    }
+
+    // Grows a [min, max] range symmetrically around its own center until it
+    // reaches at least `minSize` cells, without ever making it smaller than
+    // the tight fit that was passed in. Elements never move — only the
+    // board's bounds change, so any extra cells from this padding always
+    // land as empty space around what's already placed.
+    private int[] expandToMinimum(int min, int max, int minSize) {
+        int currentSize = max - min + 1;
+        if (currentSize >= minSize) {
+            return new int[]{min, max};
+        }
+        int deficit = minSize - currentSize;
+        int padBefore = deficit / 2;
+        int padAfter = deficit - padBefore;
+        return new int[]{min - padBefore, max + padAfter};
+    }
 
     // --- internal helpers ---
 
@@ -200,6 +268,9 @@ public class BlackboardService {
         }
 
         for (BlackboardElement other : board.getElements()) {
+            if(other.getRow() == null || other.getCol() == null) {
+                continue; // shelf elements don't count
+            }
             if (excludeElementId != null && other.getId().equals(excludeElementId)) {
                 continue;
             }

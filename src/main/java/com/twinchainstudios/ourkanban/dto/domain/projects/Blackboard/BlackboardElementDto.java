@@ -4,8 +4,8 @@ import com.twinchainstudios.ourkanban.model.domain.BlackboardElement;
 
 public class BlackboardElementDto {
     public Long id;
-    public int row;
-    public int col;
+    public Integer row;
+    public Integer col;
     public int width;
     public int height;
     public String type;

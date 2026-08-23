@@ -2,9 +2,9 @@ export type ElementType = 'TEXT' | 'IMAGE' | 'BOTH'
 export type GridEdge = 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT'
 
 export interface BlackboardElementDto {
-  id: number
-  row: number
-  col: number
+  id: number 
+  row: number | null
+  col: number | null
   width: number
   height: number
   type: ElementType

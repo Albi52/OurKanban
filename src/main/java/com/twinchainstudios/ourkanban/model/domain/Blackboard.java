@@ -28,6 +28,7 @@ public class Blackboard {
     private int maxCol = 5;
 
     @OneToMany(mappedBy = "blackboard", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<BlackboardElement> elements = new ArrayList<>();
 
     public Long getId() {

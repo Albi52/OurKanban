@@ -22,13 +22,14 @@ public class BlackboardElement {
     @Enumerated(EnumType.STRING)
     private ElementType type;
 
-    // Top-left corner, absolute grid coordinates (can be negative once the
-    // board has grown up/left from its original origin).
-     @Column(name = "grid_row")
-    private int row;
-    @Column(name = "grid_col")
-    private int col;
-
+   // Top-left corner, absolute grid coordinates (can be negative once the
+   // board has grown up/left from its original origin). Null means the
+   // element is sitting in the shelf, not placed on the grid — size
+   // (width/height) is still required and preserved either way.
+   @Column(name = "grid_row")
+   private Integer row;
+   @Column(name = "grid_col")
+   private Integer col;
     // Size in grid cells. Both must be >= 1.
     private int width;
     private int height;
@@ -78,19 +79,19 @@ public class BlackboardElement {
         this.type = type;
     }
 
-    public int getRow() {
+    public Integer getRow() {
         return row;
     }
 
-    public void setRow(int row) {
+    public void setRow(Integer row) {
         this.row = row;
     }
 
-    public int getCol() {
+    public Integer getCol() {
         return col;
     }
 
-    public void setCol(int col) {
+    public void setCol(Integer col) {
         this.col = col;
     }
 
