@@ -16,11 +16,13 @@ import {
 import { Button } from '@components/shared/ui/button'
 import { Input } from '@components/shared/ui/input'
 import { toast } from 'sonner'
-import { Plus, Trash2, Pencil, Image as ImageIcon, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X, GripVertical, Layers,Maximize2, Shrink } from 'lucide-react'
+import { Plus, Trash2, Pencil, Image as ImageIcon, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X, GripVertical, Layers,Maximize2, Shrink, ZoomIn, ZoomOut, Scan  } from 'lucide-react'
 
 const CELL_SIZE = 96
 const CELL_GAP = 8
-
+const ZOOM_MIN = 0.25
+const ZOOM_MAX = 2
+const ZOOM_STEP = 0.15
 interface Props {
   project: ProjectSummary
   currentUser: Member
@@ -64,6 +66,10 @@ export function BlackboardView({ project, currentUser }: Props) {
   const [editText, setEditText] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  
+  const [zoom, setZoom] = useState(1)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     load()
@@ -218,8 +224,8 @@ export function BlackboardView({ project, currentUser }: Props) {
 
     function onMove(ev: MouseEvent) {
       if (!board) return
-      const deltaCol = Math.round((ev.clientX - startX) / (CELL_SIZE + CELL_GAP))
-      const deltaRow = Math.round((ev.clientY - startY) / (CELL_SIZE + CELL_GAP))
+      const deltaCol = Math.round((ev.clientX - startX) / ((CELL_SIZE + CELL_GAP) * zoom))
+      const deltaRow = Math.round((ev.clientY - startY) / ((CELL_SIZE + CELL_GAP) * zoom))
       const newRow = clamp(startRow + deltaRow, board.minRow, board.maxRow - el.height + 1)
       const newCol = clamp(startCol + deltaCol, board.minCol, board.maxCol - el.width + 1)
       if (newRow !== currentRow || newCol !== currentCol) {
@@ -268,8 +274,8 @@ export function BlackboardView({ project, currentUser }: Props) {
 
     function onMove(ev: MouseEvent) {
       if (!board) return
-      const deltaCol = Math.round((ev.clientX - startX) / (CELL_SIZE + CELL_GAP))
-      const deltaRow = Math.round((ev.clientY - startY) / (CELL_SIZE + CELL_GAP))
+      const deltaCol = Math.round((ev.clientX - startX) / ((CELL_SIZE + CELL_GAP) * zoom))
+      const deltaRow = Math.round((ev.clientY - startY) / ((CELL_SIZE + CELL_GAP) * zoom))
       const newWidth = clamp(startWidth + deltaCol, 1, board.maxCol - asPlaced(el).col + 1)
       const newHeight = clamp(startHeight + deltaRow, 1, board.maxRow - asPlaced(el).row + 1)
       if (newWidth !== currentWidth || newHeight !== currentHeight) {
@@ -363,9 +369,9 @@ export function BlackboardView({ project, currentUser }: Props) {
     if (!el) return
 
     const rect = gridRef.current.getBoundingClientRect()
-    const offsetX = e.clientX - rect.left - 8 // 8px = the grid container's p-2 padding
-    const offsetY = e.clientY - rect.top - 8
-    const col = board.minCol + Math.floor(offsetX / (CELL_SIZE + CELL_GAP))
+    const offsetX = (e.clientX - rect.left - 8 * zoom) / zoom
+   const offsetY = (e.clientY - rect.top - 8 * zoom) / zoom
+   const col = board.minCol + Math.floor(offsetX / (CELL_SIZE + CELL_GAP))
     const row = board.minRow + Math.floor(offsetY / (CELL_SIZE + CELL_GAP))
 
     const clampedRow = clamp(row, board.minRow, board.maxRow - el.height + 1)
@@ -415,6 +421,28 @@ export function BlackboardView({ project, currentUser }: Props) {
       setCreating(false)
     }
   }
+    function zoomIn() {
+    setZoom((z) => Math.min(ZOOM_MAX, Number((z + ZOOM_STEP).toFixed(2))))
+  }
+
+  function zoomOut() {
+    setZoom((z) => Math.max(ZOOM_MIN, Number((z - ZOOM_STEP).toFixed(2))))
+  }
+
+  function autoZoom() {
+    if (!board || !scrollContainerRef.current) return
+    const container = scrollContainerRef.current.getBoundingClientRect()
+    const c = board.maxCol - board.minCol + 1
+    const r = board.maxRow - board.minRow + 1
+    const gridWidth = c * CELL_SIZE + (c - 1) * CELL_GAP + 16
+    const gridHeight = r * CELL_SIZE + (r - 1) * CELL_GAP + 16
+    // Leave a little breathing room rather than fitting edge-to-edge.
+    const fitScale = Math.min(
+      (container.width - 32) / gridWidth,
+      (container.height - 32) / gridHeight
+    )
+    setZoom(Number(clamp(fitScale, ZOOM_MIN, ZOOM_MAX).toFixed(2)))
+  }
 
   if (loading) {
     return <div className="flex flex-1 items-center justify-center text-muted-foreground">Loading blackboard...</div>
@@ -436,11 +464,12 @@ export function BlackboardView({ project, currentUser }: Props) {
 
   return (
     <div className="flex flex-1 flex-col overflow-auto" data-testid="blackboard-view">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div className="mb-4 flex flex-wrap items-center gap-3 shrink-0">
         <p className="text-xs text-muted-foreground">
           Click two cells to place an element. Drag to move, drag the corner to resize.
         </p>
-        <div className="flex items-center gap-2">
+
+        <div className="ml-auto flex items-center gap-2">
           <Button
             size="sm"
             variant="outline"
@@ -452,6 +481,39 @@ export function BlackboardView({ project, currentUser }: Props) {
             <Maximize2 className="mr-2 h-4 w-4" />
             Resize grid
           </Button>
+
+          <div className="flex items-center gap-1 rounded-md border border-border bg-card/20 p-0.5">
+            <button
+              type="button"
+              onClick={zoomOut}
+              disabled={zoom <= ZOOM_MIN}
+              title="Zoom out"
+              className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground disabled:opacity-30"
+            >
+              <ZoomOut className="h-3.5 w-3.5" />
+            </button>
+            <span className="w-10 text-center text-[10px] text-muted-foreground-subtle">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={zoomIn}
+              disabled={zoom >= ZOOM_MAX}
+              title="Zoom in"
+              className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground disabled:opacity-30"
+            >
+              <ZoomIn className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={autoZoom}
+              title="Fit to view"
+              className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
+            >
+              <Scan className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
           {placingActive ? (
             <Button
               size="sm"
@@ -478,8 +540,10 @@ export function BlackboardView({ project, currentUser }: Props) {
             </Button>
           )}
         </div>
-         {resizePanelOpen && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card/20 p-2 shrink-0">
+      </div>
+
+      {resizePanelOpen && (
+        <div className="mb-4 flex w-fit items-center gap-2 rounded-xl border border-border bg-card/20 p-2 shrink-0 mx-auto">
           <Button
             size="sm"
             variant="outline"
@@ -497,26 +561,32 @@ export function BlackboardView({ project, currentUser }: Props) {
           <EdgeButton icon={ArrowDown} label="Add row (bottom)" onClick={() => handleGrow('row', 'BOTTOM')} />
           <EdgeButton icon={ArrowLeft} label="Add column (left)" onClick={() => handleGrow('col', 'LEFT')} />
           <EdgeButton icon={ArrowRight} label="Add column (right)" onClick={() => handleGrow('col', 'RIGHT')} />
+          <button
+            type="button"
+            onClick={() => setResizePanelOpen(false)}
+            title="Close"
+            className="ml-auto rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
-      </div>
 
-      <div className="flex flex-1 items-start justify-center gap-2 pb-8">
-        <div className="flex flex-col items-center gap-2">
-
-          <div className="flex items-center gap-2">
-
-            <div
+      <div ref={scrollContainerRef} className="flex-1 overflow-auto pb-8">
+        <div className="w-fit mx-auto p-8">
+          <div
             ref={gridRef}
-              className="relative grid rounded-xl border border-border bg-card/20 p-2"
-              style={{
-                gridTemplateColumns: `repeat(${cols}, ${CELL_SIZE}px)`,
-                gridTemplateRows: `repeat(${rows}, ${CELL_SIZE}px)`,
-                gap: `${CELL_GAP}px`,
-              }}
+            className="relative grid rounded-xl border border-border bg-card/20 p-2"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, ${CELL_SIZE}px)`,
+              gridTemplateRows: `repeat(${rows}, ${CELL_SIZE}px)`,
+              gap: `${CELL_GAP}px`,
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left',
+            }}
             onDragOver={handleGridDragOver}
             onDrop={handleGridDrop}
-            >
+          >
               {Array.from({ length: rows }).map((_, r) =>
                 Array.from({ length: cols }).map((_, c) => {
                   const rowIndex = board.minRow + r
@@ -661,7 +731,7 @@ export function BlackboardView({ project, currentUser }: Props) {
               ))}
             </div>
 
-          </div>
+     
 
         </div>
       </div>
