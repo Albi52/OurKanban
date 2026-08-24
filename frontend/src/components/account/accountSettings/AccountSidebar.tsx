@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useAuth } from '@context/AuthContext'
-import type { WorkGroup } from '@app-types/workgroup'
-import { Users, LayoutGrid, Circle } from 'lucide-react'
+import type { WorkGroup, WorkGroupJoinResponse } from '@app-types/workgroup'
+import { Users, LayoutGrid, Circle, Check, X } from 'lucide-react'
 import { useState } from 'react'
 import { Settings } from 'lucide-react'
 import { AccountSettingsDialog } from '@components/account/accountSettings/AccountSettingsDialog'
 import { UserAvatar } from '@components/shared/UserAvatar'
 import { recordGroupOpened } from '@/lib/recentActivity'
+import { acceptJoinRequest, declineJoinRequest, getMyPendingJoinRequests } from '@/api/homeManagement/workJoinAPI'
+import { toast } from 'sonner'
 
 
 interface Props {
@@ -18,6 +20,40 @@ export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => 
   const { user } = useAuth()
 
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [invites, setInvites] = useState<WorkGroupJoinResponse[]>([])
+  const [busyInviteId, setBusyInviteId] = useState<number | null>(null)
+
+  useEffect(() => {
+    getMyPendingJoinRequests().then(setInvites).catch(() => {})
+  }, [])
+
+  async function handleAccept(workGroupId: number) {
+    setBusyInviteId(workGroupId)
+    try {
+      await acceptJoinRequest(workGroupId)
+      toast.success('Joined group')
+      setInvites((prev) => prev.filter((i) => i.workGroupId !== workGroupId))
+      refreshFunction()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to accept invite')
+    } finally {
+      setBusyInviteId(null)
+    }
+  }
+
+  async function handleDecline(workGroupId: number) {
+    setBusyInviteId(workGroupId)
+    try {
+      await declineJoinRequest(workGroupId)
+      toast.success('Invite declined')
+      setInvites((prev) => prev.filter((i) => i.workGroupId !== workGroupId))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to decline invite')
+    } finally {
+      setBusyInviteId(null)
+    }
+  }
+
   if (!user) return null
 
   const projectCount = groups.reduce((n, g) => n + g.projects.length, 0)
@@ -82,7 +118,36 @@ export const AccountSidebar: React.FC<Props> = ({ groups, refreshFunction }) => 
                 <span className="ml-2 shrink-0 text-xs text-muted-foreground-subtle">{g.members.length}</span>
               </li>
             ))}
-            {groups.length === 0 && <li className="text-sm text-muted-foreground-subtle">No groups yet</li>}
+              {invites.map((inv) => (
+              <li
+                key={`invite-${inv.workGroupId}`}
+                className="flex items-center justify-between rounded-md border border-dashed border-border px-2 py-2 text-sm text-muted-foreground"
+                data-testid={`group-invite-${inv.workGroupId}`}
+              >
+                <span className="min-w-0 flex-1 truncate italic">{inv.workGroupName}</span>
+                <div className="ml-2 flex shrink-0 items-center gap-1">
+                  <button
+                    onClick={() => handleAccept(inv.workGroupId)}
+                    disabled={busyInviteId === inv.workGroupId}
+                    className="rounded-full p-1 text-success hover:bg-success/10 disabled:opacity-40"
+                    title="Accept invite"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDecline(inv.workGroupId)}
+                    disabled={busyInviteId === inv.workGroupId}
+                    className="rounded-full p-1 text-destructive hover:bg-destructive/10 disabled:opacity-40"
+                    title="Decline invite"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+            {groups.length === 0 && invites.length === 0 && (
+              <li className="text-sm text-muted-foreground-subtle">No groups yet</li>
+            )}
           </ul>
         </div>
       </div>

@@ -43,7 +43,7 @@ public class WorkGroupJoinController {
             @Valid @RequestBody WorkGroupJoinRequest request,
             Authentication authentication) {
         workGroupJoinService.sendJoinRequest(request.workGroupId(), request.username(), authentication.getName());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping()
@@ -51,7 +51,7 @@ public class WorkGroupJoinController {
              @Valid @RequestBody WorkGroupJoinRequest request,
             Authentication authentication) {
         workGroupJoinService.cancelJoinRequest(request.workGroupId(), request.username(), authentication.getName());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/accept/{workGroupId}")
@@ -59,14 +59,14 @@ public class WorkGroupJoinController {
         @PathVariable Long workGroupId,
             Authentication authentication) {
                 workGroupJoinService.resolveJoinRequest(workGroupId, authentication.getName(), true);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
     @PatchMapping("/decline/{workGroupId}")
     public ResponseEntity<Void> declineJoinRequest(
              @PathVariable Long workGroupId,
             Authentication authentication) {
         workGroupJoinService.resolveJoinRequest(workGroupId, authentication.getName(), false);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
     
 }

@@ -8,7 +8,6 @@ import com.twinchainstudios.ourkanban.service.domain.WorkGroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -40,13 +39,7 @@ public class WorkGroupController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/members")
-    public ResponseEntity<WorkGroupResponse> addMember(
-            @PathVariable Long id,
-            @Valid @RequestBody AddMemberRequest request,
-            Authentication authentication) {
-        return ResponseEntity.ok(workGroupService.addMember(id, request, authentication.getName()));
-    }
+
 
     @DeleteMapping("/{id}/members/{userId}")
     public ResponseEntity<WorkGroupResponse> removeMember(

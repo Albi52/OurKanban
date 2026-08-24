@@ -11,6 +11,7 @@ import { UserAvatar } from '@components/shared/UserAvatar'
 
 import { searchUsers } from '@api/account/userAPI'
 import type { UserSearchResult } from '@app-types/user'
+import { cancelJoinRequest, getPendingJoinRequestsOfGroup, sendJoinRequest } from '@/api/homeManagement/workJoinAPI'
 
 interface Props {
   open: boolean
@@ -26,6 +27,27 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
   const [suggestions, setSuggestions] = useState<UserSearchResult[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+ 
+  const [pendingInvites, setPendingInvites] = useState<UserSearchResult[]>([])
+  const [cancelingUsername, setCancelingUsername] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    getPendingJoinRequestsOfGroup(group.id).then(setPendingInvites).catch(() => setPendingInvites([]))
+  }, [open, group.id])
+
+  async function handleCancelInvite(username: string) {
+    setCancelingUsername(username)
+    try {
+      await cancelJoinRequest(group.id, username)
+      toast.success('Invite canceled')
+      setPendingInvites((prev) => prev.filter((u) => u.username !== username))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to cancel invite')
+    } finally {
+      setCancelingUsername(null)
+    }
+  }
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -56,13 +78,13 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
     if (!newUsername.trim()) return
     setBusy(true)
     try {
-      await addMember(group.id, { username: newUsername.trim() })
+      await sendJoinRequest(group.id, newUsername.trim())
       setNewUsername('')
       setSuggestions([])
-      toast.success('Member added')
+      toast.success('Member invited')
       onChanged()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add member')
+      toast.error(err instanceof Error ? err.message : 'Failed to invite member')
     } finally {
       setBusy(false)
     }
@@ -123,6 +145,41 @@ export const ParticipantsDialog: React.FC<Props> = ({ open, onOpenChange, group,
               )}
             </li>
           ))}
+            {pendingInvites.map((inv) => (
+           <li
+             key={`invite-${inv.username}`}
+             className="flex items-center justify-between rounded-md border border-dashed border-border px-3 py-2"
+             data-testid={`participant-invite-${inv.username}`}
+           >
+             <div className="flex items-center gap-3">
+               <UserAvatar
+                 username={inv.username}
+                 profilePicture={inv.profilePicture}
+                 avatarColor={usernameToColor(inv.username)}
+                 className="h-8 w-8 border border-border opacity-60"
+               />
+               <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                 {inv.username}
+                 <span className="rounded-full border border-border px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground-subtle">
+                   Invited
+                 </span>
+               </span>
+             </div>
+
+             {group.isLeader && (
+               <Button
+                 size="icon"
+                 variant="ghost"
+                 onClick={() => handleCancelInvite(inv.username)}
+                 disabled={cancelingUsername === inv.username}
+                 className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                 title="Cancel invite"
+               >
+                 <X className="h-4 w-4" />
+               </Button>
+             )}
+           </li>
+         ))}
         </ul>
 
         {group.isLeader && (
