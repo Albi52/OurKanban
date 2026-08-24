@@ -50,7 +50,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/app");
     }
     @Override
-public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(jwtChannelInterceptor);
-}
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(jwtChannelInterceptor);
+    }
 }
