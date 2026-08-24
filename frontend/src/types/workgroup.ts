@@ -31,9 +31,6 @@ export interface UpdateProjectRequest {
   name: string
 }
 
-export interface AddMemberRequest {
-  username: string
-}
 export interface WorkGroupJoinResponse {
   workGroupId: number
   workGroupName: string

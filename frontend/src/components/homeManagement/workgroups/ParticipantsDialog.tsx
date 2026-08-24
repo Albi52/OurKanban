@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@components/shared/ui/button'
 import { Input } from '@components/shared/ui/input'
 import { toast } from 'sonner'
-import { addMember, removeMember } from '@api/homeManagement/workGroupAPI'
+import {  removeMember } from '@api/homeManagement/workGroupAPI'
 import { usernameToColor } from '@lib/avatarColor'
 import type { WorkGroup } from '@app-types/workgroup'
 import { X, UserPlus, Crown } from 'lucide-react'
