@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.service.auth;
+package com.twinchainstudios.ourkanban.service.auth.user;
 
 import com.twinchainstudios.ourkanban.dto.auth.response.UserSearchResult;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
@@ -23,7 +23,7 @@ public class UserSearchService {
         }
         return userRepository.findTop10ByUsernameContainingIgnoreCaseOrderByUsernameAsc(query.trim())
                 .stream()
-                .map(u -> new UserSearchResult(u.getId(), u.getUsername(), u.getProfilePicture()))
+                .map(u -> new UserSearchResult(u.getUsername(), u.getProfilePicture()))
                 .toList();
     }
 }

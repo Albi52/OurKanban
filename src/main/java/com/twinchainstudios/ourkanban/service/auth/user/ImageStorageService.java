@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.service.auth;
+package com.twinchainstudios.ourkanban.service.auth.user;
 
 import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
 import org.springframework.beans.factory.annotation.Value;

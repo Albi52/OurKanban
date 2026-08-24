@@ -1,4 +1,4 @@
-package com.twinchainstudios.ourkanban.service.auth;
+package com.twinchainstudios.ourkanban.service.auth.user;
 
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 import com.twinchainstudios.ourkanban.model.auth.User;
