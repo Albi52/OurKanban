@@ -4,5 +4,9 @@ public enum AttachmentType {
     NONE,
     PDF,
     IMAGE,
-    LINK
+    LINK,
+    TASK_REFERENCE,
+    EVENT_REFERENCE,
+    OTHER_A,
+    OTHER_B,
 }
