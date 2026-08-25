@@ -19,8 +19,16 @@ public class BlackboardElement {
     @JoinColumn(name = "creator_id")
     private ProjectMember creator;
 
-    @Enumerated(EnumType.STRING)
+
+
+    @Enumerated(EnumType.STRING) //Deprecated, use attachmentType instead
+    @Column(name="type")
     private ElementType type;
+
+    @Enumerated(EnumType.STRING)
+
+    @Column(name = "attachmentType")   
+    private AttachmentType attachmentType;
 
    // Top-left corner, absolute grid coordinates (can be negative once the
    // board has grown up/left from its original origin). Null means the
@@ -39,6 +47,19 @@ public class BlackboardElement {
 
     @Column(length = 500)
     private String imageUrl;
+
+    
+    @Column(length = 500)
+    private String pdfUrl;             // the stored PDF file itself
+
+    @Column(length = 500)
+    private String pdfThumbnailUrl;    // generated first-page thumbnail JPEG
+
+    @Column(length = 255)
+    private String pdfFileName;        // original uploaded filename, for nicer downloads
+
+    @Column(length = 2000)
+    private String linkUrl;            // raw URL for LINK elements
 
     private Instant createdAt = Instant.now();
 
@@ -71,12 +92,12 @@ public class BlackboardElement {
         this.creator = creator;
     }
 
-    public ElementType getType() {
-        return type;
+    public AttachmentType getAttachmentType() {
+        return attachmentType;
     }
 
-    public void setType(ElementType type) {
-        this.type = type;
+    public void setAttachmentType(AttachmentType attachmentType) {
+        this.attachmentType = attachmentType;
     }
 
     public Integer getRow() {
@@ -141,5 +162,44 @@ public class BlackboardElement {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
+
+    public String getPdfThumbnailUrl() {
+        return pdfThumbnailUrl;
+    }
+
+    public void setPdfThumbnailUrl(String pdfThumbnailUrl) {
+        this.pdfThumbnailUrl = pdfThumbnailUrl;
+    }
+
+    public String getPdfFileName() {
+        return pdfFileName;
+    }
+
+    public void setPdfFileName(String pdfFileName) {
+        this.pdfFileName = pdfFileName;
+    }
+
+    public String getLinkUrl() {
+        return linkUrl;
+    }
+
+    public void setLinkUrl(String linkUrl) {
+        this.linkUrl = linkUrl;
+    }
+        public ElementType getType() {
+        return type;
+    }
+
+    public void setType(ElementType type) {
+        this.type = type;
     }
 }

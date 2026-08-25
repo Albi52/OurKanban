@@ -89,4 +89,29 @@ public class BlackboardController {
             @PathVariable Long projectId, @PathVariable Long elementId, Principal principal) {
         return blackboardService.unstageElement(projectId, elementId, principal.getName());
     }
+        @PostMapping("/elements/{elementId}/pdf")
+    public BlackboardElementDto uploadPdf(
+            @PathVariable Long projectId,
+            @PathVariable Long elementId,
+            @RequestParam("file") MultipartFile file,
+            Principal principal) {
+        return blackboardService.uploadPdf(projectId, elementId, principal.getName(), file);
+    }
+
+    @PatchMapping("/elements/{elementId}/link")
+    public BlackboardElementDto updateLink(
+            @PathVariable Long projectId,
+            @PathVariable Long elementId,
+            @Valid @RequestBody UpdateLinkRequest request,
+            Principal principal) {
+        return blackboardService.updateLink(projectId, elementId, principal.getName(), request);
+    }
+
+    @GetMapping("/link-preview")
+    public LinkPreviewDto getLinkPreview(
+            @PathVariable Long projectId,
+            @RequestParam String url,
+            Principal principal) {
+        return blackboardService.getLinkPreview(projectId, principal.getName(), url);
+    }
 }
