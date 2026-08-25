@@ -2,7 +2,6 @@ package com.twinchainstudios.ourkanban.service.domain.websockets;
 
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
-import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
 import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.PermissionCodes;
@@ -97,7 +96,15 @@ public class TaskService {
 
     private TaskDto createTask(TaskMessage msg, Long userId) {
         Task t = new Task();
-        t.setTitle(msg.title);
+        if (msg.title == null || msg.title.isEmpty())
+            throw new IllegalArgumentException("title required");
+        else t.setTitle(msg.title);
+
+        if (msg.description != null)
+            t.setDescription(msg.description);
+        else
+            t.setDescription("");
+        
         if (msg.projectId != null) {
             Project p = projectRepository.findById(msg.projectId)
                     .orElseThrow(() -> new NotFoundException("Project not found"));
@@ -120,6 +127,15 @@ public class TaskService {
                     .orElseThrow(() -> new NotFoundException("Assignee not found"));
             t.setAssignee(m);
         }
+        if (msg.priority != null) {
+            t.setPriority(TaskPriority.valueOf(msg.priority.toString().toUpperCase()));
+        }
+        if (msg.dateStart != null)
+            t.setStartDate(msg.dateStart);
+        if (msg.dateEnd != null)
+            t.setEndDate(msg.dateEnd);
+        
+
         Task saved = taskRepository.save(t);
         return toDto(saved);
     }
