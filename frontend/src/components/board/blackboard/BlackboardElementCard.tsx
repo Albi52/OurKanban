@@ -109,7 +109,7 @@ export function BlackboardElementCard({
         return (
           <button
             type="button"
-            onClick={() => window.open(element.pdfUrl!, '_blank', 'noopener,noreferrer')}
+            onDoubleClick={() => window.open(element.pdfUrl!, '_blank', 'noopener,noreferrer')}
             title={element.pdfFileName ?? 'Open PDF'}
             className="absolute inset-0 flex items-center justify-center bg-zinc-900"
           >

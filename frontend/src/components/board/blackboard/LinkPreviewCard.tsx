@@ -62,7 +62,7 @@ export function LinkPreviewCard({ projectId, url }: Props) {
   }
 
   return (
-    <button onClick={open} className="flex h-full w-full flex-col overflow-hidden text-left">
+    <button onDoubleClick={open} className="flex h-full w-full flex-col overflow-hidden text-left">
       {preview.imageUrl && (
         <div className="min-h-0 flex-1 overflow-hidden bg-zinc-900">
           <img src={preview.imageUrl} alt="" className="h-full w-full object-cover" draggable={false} />
