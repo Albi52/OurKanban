@@ -4,12 +4,23 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or commit to deploy'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Determine ref to deploy
+        id: vars
+        run: echo "ref=${{ inputs.ref || 'main' }}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy through SSH
         uses: appleboy/ssh-action@v1.2.0
 
@@ -25,7 +36,7 @@ jobs:
             echo "Updating repository..."
             git fetch origin
 
-            git reset --hard origin/main
+            git reset --hard origin/${{ steps.vars.outputs.ref }}
 
             echo "Restarting containers..."
             docker compose -f docker-compose.production.yml up -d --build --remove-orphans
