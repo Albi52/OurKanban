@@ -26,8 +26,7 @@ public class BlackboardElement {
     private ElementType type;
 
     @Enumerated(EnumType.STRING)
-
-    @Column(name = "attachmentType")   
+    @Column(name = "attachmentType", columnDefinition = "VARCHAR(255)")
     private AttachmentType attachmentType;
 
    // Top-left corner, absolute grid coordinates (can be negative once the
