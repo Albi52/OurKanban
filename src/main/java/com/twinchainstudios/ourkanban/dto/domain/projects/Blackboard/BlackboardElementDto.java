@@ -28,7 +28,7 @@ public class BlackboardElementDto {
         dto.col = e.getCol();
         dto.width = e.getWidth();
         dto.height = e.getHeight();
-        dto.attachmentType = e.getAttachmentType().name();
+        dto.attachmentType = e.getAttachmentType() !=null ? e.getAttachmentType().name() : "NONE";
         dto.textContent = e.getTextContent();
         dto.imageUrl = e.getImageUrl();
         dto.pdfUrl = e.getPdfUrl();
