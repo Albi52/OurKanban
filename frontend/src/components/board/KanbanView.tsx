@@ -1,10 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import {
   DragDropContext,
   Droppable,
   Draggable,
   type DropResult,
+  type DragStart,
   type DroppableProvided,
   type DraggableProvided,
   type DroppableStateSnapshot,
@@ -57,7 +58,7 @@ interface Props {
   onTasksChange: (tasks: Task[]) => void
   onColumnsChanged: () => void
   onCreateTask?: (columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) => void
-  onMoveTask?: (taskId: string, newColumnId: number, positionX: number, positionY: number) => void
+  onMoveTask?: (taskId: string, newColumnId: number, positionX: number, positionY: number) => boolean | void
 }
 
 const defaultColumns: BoardColumn[] = [
@@ -97,63 +98,121 @@ export function KanbanView({
   const [newColumnName, setNewColumnName] = useState('')
   const [busy, setBusy] = useState(false)
 
+  const activeDraggingTaskIdRef = useRef<string | null>(null)
+  const activeDraggingColumnIdRef = useRef<number | null>(null)
+  const lastEmitTimeRef = useRef<number>(0)
+  const boardRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     setBoardColumns(columns.length > 0 ? columns : defaultColumns)
   }, [columns])
 
-  function onDragEnd(result: DropResult) {
-    const { destination, source, draggableId, type } = result
-    if (!destination) return
+  const handlePointerMove = useCallback((e: PointerEvent) => {
+    if (!activeDraggingTaskIdRef.current || !onMoveTask || !boardRef.current) return
 
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      return
-    }
+    const now = Date.now()
+    if (now - lastEmitTimeRef.current < 40) return
 
-    if (type === 'COLUMN') {
-      const newCols = Array.from(boardColumns)
-      const [reorderedCol] = newCols.splice(source.index, 1)
-      newCols.splice(destination.index, 0, reorderedCol)
+    const boardRect = boardRef.current.getBoundingClientRect()
+    const relativeX = Math.round(e.clientX - boardRect.left + boardRef.current.scrollLeft)
+    const relativeY = Math.round(e.clientY - boardRect.top + boardRef.current.scrollTop)
 
-      setBoardColumns(
-        newCols.map((col, idx) => ({ ...col, position: (idx + 1) * 10 }))
-      )
-      return
-    }
+    lastEmitTimeRef.current = now
+    onMoveTask(
+      activeDraggingTaskIdRef.current,
+      activeDraggingColumnIdRef.current || 0,
+      relativeX,
+      relativeY
+    )
+  }, [onMoveTask])
 
-    if (type === 'TASK') {
-      const destColId = Number(destination.droppableId)
-      const taskElement = document.querySelector(`[data-rfd-draggable-id="${draggableId}"]`) as HTMLElement | null
-      const boardElement = document.querySelector('[data-testid="kanban-view"]') as HTMLElement | null
+  useEffect(() => {
+    window.addEventListener('pointermove', handlePointerMove)
+    return () => window.removeEventListener('pointermove', handlePointerMove)
+  }, [handlePointerMove])
 
-      let relativeX = 0
-      let relativeY = 0
-
-      if (taskElement && boardElement) {
-        const taskRect = taskElement.getBoundingClientRect()
-        const boardRect = boardElement.getBoundingClientRect()
-
-        relativeX = Math.round(taskRect.left - boardRect.left + boardElement.scrollLeft)
-        relativeY = Math.round(taskRect.top - boardRect.top + boardElement.scrollTop)
-      }
-
-      const updated = Array.from(tasks)
-      const taskIndex = updated.findIndex((t) => t.id === draggableId)
-      if (taskIndex === -1) return
-
-      const [movedTask] = updated.splice(taskIndex, 1)
-      movedTask.columnId = destColId
+  function onDragStart(start: DragStart) {
+    if (start.type === 'TASK') {
+      const task = tasks.find((t) => t.id === start.draggableId)
+      activeDraggingTaskIdRef.current = start.draggableId
+      activeDraggingColumnIdRef.current = task ? task.columnId : Number(start.source.droppableId)
 
       if (onMoveTask) {
-        onMoveTask(movedTask.id, destColId, relativeX, relativeY)
+        onMoveTask(
+          start.draggableId,
+          activeDraggingColumnIdRef.current,
+          1,
+          1
+        )
       }
-
-      const destTasks = updated.filter((t) => t.columnId === destColId)
-      const otherTasks = updated.filter((t) => t.columnId !== destColId)
-
-      destTasks.splice(destination.index, 0, movedTask)
-      onTasksChange([...otherTasks, ...destTasks])
     }
   }
+
+function onDragEnd(result: DropResult) {
+  const draggingId = activeDraggingTaskIdRef.current
+  activeDraggingTaskIdRef.current = null
+  activeDraggingColumnIdRef.current = null
+
+  const { destination, source, draggableId, type } = result
+
+  if (!destination) {
+    if (draggingId && onMoveTask) {
+      onMoveTask(draggingId, 0, 0, 0)
+    }
+    return
+  }
+
+  if (destination.droppableId === source.droppableId && destination.index === source.index) {
+    if (draggingId && onMoveTask) {
+      onMoveTask(draggingId, Number(destination.droppableId), 0, 0)
+    }
+    return
+  }
+
+  if (type === 'COLUMN') {
+    const newCols = Array.from(boardColumns)
+    const [reorderedCol] = newCols.splice(source.index, 1)
+    newCols.splice(destination.index, 0, reorderedCol)
+
+    setBoardColumns(
+      newCols.map((col, idx) => ({ ...col, position: (idx + 1) * 10 }))
+    )
+    return
+  }
+
+  if (type === 'TASK') {
+    const destColId = Number(destination.droppableId)
+    const previousTasks = [...tasks] // Copia de seguridad del estado previo
+
+    // 1. Intentar enviar la petición al servidor
+    const sentSuccessfully = onMoveTask ? onMoveTask(draggableId, destColId, 0, 0) : true
+
+    // 2. Si falla el envío (sin conexión o error), abortar y no mover
+    if (sentSuccessfully === false) {
+      toast.error('No se pudo mover la tarea. Error de conexión con el servidor.')
+      onTasksChange(previousTasks)
+      return
+    }
+
+    // 3. Si se envió con éxito, aplicar la actualización local ordenada alfabéticamente
+    const updated = Array.from(tasks)
+    const taskIndex = updated.findIndex((t) => t.id === draggableId)
+    if (taskIndex === -1) return
+
+    const [movedTask] = updated.splice(taskIndex, 1)
+    movedTask.columnId = destColId
+    movedTask.moverName = undefined
+    movedTask.positionX = 0
+    movedTask.positionY = 0
+
+    const destTasks = [...updated.filter((t) => t.columnId === destColId), movedTask].sort(
+      (a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
+    )
+    const otherTasks = updated.filter((t) => t.columnId !== destColId)
+
+    onTasksChange([...otherTasks, ...destTasks])
+  }
+}
 
   async function handleAddColumn() {
     if (!newColumnName.trim()) return
@@ -217,9 +276,15 @@ export function KanbanView({
     if (selectedTaskId === taskId) onSelectTaskId(null)
   }
 
+  const liveMovingTasks = tasks.filter(
+    (t) =>
+      Boolean(t.moverName && t.moverName !== currentUser.username) &&
+      ((t.positionX ?? 0) > 1 || (t.positionY ?? 0) > 1)
+  )
+
   return (
-    <div className="flex h-full w-full flex-1 overflow-hidden" data-testid="kanban-view">
-      <DragDropContext onDragEnd={onDragEnd}>
+    <div className="relative flex h-full w-full flex-1 overflow-hidden" data-testid="kanban-view" ref={boardRef}>
+      <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <Droppable droppableId="board" direction="horizontal" type="COLUMN">
           {(provided: DroppableProvided) => (
             <div
@@ -245,9 +310,9 @@ export function KanbanView({
                         project={project}
                         currentUser={currentUser}
                         groupMembers={groupMembers}
-                        tasks={tasks.filter(
-                          (task) => task.columnId === column.id && task.type !== 'event'
-                        )}
+                        tasks={tasks
+                          .filter((task) => task.columnId === column.id && task.type !== 'event')
+                          .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }))}
                         selectedTaskId={selectedTaskId}
                         onAddTask={handleCreateTask}
                         onDeleteTask={handleDeleteTask}
@@ -311,6 +376,33 @@ export function KanbanView({
           )}
         </Droppable>
       </DragDropContext>
+
+      {/* Renderizado de tarjetas flotantes en tiempo real movidas por otros usuarios */}
+      {liveMovingTasks.map((t) => (
+        <div
+          key={`live-${t.id}`}
+          style={{
+            position: 'absolute',
+            left: `${t.positionX}px`,
+            top: `${t.positionY}px`,
+            transform: 'translate(-50%, -50%) rotate(2deg)',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            transition: 'top 0.05s linear, left 0.05s linear',
+          }}
+          className="w-64 rounded-2xl border border-amber-500/80 bg-zinc-950/95 p-4 shadow-2xl shadow-amber-500/20 ring-2 ring-amber-500/40"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-zinc-950">
+              {getInitials(t.moverName)}
+            </span>
+            <span className="text-[11px] font-semibold text-amber-300 truncate">
+              {t.moverName} está moviendo
+            </span>
+          </div>
+          <p className="font-semibold text-sm text-foreground-secondary truncate">{t.title}</p>
+        </div>
+      ))}
     </div>
   )
 }
@@ -437,7 +529,7 @@ function BoardColumnView({
               tasks.map((task, index) => {
                 const isSelected = task.id === selectedTaskId
                 const isAssignedToMe = task.assignee?.id === currentUser.id
-                const canDelete = project.isLeader || task.author?.id === currentUser.id
+                const isBeingMovedByOther = Boolean(task.moverName && task.moverName !== currentUser.username)
 
                 const priorityBorder =
                   task.priority === 'high'
@@ -447,47 +539,51 @@ function BoardColumnView({
                       : 'border-l-4 border-l-emerald-500'
 
                 return (
-                  <Draggable key={task.id || index} draggableId={task.id || `temp-${index}`} index={index}>
+                  <Draggable
+                    key={task.id || index}
+                    draggableId={task.id || `temp-${index}`}
+                    index={index}
+                    isDragDisabled={isBeingMovedByOther}
+                  >
                     {(taskProvided: DraggableProvided, taskSnapshot: DraggableStateSnapshot) => (
                       <div
                         ref={taskProvided.innerRef}
                         {...taskProvided.draggableProps}
                         {...taskProvided.dragHandleProps}
                         data-task-item="true"
-                        onClick={() => onSelectTask(task)}
-                        className={`group relative rounded-2xl border bg-background p-4 transition cursor-pointer ${priorityBorder} ${
+                        onClick={() => !isBeingMovedByOther && onSelectTask(task)}
+                        className={`group relative rounded-2xl border bg-background p-4 transition ${
+                          isBeingMovedByOther
+                            ? 'opacity-40 cursor-not-allowed border-amber-500/50 ring-2 ring-amber-500/30'
+                            : 'cursor-pointer hover:border-border-hover'
+                        } ${priorityBorder} ${
                           isAssignedToMe
                             ? 'ring-2 ring-indigo-500/80 shadow-md shadow-indigo-950/50'
                             : ''
                         } ${
                           isSelected
                             ? 'border-input ring-2 ring-zinc-500/40 shadow-lg shadow-black/80'
-                            : 'border-border hover:border-border-hover'
+                            : 'border-border'
                         } ${taskSnapshot.isDragging ? 'shadow-lg shadow-black/60 ring-1 ring-zinc-700' : ''}`}
                       >
+                        {isBeingMovedByOther && task.moverName && (
+                          <span
+                            title={`Moviendo por ${task.moverName}`}
+                            className="absolute -top-2.5 -right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-zinc-950 shadow-md ring-2 ring-background border border-amber-400"
+                          >
+                            {getInitials(task.moverName)}
+                          </span>
+                        )}
+
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold text-foreground-secondary">{task.title}</p>
-                              
-                              {task.moverName && (
-                                <span
-                                  title={`Movido por ${task.moverName}`}
-                                  className="inline-flex items-center justify-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-500/40 tracking-wider shadow-sm"
-                                >
-                                  {getInitials(task.moverName)}
-                                </span>
-                              )}
-                            </div>
-                            
+                            <p className="font-semibold text-foreground-secondary">{task.title}</p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2">
                               {task.description || (
                                 <span className="italic text-muted-foreground-subtle">No description</span>
                               )}
                             </p>
                           </div>
-
-                          
                         </div>
 
                         {task.assignee && (
@@ -811,8 +907,6 @@ function DatePickerPopover({
       isCurrentMonth: false,
     })
   }
-
-  if (typeof document === 'undefined') return null
 
   return createPortal(
     <div

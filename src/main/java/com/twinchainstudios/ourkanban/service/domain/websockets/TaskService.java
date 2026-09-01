@@ -63,7 +63,7 @@ public class TaskService {
                     }
                 case "MOVE":
                     if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))) {
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| user.getId() == msg.assigneeId) {
                         return moveTask(msg, userId);
                        // throw new ForbiddenOperationException("User does not have permission to move tasks");
                     } else {
@@ -71,7 +71,7 @@ public class TaskService {
                     }
                 case "UPDATE":
                     if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))) {
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| user.getId() == msg.assigneeId) {
                         return updateTask(msg);
                         //throw new ForbiddenOperationException("User does not have permission to update tasks");
                     } else {

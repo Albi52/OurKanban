@@ -4,7 +4,7 @@ import { getProject } from '@api/homeManagement/projectAPI'
 import { getColumns } from '@api/board/columnAPI'
 import { getMyWorkGroups } from '@/api/homeManagement/workGroupAPI'
 import { getMe } from '@/api/account/authAPI'
-import { useStomp, type TaskDto } from "../components/webSockets/useStomp"
+import { useStomp, type TaskDto } from '../components/webSockets/useStomp'
 
 import type { Member, ProjectSummary } from '@app-types/workgroup'
 import type { BoardColumn } from '@app-types/board'
@@ -13,14 +13,13 @@ import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
 import { KanbanView, type Task, type Priority } from '@components/board/KanbanView'
 import { BlackboardView } from '@components/board/BlackboardView'
-import { CalendarView } from '@components/board/CalendarView' 
+import { CalendarView } from '@components/board/CalendarView'
 import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X } from 'lucide-react'
 import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
 import { useAuth } from '@context/AuthContext'
 import stompService from '@/components/webSockets/StompService'
 
-// Asegurar la presencia de 'global' para compatibilidad de SockJS
 if (typeof window !== 'undefined' && !(window as any).global) {
   ;(window as any).global = window
 }
@@ -64,7 +63,6 @@ export default function BoardPage() {
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
   const mainBoardRef = useRef<HTMLDivElement>(null)
 
-  // Callback defensivo para procesar las respuestas de WebSocket (TaskDto)
   const handleWebSocketTaskMessage = useCallback((rawDto: TaskDto) => {
     if (!rawDto || rawDto.id == null) return
 
@@ -72,7 +70,6 @@ export default function BoardPage() {
       const existingIndex = prev.findIndex((t) => String(t.id) === String(rawDto.id))
       const existingTask = existingIndex !== -1 ? prev[existingIndex] : undefined
 
-      // Solo actualizamos coordenadas y mover si existe moverName y no son ambas 0
       const hasValidMove = Boolean(
         rawDto.moverName && (rawDto.positionX !== 0 || rawDto.positionY !== 0)
       )
@@ -100,9 +97,9 @@ export default function BoardPage() {
             }
           : undefined,
         type: 'task',
-        positionX: hasValidMove ? rawDto.positionX : existingTask?.positionX,
-        positionY: hasValidMove ? rawDto.positionY : existingTask?.positionY,
-        moverName: hasValidMove ? rawDto.moverName : existingTask?.moverName,
+        positionX: hasValidMove ? rawDto.positionX : 0,
+        positionY: hasValidMove ? rawDto.positionY : 0,
+        moverName: hasValidMove ? rawDto.moverName : undefined,
       }
 
       if (existingIndex !== -1) {
@@ -135,11 +132,10 @@ export default function BoardPage() {
       const colsList: BoardColumn[] = Array.isArray(colsData) ? colsData : []
       setColumns(colsList)
 
-      // Extraer y mapear tareas desde cada columna recibida
       const extractedTasks: Task[] = []
-      colsList.forEach((col) => {
+      colsList.forEach((col: BoardColumn) => {
         if (Array.isArray(col.tasks)) {
-          col.tasks.forEach((t) => {
+          col.tasks.forEach((t: TaskDto) => {
             if (!t || t.id == null) return
 
             extractedTasks.push({
@@ -204,7 +200,6 @@ export default function BoardPage() {
     }
   }, [projectId])
 
-  // Suscripción al WebSocket
   useEffect(() => {
     const unsubscribe = subscribeTaskMessages(handleWebSocketTaskMessage)
     return () => {
@@ -246,7 +241,7 @@ export default function BoardPage() {
   }, [selectedTaskId])
 
   function handleCreateTask(
-    columnId: number, 
+    columnId: number,
     taskData: Omit<Task, 'id' | 'columnId' | 'author'>
   ) {
     sendTaskMessage({
@@ -267,8 +262,8 @@ export default function BoardPage() {
     newColumnId: number,
     positionX: number,
     positionY: number
-  ) {
-    sendTaskMessage({
+  ): boolean {
+    return sendTaskMessage({
       action: 'MOVE',
       projectId,
       taskId: Number(taskId),

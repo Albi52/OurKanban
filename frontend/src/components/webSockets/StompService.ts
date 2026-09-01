@@ -79,20 +79,25 @@ class StompService {
         this.notifyConnection();
     }
 
-    sendTaskMessage(message: TaskMessage) {
+    sendTaskMessage(message: TaskMessage): boolean {
         if (!this.client?.connected) {
-            return;
+            console.warn("No STOMP connection available to send task message");
+            return false;
         }
 
-        this.client.publish({
-            destination: "/app/board",
-            body: JSON.stringify({
-                type: "Task",
-                data: message,
-            }),
-        });
-
-        console.log("Sent task message:", message);
+        try {
+            this.client.publish({
+                destination: "/app/board",
+                body: JSON.stringify({
+                    type: "Task",
+                    data: message,
+                }),
+            });
+            return true;
+        } catch (err) {
+            console.error("Failed to publish task message:", err);
+            return false;
+        }
     }
 
     subscribeTask(listener: TaskListener) {
