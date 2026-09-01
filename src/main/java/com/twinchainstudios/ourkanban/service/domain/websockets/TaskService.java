@@ -198,7 +198,7 @@ public class TaskService {
                 .orElseThrow(() -> new NotFoundException("Task not found"));
     }
 
-    private TaskDto toDto(Task t) {
+    public TaskDto toDto(Task t) {
         String priority = t.getPriority() != null ? t.getPriority().name() : null;
         Long columnId = t.getColumn() != null ? t.getColumn().getId() : null;
         Long projectId = t.getProject() != null ? t.getProject().getId() : null;

@@ -41,6 +41,9 @@ export interface Task {
   author: Member
   assignee?: Member
   type?: 'task' | 'event'
+  positionX?: number
+  positionY?: number
+  moverName?: string
 }
 
 interface Props {
@@ -51,16 +54,28 @@ interface Props {
   groupMembers: Member[]
   selectedTaskId: string | null
   onSelectTaskId: (taskId: string | null) => void
-  onTasksChange: React.Dispatch<React.SetStateAction<Task[]>>
+  onTasksChange: (tasks: Task[]) => void
   onColumnsChanged: () => void
-  onCreateTask?: (columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) => void // <-- Nueva prop opcional
+  onCreateTask?: (columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) => void
+  onMoveTask?: (taskId: string, newColumnId: number, positionX: number, positionY: number) => void
 }
 
 const defaultColumns: BoardColumn[] = [
-  { id: -1, name: 'Undo', position: 10 },
-  { id: -2, name: 'Doing', position: 20 },
-  { id: -3, name: 'Done', position: 30 },
+  { id: 1, name: 'Undo', position: 10 },
+  { id: 2, name: 'Doing', position: 20 },
+  { id: 3, name: 'Done', position: 30 },
 ]
+
+function getInitials(name?: string) {
+  if (!name) return ''
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
 
 export function KanbanView({
   project,
@@ -73,6 +88,7 @@ export function KanbanView({
   onTasksChange,
   onColumnsChanged,
   onCreateTask,
+  onMoveTask,
 }: Props) {
   const [boardColumns, setBoardColumns] = useState<BoardColumn[]>(() =>
     columns.length > 0 ? columns : defaultColumns,
@@ -106,23 +122,39 @@ export function KanbanView({
 
     if (type === 'TASK') {
       const destColId = Number(destination.droppableId)
+      const taskElement = document.querySelector(`[data-rfd-draggable-id="${draggableId}"]`) as HTMLElement | null
+      const boardElement = document.querySelector('[data-testid="kanban-view"]') as HTMLElement | null
 
-      onTasksChange((prevTasks) => {
-        const updated = Array.from(prevTasks)
-        const taskIndex = updated.findIndex((t) => t.id === draggableId)
-        if (taskIndex === -1) return prevTasks
+      let relativeX = 0
+      let relativeY = 0
 
-        const [movedTask] = updated.splice(taskIndex, 1)
-        movedTask.columnId = destColId
+      if (taskElement && boardElement) {
+        const taskRect = taskElement.getBoundingClientRect()
+        const boardRect = boardElement.getBoundingClientRect()
 
-        const destTasks = updated.filter((t) => t.columnId === destColId)
-        const otherTasks = updated.filter((t) => t.columnId !== destColId)
+        relativeX = Math.round(taskRect.left - boardRect.left + boardElement.scrollLeft)
+        relativeY = Math.round(taskRect.top - boardRect.top + boardElement.scrollTop)
+      }
 
-        destTasks.splice(destination.index, 0, movedTask)
-        return [...otherTasks, ...destTasks]
-      })
+      const updated = Array.from(tasks)
+      const taskIndex = updated.findIndex((t) => t.id === draggableId)
+      if (taskIndex === -1) return
+
+      const [movedTask] = updated.splice(taskIndex, 1)
+      movedTask.columnId = destColId
+
+      if (onMoveTask) {
+        onMoveTask(movedTask.id, destColId, relativeX, relativeY)
+      }
+
+      const destTasks = updated.filter((t) => t.columnId === destColId)
+      const otherTasks = updated.filter((t) => t.columnId !== destColId)
+
+      destTasks.splice(destination.index, 0, movedTask)
+      onTasksChange([...otherTasks, ...destTasks])
     }
   }
+
   async function handleAddColumn() {
     if (!newColumnName.trim()) return
 
@@ -155,17 +187,15 @@ export function KanbanView({
 
   function handleRemoveColumn(columnId: number) {
     setBoardColumns((current) => current.filter((column) => column.id !== columnId))
-    onTasksChange((current) => current.filter((task) => task.columnId !== columnId))
+    onTasksChange(tasks.filter((task) => task.columnId !== columnId))
   }
 
   function handleCreateTask(columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) {
     if (onCreateTask) {
-      // Envía el mensaje por el WebSocket a través de la función que pasamos desde BoardPage
       onCreateTask(columnId, taskData)
     } else {
-      // Fallback local por si acaso
-      onTasksChange((current) => [
-        ...current,
+      onTasksChange([
+        ...tasks,
         {
           id: '',
           columnId,
@@ -182,9 +212,8 @@ export function KanbanView({
     }
   }
 
-
   function handleDeleteTask(taskId: string) {
-    onTasksChange((current) => current.filter((task) => task.id !== taskId))
+    onTasksChange(tasks.filter((task) => task.id !== taskId))
     if (selectedTaskId === taskId) onSelectTaskId(null)
   }
 
@@ -260,7 +289,7 @@ export function KanbanView({
                           size="sm"
                           variant="ghost"
                           onClick={() => setAdding(false)}
-                          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
+                          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         >
                           Cancel
                         </Button>
@@ -386,7 +415,7 @@ function BoardColumnView({
         {canRemoveColumn && onRemoveColumn ? (
           <button
             type="button"
-            className="rounded-full p-2 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
+            className="rounded-full p-2 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
             onClick={() => onRemoveColumn(column.id)}
             aria-label={`Remove ${column.name}`}
           >
@@ -438,7 +467,19 @@ function BoardColumnView({
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="font-semibold text-foreground-secondary">{task.title}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-foreground-secondary">{task.title}</p>
+                              
+                              {task.moverName && (
+                                <span
+                                  title={`Movido por ${task.moverName}`}
+                                  className="inline-flex items-center justify-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-500/40 tracking-wider shadow-sm"
+                                >
+                                  {getInitials(task.moverName)}
+                                </span>
+                              )}
+                            </div>
+                            
                             <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2">
                               {task.description || (
                                 <span className="italic text-muted-foreground-subtle">No description</span>
@@ -446,22 +487,9 @@ function BoardColumnView({
                             </p>
                           </div>
 
-                          {canDelete && (
-                            <button
-                              type="button"
-                              className="rounded-full p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onDeleteTask(task.id)
-                              }}
-                              aria-label={`Delete ${task.title}`}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
+                          
                         </div>
 
-                        {/* Mostrar Responsable si existe */}
                         {task.assignee && (
                           <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-medium text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-full w-max border border-indigo-800/40">
                             <UserIcon className="h-3 w-3 text-indigo-400" />
@@ -469,7 +497,6 @@ function BoardColumnView({
                           </div>
                         )}
 
-                        {/* Fechas horizontales */}
                         <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground border-t border-border pt-2">
                           <span>
                             <span className="font-medium text-muted-foreground">Start:</span>{' '}
@@ -509,7 +536,6 @@ function BoardColumnView({
                     className="min-h-[80px] w-full rounded-md border border-border bg-zinc-900 px-3 py-2 text-xs text-foreground-secondary placeholder:text-muted-foreground-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
                   />
 
-                  {/* Selección de Prioridad con Colores Visuales */}
                   <div>
                     <label className="text-[10px] font-semibold text-muted-foreground uppercase block mb-1">
                       Priority
@@ -554,7 +580,6 @@ function BoardColumnView({
                     </div>
                   </div>
 
-                  {/* Dropdown de Responsables de Grupo */}
                   <div>
                     <label className="text-[10px] font-semibold text-muted-foreground uppercase block mb-1">
                       Assignee
@@ -657,7 +682,7 @@ function BoardColumnView({
                       resetTaskForm()
                       setAddingTask(false)
                     }}
-                    className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   >
                     Cancel
                   </Button>
@@ -787,6 +812,8 @@ function DatePickerPopover({
     })
   }
 
+  if (typeof document === 'undefined') return null
+
   return createPortal(
     <div
       ref={containerRef}
@@ -798,7 +825,7 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year - 1, month, 1))}
-            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             title="Previous Year"
           >
             <ChevronsLeft className="h-3.5 w-3.5" />
@@ -806,7 +833,7 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year, month - 1, 1))}
-            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             title="Previous Month"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
@@ -821,7 +848,7 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year, month + 1, 1))}
-            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             title="Next Month"
           >
             <ChevronRight className="h-3.5 w-3.5" />
@@ -829,7 +856,7 @@ function DatePickerPopover({
           <button
             type="button"
             onClick={() => setViewDate(new Date(year + 1, month, 1))}
-            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             title="Next Year"
           >
             <ChevronsRight className="h-3.5 w-3.5" />

@@ -9,15 +9,11 @@ import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
 import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.security.core.Authentication;
-
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 
 import java.security.Principal;
-
 import org.springframework.messaging.handler.annotation.MessageMapping;
-
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -27,31 +23,23 @@ public class WebSocketController {
     private final TaskService taskService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
-    
     private final SimpMessagingTemplate messagingTemplate;
 
     public WebSocketController(
-        TaskService taskService, 
-        EventService eventService, 
-        SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) 
-        {
-
+            TaskService taskService, 
+            EventService eventService, 
+            SimpMessagingTemplate messagingTemplate, 
+            ObjectMapper objectMapper) {
         this.taskService = taskService;
         this.eventService = eventService;
         this.messagingTemplate = messagingTemplate;
-            this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper;
     }
 
     @MessageMapping("/board")
-    public void onBoardMessage(
-        BoardMessage msg, Principal principal) {
-
-        System.out.println(principal);
-
+    public void onBoardMessage(BoardMessage msg, Principal principal) {
         UserPrincipal userPrincipal = null;
 
-        // Prefer the Principal argument set by the ChannelInterceptor. In our setup the interceptor
-        // sets an Authentication as the Principal, whose getPrincipal() returns UserPrincipal.
         if (principal instanceof Authentication) {
             Object p = ((Authentication) principal).getPrincipal();
             if (p instanceof UserPrincipal) {
@@ -63,37 +51,37 @@ public class WebSocketController {
 
         if (userPrincipal == null) {
             System.out.println("WebSocket message received without authenticated principal; principal=" + principal);
-            return; // No authenticated user available for this message
+            return;
         }
 
         Long userId = userPrincipal.getId();
 
-        System.out.println("Principal = " + principal);
-
-        if (principal != null) {
-            System.out.println("Principal name"+principal.getClass().getName());
+        if (msg == null || msg.type == null) {
+            return;
         }
-
 
         switch (msg.type) {
             case Task:
-                //System.out.println("Received Task message: " + msg.data);
                 TaskMessage taskMessage = objectMapper.convertValue(msg.data, TaskMessage.class);
                 TaskDto taskDto = taskService.handleMessage(taskMessage, userId);
 
-                if (taskDto.projectId != null) {
+                if (taskDto != null && taskDto.projectId != null) {
+                    // Se envía al topic de tasks que escucha StompService.ts
                     messagingTemplate.convertAndSend("/topic/projects/" + taskDto.projectId + "/tasks", taskDto);
-                } else {
-                    messagingTemplate.convertAndSend("/topic/tasks", taskDto);
                 }
                 break;
+
             case Event:
-                //System.out.println("Received Event message: " + msg.data);
-                EventDto eventsDto= eventService.handleMessage((EventMessage) msg.data, userId);
-                messagingTemplate.convertAndSend("/topic/events", eventsDto);
+                EventMessage eventMessage = objectMapper.convertValue(msg.data, EventMessage.class);
+                EventDto eventsDto = eventService.handleMessage(eventMessage, userId);
+
+                if (eventsDto != null && eventsDto.projectId != null) {
+                    // Se envía al topic de events que escucha StompService.ts
+                    messagingTemplate.convertAndSend("/topic/projects/" + eventsDto.projectId + "/events", eventsDto);
+                }
                 break;
+
             default:
-                // Handle other message types if needed
                 break;
         }
     }

@@ -9,7 +9,7 @@ interface ThemeContextValue {
   setTheme: (theme: Theme) => void
 }
 
-const ThemeContext = createContext<ThemeContextValue >('dark' as unknown as ThemeContextValue)
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 const STORAGE_KEY = 'ourkanban_theme'
 
 function getInitialTheme(): Theme {

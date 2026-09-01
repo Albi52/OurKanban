@@ -4,7 +4,7 @@ import { getProject } from '@api/homeManagement/projectAPI'
 import { getColumns } from '@api/board/columnAPI'
 import { getMyWorkGroups } from '@/api/homeManagement/workGroupAPI'
 import { getMe } from '@/api/account/authAPI'
-import { useStomp } from "../components/webSockets/useStomp";
+import { useStomp, type TaskDto } from "../components/webSockets/useStomp"
 
 import type { Member, ProjectSummary } from '@app-types/workgroup'
 import type { BoardColumn } from '@app-types/board'
@@ -29,9 +29,7 @@ export default function BoardPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const projectId = Number(id) || 0
-    const { token } = useAuth()
-
-  console.log("🔍 DEBUG BoardPage - ID del proyecto:", projectId, "Tipo:", typeof projectId)
+  const { token } = useAuth()
 
   const [project, setProject] = useState<ProjectSummary | null>(null)
   const [columns, setColumns] = useState<BoardColumn[]>([])
@@ -47,15 +45,15 @@ export default function BoardPage() {
   const [editDesc, setEditDesc] = useState('')
   const [editStart, setEditStart] = useState('')
   const [editEnd, setEditEnd] = useState('')
-  const [editPriority, setEditPriority] = useState<String>('medium')
+  const [editPriority, setEditPriority] = useState<string>('medium')
   const [editAssigneeId, setEditAssigneeId] = useState<number | undefined>(undefined)
-  const {
-  //  connected,
-    sendTaskMessage,
-    subscribeTaskMessages
-} = useStomp();
 
- useEffect(() => {
+  const {
+    sendTaskMessage,
+    subscribeTaskMessages,
+  } = useStomp()
+
+  useEffect(() => {
     if (!token) return
     stompService.connect(token, projectId)
     return () => {
@@ -63,35 +61,37 @@ export default function BoardPage() {
     }
   }, [token, projectId])
 
-
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
   const mainBoardRef = useRef<HTMLDivElement>(null)
 
-  // Callback defensivo para procesar las respuestas de WebSocket (TaskDto / EventDto)
-  const handleWebSocketTaskMessage = useCallback((rawDto: any) => {
-    if (!rawDto || typeof rawDto !== 'object') return;
-
-    const id = rawDto.id
-    if (id === undefined || id === null) return;
+  // Callback defensivo para procesar las respuestas de WebSocket (TaskDto)
+  const handleWebSocketTaskMessage = useCallback((rawDto: TaskDto) => {
+    if (!rawDto || rawDto.id == null) return
 
     setTasks((prev) => {
-      // Si contiene la propiedad 'text', sabemos que se trata de un EventDto
-      //const isEvent = 'text' in rawDto
-      let mappedTask: Task
-      
-      mappedTask = {
+      const existingIndex = prev.findIndex((t) => String(t.id) === String(rawDto.id))
+      const existingTask = existingIndex !== -1 ? prev[existingIndex] : undefined
+
+      // Solo actualizamos coordenadas y mover si existe moverName y no son ambas 0
+      const hasValidMove = Boolean(
+        rawDto.moverName && (rawDto.positionX !== 0 || rawDto.positionY !== 0)
+      )
+
+      const mappedTask: Task = {
         id: String(rawDto.id),
-        columnId: rawDto.columnId != null ? Number(rawDto.columnId) : -1,
-        title: String(rawDto.title || ''),
-        description: String(rawDto.description || ''),
-        startDate: rawDto.startDate ? String(rawDto.startDate) : '',
-        endDate: rawDto.endDate ? String(rawDto.endDate) : '',
-        priority: rawDto.priority ? (String(rawDto.priority).toLowerCase() as Priority) : 'medium',
-        author: {
-          id: Number(rawDto.authorId || 0),
-          username: String(rawDto.authorName || 'User'),
-          profilePicture: null,
-        },
+        columnId: rawDto.columnId != null ? Number(rawDto.columnId) : (existingTask?.columnId ?? -1),
+        title: rawDto.title !== undefined ? String(rawDto.title) : (existingTask?.title ?? ''),
+        description: rawDto.description !== undefined ? String(rawDto.description) : (existingTask?.description ?? ''),
+        startDate: rawDto.startDate ? String(rawDto.startDate) : (existingTask?.startDate ?? ''),
+        endDate: rawDto.endDate ? String(rawDto.endDate) : (existingTask?.endDate ?? ''),
+        priority: rawDto.priority ? (String(rawDto.priority).toLowerCase() as Priority) : (existingTask?.priority ?? 'medium'),
+        author: rawDto.authorId
+          ? {
+              id: Number(rawDto.authorId),
+              username: String(rawDto.authorName || 'User'),
+              profilePicture: null,
+            }
+          : (existingTask?.author ?? { id: 0, username: 'User', profilePicture: null }),
         assignee: rawDto.assigneeId
           ? {
               id: Number(rawDto.assigneeId),
@@ -100,11 +100,10 @@ export default function BoardPage() {
             }
           : undefined,
         type: 'task',
-      }      
-
-      const existingIndex = prev.findIndex(
-        (t) => String(t.id) === String(mappedTask.id) && t.type === mappedTask.type
-      )
+        positionX: hasValidMove ? rawDto.positionX : existingTask?.positionX,
+        positionY: hasValidMove ? rawDto.positionY : existingTask?.positionY,
+        moverName: hasValidMove ? rawDto.moverName : existingTask?.moverName,
+      }
 
       if (existingIndex !== -1) {
         const updated = [...prev]
@@ -112,9 +111,9 @@ export default function BoardPage() {
         return updated
       }
 
-      return [...prev, mappedTask];
+      return [...prev, mappedTask]
     })
-  }, []);
+  }, [])
 
   async function loadData() {
     setLoading(true)
@@ -132,7 +131,47 @@ export default function BoardPage() {
       }
 
       setProject(projData)
-      setColumns(Array.isArray(colsData) ? colsData : [])
+
+      const colsList: BoardColumn[] = Array.isArray(colsData) ? colsData : []
+      setColumns(colsList)
+
+      // Extraer y mapear tareas desde cada columna recibida
+      const extractedTasks: Task[] = []
+      colsList.forEach((col) => {
+        if (Array.isArray(col.tasks)) {
+          col.tasks.forEach((t) => {
+            if (!t || t.id == null) return
+
+            extractedTasks.push({
+              id: String(t.id),
+              columnId: t.columnId != null ? Number(t.columnId) : Number(col.id),
+              title: String(t.title || ''),
+              description: String(t.description || ''),
+              startDate: t.startDate ? String(t.startDate) : '',
+              endDate: t.endDate ? String(t.endDate) : '',
+              priority: (t.priority ? String(t.priority).toLowerCase() : 'medium') as Priority,
+              author: {
+                id: Number(t.authorId || 0),
+                username: String(t.authorName || 'User'),
+                profilePicture: null,
+              },
+              assignee: t.assigneeId
+                ? {
+                    id: Number(t.assigneeId),
+                    username: String(t.assigneeName || ''),
+                    profilePicture: null,
+                  }
+                : undefined,
+              type: 'task',
+              positionX: t.positionX,
+              positionY: t.positionY,
+              moverName: t.moverName,
+            })
+          })
+        }
+      })
+
+      setTasks(extractedTasks)
 
       const userGroupsList = Array.isArray(userGroups) ? userGroups : []
       const currentGroup = userGroupsList.find((g) => g && g.id === projData.workGroupId)
@@ -154,8 +193,6 @@ export default function BoardPage() {
     } finally {
       setLoading(false)
     }
-
-    subscribeTaskMessages(handleWebSocketTaskMessage)
   }
 
   useEffect(() => {
@@ -166,6 +203,14 @@ export default function BoardPage() {
       setLoading(false)
     }
   }, [projectId])
+
+  // Suscripción al WebSocket
+  useEffect(() => {
+    const unsubscribe = subscribeTaskMessages(handleWebSocketTaskMessage)
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
+  }, [subscribeTaskMessages, handleWebSocketTaskMessage])
 
   useEffect(() => {
     if (selectedTask) {
@@ -179,44 +224,6 @@ export default function BoardPage() {
     }
   }, [selectedTaskId, selectedTask])
 
-  useEffect(() => {
-
-    const unsubscribe = subscribeTaskMessages(dto => {
-
-        if (dto.projectId !== projectId)
-            return;
-          const task: Task = {
-            id: String(dto.id),
-            columnId: dto.columnId ?? 0,
-            title: dto.title ?? "",
-            description: dto.description ?? "",
-            startDate: dto.startDate ?? "",
-            endDate: dto.endDate ?? "",
-            priority: (dto.priority?.toLowerCase() ?? "medium") as Priority,
-            author: {
-                id: dto.authorId ?? 0,
-                username: dto.authorName ?? "",
-                profilePicture: null
-            },
-            assignee: dto.assigneeId
-                ? {
-                    id: dto.assigneeId,
-                    username: dto.assigneeName ?? "",
-                    profilePicture: null
-                }
-                : undefined,
-          type: "task"
-        };  
-
-        setTasks(current => [task, ...current.filter(t => t.id !== task.id)]);
-
-    });
-
-    return unsubscribe;
-
-}, [projectId, subscribeTaskMessages]);
-
-  // Deseleccionar al hacer clic fuera del panel lateral o tarjeta
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (!selectedTaskId) return
@@ -241,7 +248,7 @@ export default function BoardPage() {
   function handleCreateTask(
     columnId: number, 
     taskData: Omit<Task, 'id' | 'columnId' | 'author'>
-    ){
+  ) {
     sendTaskMessage({
       action: 'CREATE',
       projectId: projectId,
@@ -252,6 +259,22 @@ export default function BoardPage() {
       assigneeId: taskData.assignee?.id,
       dateStart: taskData.startDate || undefined,
       dateEnd: taskData.endDate || undefined,
+    })
+  }
+
+  function handleMoveTask(
+    taskId: string,
+    newColumnId: number,
+    positionX: number,
+    positionY: number
+  ) {
+    sendTaskMessage({
+      action: 'MOVE',
+      projectId,
+      taskId: Number(taskId),
+      columnId: newColumnId,
+      positionX,
+      positionY,
     })
   }
 
@@ -353,6 +376,7 @@ export default function BoardPage() {
                   onTasksChange={setTasks}
                   onColumnsChanged={loadData}
                   onCreateTask={handleCreateTask}
+                  onMoveTask={handleMoveTask}
                 />
               </TabsContent>
 
@@ -380,6 +404,7 @@ export default function BoardPage() {
                     onTasksChange={setTasks}
                     onColumnsChanged={loadData}
                     onCreateTask={handleCreateTask}
+                    onMoveTask={handleMoveTask}
                   />
                 </div>
                 <div className="flex-1 flex flex-col min-w-0 pl-2">
@@ -395,10 +420,9 @@ export default function BoardPage() {
               </TabsContent>
               <TabsContent value="blackboard" className="m-0 flex-1 flex flex-col min-h-0">
                 <BlackboardView project={project} currentUser={currentUserAsMember} />
-             </TabsContent>
+              </TabsContent>
             </div>
 
-            {/* Panel lateral para ver / editar tarea o evento */}
             {selectedTask && (
               <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-border bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
                 <div>
@@ -408,11 +432,11 @@ export default function BoardPage() {
                     </span>
                     <div className="flex items-center gap-1">
                       {canModifySelected && !isEditing && (
-                        <button onClick={() => setIsEditing(true)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary" title="Edit Item">
+                        <button onClick={() => setIsEditing(true)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground" title="Edit Item">
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                       )}
-                      <button onClick={() => setSelectedTaskId(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary">
+                      <button onClick={() => setSelectedTaskId(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -507,7 +531,7 @@ export default function BoardPage() {
 
                       <div className="mt-4 flex gap-2">
                         <Button size="sm" onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Save</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground">Cancel</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground">Cancel</Button>
                       </div>
                     </div>
                   ) : (
