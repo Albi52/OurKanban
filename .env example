@@ -9,3 +9,4 @@ MAIL_APP_PASSWORD=XXXXX
 
 GOOGLE_CLIENT_ID=XXXX.apps.googleusercontent.com
 CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+DDNS_DOMAIN=*****.twinchainstudiostesting.es
