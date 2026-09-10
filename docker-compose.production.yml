@@ -35,7 +35,7 @@ services:
     volumes:
       - avatar_uploads:/app/uploads/avatars
       - blackboard_uploads:/app/uploads/blackboard
-    restart: unless-stopped
+    
   
   nginx:
     build:
@@ -46,14 +46,12 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    restart: unless-stopped
     volumes:
       - ./nginx/ssl:/etc/nginx/ssl:ro
   
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
     container_name: cloudflare-ddns
-    restart: unless-stopped
     network_mode: host
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
