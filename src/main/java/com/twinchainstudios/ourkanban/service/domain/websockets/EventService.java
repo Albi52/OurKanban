@@ -1,9 +1,12 @@
 package com.twinchainstudios.ourkanban.service.domain.websockets;
 
+import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventMessage;
+import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.model.domain.Event;
 import com.twinchainstudios.ourkanban.model.domain.Project;
+import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
@@ -34,9 +37,22 @@ public class EventService {
     }
 
     @Transactional
-    public EventDto handleMessage(EventMessage msg, Long userId) {
+    public EventDto handleMessage(EventMessage msg, UserPrincipal userPrincipal) {
         if (msg.action == null) throw new IllegalArgumentException("action required");
+         Project p;
 
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Long userId = user.getId();
+
+        if (msg.projectId != null) {
+            p = projectRepository.findById(msg.projectId)
+                    .orElseThrow(() -> new NotFoundException("Project not found"));
+
+            ProjectMember proyectMember = p.getMembers().stream()
+                    .filter(m -> m.getUser().getId().equals(userId))
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException("User not found in project"));
         
 
         switch (msg.action.toUpperCase()) {
@@ -51,6 +67,9 @@ public class EventService {
                 return null;
             default:
                 throw new IllegalArgumentException("Unknown action: " + msg.action);
+        }
+        } else {
+            throw new IllegalArgumentException("Project ID is required");
         }
     }
 

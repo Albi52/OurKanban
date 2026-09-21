@@ -62,22 +62,42 @@ public class WebSocketController {
 
         switch (msg.type) {
             case Task:
-                TaskMessage taskMessage = objectMapper.convertValue(msg.data, TaskMessage.class);
-                TaskDto taskDto = taskService.handleMessage(taskMessage, userId);
+                try{
+                    TaskMessage taskMessage = objectMapper.convertValue(msg.data, TaskMessage.class);
+                    TaskDto taskDto = taskService.handleMessage(taskMessage, userPrincipal);
 
-                if (taskDto != null && taskDto.projectId != null) {
-                    // Se envía al topic de tasks que escucha StompService.ts
-                    messagingTemplate.convertAndSend("/topic/projects/" + taskDto.projectId + "/tasks", taskDto);
+                    if (taskDto != null && taskDto.projectId != null) {
+                        // Se envía al topic de tasks que escucha StompService.ts
+                        messagingTemplate.convertAndSend("/topic/projects/" + taskDto.projectId + "/tasks", taskDto);
+                    }
+                } catch (Exception ex) {
+                    // Envía el error únicamente al usuario que ejecutó la acción
+                    messagingTemplate.convertAndSendToUser(
+                        principal.getName(),
+                        
+                        "/topic/projects/errors",
+                        "No tienes permisos para realizar cambios en esta tarea o ha ocurrido un error."
+                    );
                 }
+
                 break;
 
             case Event:
-                EventMessage eventMessage = objectMapper.convertValue(msg.data, EventMessage.class);
-                EventDto eventsDto = eventService.handleMessage(eventMessage, userId);
+                try{
+                    EventMessage eventMessage = objectMapper.convertValue(msg.data, EventMessage.class);
+                    EventDto eventsDto = eventService.handleMessage(eventMessage, userPrincipal);
 
-                if (eventsDto != null && eventsDto.projectId != null) {
-                    // Se envía al topic de events que escucha StompService.ts
-                    messagingTemplate.convertAndSend("/topic/projects/" + eventsDto.projectId + "/events", eventsDto);
+                    if (eventsDto != null && eventsDto.projectId != null) {
+                        // Se envía al topic de events que escucha StompService.ts
+                        messagingTemplate.convertAndSend("/topic/projects/" + eventsDto.projectId + "/events", eventsDto);
+                    }
+                } catch (Exception ex) {
+                    // Envía el error únicamente al usuario que ejecutó la acción
+                    messagingTemplate.convertAndSendToUser(
+                        principal.getName(),
+                        "/queue/errors",
+                        "No tienes permisos para realizar cambios en este evento o ha ocurrido un error."
+                    );
                 }
                 break;
 

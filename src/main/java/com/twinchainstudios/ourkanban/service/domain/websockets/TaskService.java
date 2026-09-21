@@ -1,8 +1,10 @@
 package com.twinchainstudios.ourkanban.service.domain.websockets;
 
+import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.exception.NotFoundException;
+import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.PermissionCodes;
 import com.twinchainstudios.ourkanban.model.domain.Project;
@@ -40,52 +42,76 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDto handleMessage(TaskMessage msg, Long userId) {
+    public TaskDto handleMessage(TaskMessage msg, UserPrincipal userPrincipal) {
         if (msg.action == null)
             throw new IllegalArgumentException("action required");
         Project p;
+
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Long userId = user.getId();
+
         if (msg.projectId != null) {
             p = projectRepository.findById(msg.projectId)
                     .orElseThrow(() -> new NotFoundException("Project not found"));
 
-            ProjectMember user = p.getMembers().stream()
+            ProjectMember proyectMember = p.getMembers().stream()
                     .filter(m -> m.getUser().getId().equals(userId))
                     .findFirst()
                     .orElseThrow(() -> new NotFoundException("User not found in project"));
+                    
+            @SuppressWarnings("null")
+            Long assigneeId = p.getTasks().stream()
+                    .filter(t -> t.getId().equals(msg.taskId))
+                    .findFirst()
+                    .map(Task::getAssignee)
+                    .map(ProjectMember::getId)
+                    .orElse(null);
+
             switch (msg.action.toUpperCase()) {
                 case "CREATE":
-                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_CREATE)))) {
+                    if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_CREATE)))) 
+                    {
                         return createTask(msg, userId);
                         // throw new ForbiddenOperationException("User does not have permission to create tasks");
-                    } else {
-                        return createTask(msg, userId);
+                    } 
+                    else {
+                        throw new IllegalArgumentException("User does not have permission to create tasks");
                     }
                 case "MOVE":
-                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| user.getId() == msg.assigneeId) {
+                    if (
+                         proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                             .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| 
+                        userId == assigneeId
+                    )
+                    {
                         return moveTask(msg, userId);
-                       // throw new ForbiddenOperationException("User does not have permission to move tasks");
-                    } else {
-                        return moveTask(msg, userId);
+                    }
+                    else {
+                        throw new IllegalArgumentException("User does not have permission to move tasks");
                     }
                 case "UPDATE":
-                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| user.getId() == msg.assigneeId) {
+
+                    if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| 
+                        userId == assigneeId)
+                    {
+                    
                         return updateTask(msg);
-                        //throw new ForbiddenOperationException("User does not have permission to update tasks");
-                    } else {
-                        return updateTask(msg);
+                    } 
+                    else {
+                        throw new IllegalArgumentException("User does not have permission to update tasks");
                     }
                 case "DELETE":
-                    if (user.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_DELETE)))) {
-                        deleteTask(msg);
-                        //throw new ForbiddenOperationException("User does not have permission to delete tasks");
-                    } else {
-                        deleteTask(msg);
+                    if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_DELETE)))) 
+                    {
+                        return deleteTask(msg);
                     }
-                    return null;
+                    else {
+                        throw new IllegalArgumentException("User does not have permission to delete tasks");
+                    }
                 default:
                     throw new IllegalArgumentException("Unknown action: " + msg.action);
             }
@@ -186,9 +212,10 @@ public class TaskService {
         return toDto(saved);
     }
 
-    private void deleteTask(TaskMessage msg) {
+    private TaskDto deleteTask(TaskMessage msg) {
         Task t = getLockedTask(msg.taskId);
         taskRepository.delete(t);
+        return toDto(t);
     }
 
     private Task getLockedTask(Long taskId) {

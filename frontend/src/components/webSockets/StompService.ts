@@ -5,6 +5,7 @@ import SockJS from "sockjs-client";
 
 export type TaskListener = (message: TaskDto) => void;
 export type EventListener = (message: EventDto) => void;
+export type ErrorListener = (errorMessage: string) => void;
 
 class StompService {
     private client: Client | null = null;
@@ -13,6 +14,7 @@ class StompService {
     private connectionListeners = new Set<(connected: boolean) => void>();
     private taskListeners = new Set<TaskListener>();
     private eventListeners = new Set<EventListener>();
+    private errorListeners = new Set<ErrorListener>();
 
     connect(token?: string | null, projectId?: number) {
         const resolvedToken = token ?? localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -55,7 +57,13 @@ class StompService {
                         const dto = JSON.parse(msg.body);
                         this.eventListeners.forEach((listener) => listener(dto));
                     });
+
+                    this.client?.subscribe(`/topic/projects/errors`, (msg) => {
+                        const errorMessage = JSON.parse(msg.body);
+                        this.errorListeners.forEach((listener) => listener(errorMessage));
+                    });
                 }
+                
 
                 console.log("Connected to STOMP server");
             },
@@ -112,6 +120,13 @@ class StompService {
         this.eventListeners.add(listener);
         return () => {
             this.eventListeners.delete(listener);
+        };
+    }
+
+    subscribeErrors(listener: ErrorListener) {
+        this.errorListeners.add(listener);
+        return () => {
+            this.errorListeners.delete(listener);
         };
     }
 

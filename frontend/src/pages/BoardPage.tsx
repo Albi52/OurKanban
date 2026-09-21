@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/
 import { KanbanView, type Task, type Priority } from '@components/board/KanbanView'
 import { BlackboardView } from '@components/board/BlackboardView'
 import { CalendarView } from '@components/board/CalendarView'
-import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X } from 'lucide-react'
+import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X, AlertTriangle } from 'lucide-react'
 import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
 import { useAuth } from '@context/AuthContext'
@@ -39,6 +39,10 @@ export default function BoardPage() {
   const [loading, setLoading] = useState<boolean>(true)
   const [currentUser, setCurrentUser] = useState<ProjectMember | null>(null)
 
+  // Estado y referencia para el cartelito de error
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const errorBoxRef = useRef<HTMLDivElement>(null)
+
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
@@ -50,6 +54,7 @@ export default function BoardPage() {
   const {
     sendTaskMessage,
     subscribeTaskMessages,
+    subscribeErrors,
   } = useStomp()
 
   useEffect(() => {
@@ -63,10 +68,37 @@ export default function BoardPage() {
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
   const mainBoardRef = useRef<HTMLDivElement>(null)
 
+  // Captura el error devuelto por WebSocket y sincroniza los datos
+  useEffect(() => {
+    const unsubscribe = subscribeErrors((msg: string) => {
+      setErrorMessage(msg || 'Error del servidor')
+      loadData()
+    })
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
+  }, [subscribeErrors])
+
+  // Cierra el cartel al hacer clic fuera
+  useEffect(() => {
+    function handlePointerDownOutside(e: PointerEvent) {
+      if (!errorMessage) return
+      if (errorBoxRef.current && !errorBoxRef.current.contains(e.target as Node)) {
+        setErrorMessage(null)
+      }
+    }
+    window.addEventListener('pointerdown', handlePointerDownOutside)
+    return () => window.removeEventListener('pointerdown', handlePointerDownOutside)
+  }, [errorMessage])
+
   const handleWebSocketTaskMessage = useCallback((rawDto: TaskDto) => {
     if (!rawDto || rawDto.id == null) return
 
     setTasks((prev) => {
+      if (rawDto.columnId != null && Number(rawDto.columnId) < 0) {
+        return prev.filter((t) => String(t.id) !== String(rawDto.id))
+      }
+
       const existingIndex = prev.findIndex((t) => String(t.id) === String(rawDto.id))
       const existingTask = existingIndex !== -1 ? prev[existingIndex] : undefined
 
@@ -279,7 +311,6 @@ export default function BoardPage() {
       projectId,
       taskId: Number(taskId),
     })
-    setTasks((current) => current.filter((task) => task.id !== taskId))
     if (selectedTaskId === taskId) setSelectedTaskId(null)
   }
 
@@ -328,7 +359,7 @@ export default function BoardPage() {
   const canModifySelected = project.isLeader || (selectedTask && selectedTask.author?.id === currentUser.id)
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative">
       <TopBar />
 
       <div ref={mainBoardRef} className="flex flex-1 flex-col mx-auto w-full max-w-[1800px] px-6 py-6 md:px-10 overflow-hidden">
@@ -590,6 +621,40 @@ export default function BoardPage() {
           </div>
         </Tabs>
       </div>
+
+      {/* Cartelito flotante de error */}
+      {errorMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div
+            ref={errorBoxRef}
+            className="w-full max-w-sm rounded-xl border border-red-500/50 bg-zinc-950 p-5 shadow-2xl shadow-black/80 ring-1 ring-red-500/30 animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-red-950/80 p-2 text-red-400 shrink-0 border border-red-800/60">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm text-foreground tracking-wide">
+                  NO SE PUEDE EDITAR:
+                </p>
+                <p className="mt-1 text-xs text-red-300 break-words leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <Button
+                size="sm"
+                onClick={() => setErrorMessage(null)}
+                className="bg-red-600/90 text-white hover:bg-red-600 px-4 py-1 text-xs font-semibold rounded-md transition"
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

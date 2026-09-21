@@ -39,12 +39,12 @@ export type TaskDto = {
 
 export type EventDto = {
   id: number
-  text: string
-  date: string
-  type: string
-  projectId: number
-  authorId: number
-  authorName: string
+  text?: string
+  date?: string
+  type?: string
+  projectId?: number
+  authorId?: number
+  authorName?: string
 }
 
 export type BoardResponse = TaskDto | EventDto
@@ -72,7 +72,9 @@ export function useStomp() {
 
         subscribeTaskMessages: stompService.subscribeTask.bind(stompService),
 
-        subscribeEventMessages: stompService.subscribeEvent.bind(stompService)
+        subscribeEventMessages: stompService.subscribeEvent.bind(stompService),
+        
+        subscribeErrors: stompService.subscribeErrors.bind(stompService)
 
     };
 
