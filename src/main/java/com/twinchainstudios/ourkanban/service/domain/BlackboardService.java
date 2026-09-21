@@ -3,8 +3,10 @@ package com.twinchainstudios.ourkanban.service.domain;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.BlackboardDto;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.BlackboardElementDto;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.CreateElementRequest;
+import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.LinkPreviewDto;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.UpdateContentRequest;
 import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.UpdateGeometryRequest;
+import com.twinchainstudios.ourkanban.dto.domain.projects.Blackboard.UpdateLinkRequest;
 import com.twinchainstudios.ourkanban.exception.ConflictException;
 import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
 import com.twinchainstudios.ourkanban.exception.NotFoundException;
@@ -25,16 +27,22 @@ public class BlackboardService {
     private final BlackboardRepository blackboardRepository;
     private final BlackboardElementRepository elementRepository;
     private final BlackboardImageStorageService imageStorageService;
+    private final PdfStorageService pdfStorageService;
+    private final LinkPreviewService linkPreviewService;
     private final ProjectService projectService;
 
     public BlackboardService(
             BlackboardRepository blackboardRepository,
             BlackboardElementRepository elementRepository,
             BlackboardImageStorageService imageStorageService,
+            PdfStorageService pdfStorageService,
+            LinkPreviewService linkPreviewService,
             ProjectService projectService) {
         this.blackboardRepository = blackboardRepository;
         this.elementRepository = elementRepository;
         this.imageStorageService = imageStorageService;
+        this.pdfStorageService = pdfStorageService;
+        this.linkPreviewService = linkPreviewService;
         this.projectService = projectService;
     }
 
@@ -50,14 +58,24 @@ public class BlackboardService {
         Project project = projectService.getProjectAndVerifyMembership(projectId, username);
         Blackboard board = getOrCreateBlackboard(project);
         ProjectMember member = resolveMember(project, username);
-
+         if (request.attachmentType() == AttachmentType.LINK
+                && (request.linkUrl() == null || request.linkUrl().isBlank())) {
+            throw new ConflictException("A link element needs a URL");
+        }
+        if (request.attachmentType() == AttachmentType.NONE
+                && (request.textContent() == null || request.textContent().isBlank())) {
+            throw new ConflictException("Add some text, or choose an image, PDF, or link");
+        }
         BlackboardElement element = new BlackboardElement();
         element.setBlackboard(board);
         element.setCreator(member);
-        element.setType(request.type());
+        element.setAttachmentType(request.attachmentType());
         element.setWidth(request.width());
         element.setHeight(request.height());
         element.setTextContent(request.textContent());
+        if (request.attachmentType() == AttachmentType.LINK) {
+            element.setLinkUrl(request.linkUrl().trim());
+        }
 
         if (request.row() != null && request.col() != null) {
             validatePlacement(board, request.row(), request.col(), request.width(), request.height(), null);
@@ -119,7 +137,41 @@ public class BlackboardService {
 
         return BlackboardElementDto.from(element);
     }
+    @Transactional
+    public BlackboardElementDto uploadPdf(Long projectId, Long elementId, String username, MultipartFile file) {
+        Project project = projectService.getProjectAndVerifyMembership(projectId, username);
+        BlackboardElement element = getElementOrThrow(project, elementId);
 
+        if (element.getAttachmentType() != AttachmentType.PDF) {
+            throw new ConflictException("This element isn't a PDF element");
+        }
+
+        PdfStorageService.StoredPdf stored = pdfStorageService.store(file, elementId);
+        element.setPdfUrl(stored.pdfUrl());
+        element.setPdfThumbnailUrl(stored.thumbnailUrl());
+        element.setPdfFileName(stored.originalFileName());
+
+        return BlackboardElementDto.from(element);
+    }
+
+    @Transactional
+    public BlackboardElementDto updateLink(Long projectId, Long elementId, String username, UpdateLinkRequest request) {
+        Project project = projectService.getProjectAndVerifyMembership(projectId, username);
+        BlackboardElement element = getElementOrThrow(project, elementId);
+
+        if (element.getAttachmentType() != AttachmentType.LINK) {
+            throw new ConflictException("This element isn't a link element");
+        }
+
+        element.setLinkUrl(request.linkUrl().trim());
+        return BlackboardElementDto.from(element);
+    }
+
+    @Transactional(readOnly = true)
+    public LinkPreviewDto getLinkPreview(Long projectId, String username, String url) {
+        projectService.getProjectAndVerifyMembership(projectId, username);
+        return linkPreviewService.fetchPreview(url);
+    }
     @Transactional
     public void deleteElement(Long projectId, Long elementId, String username) {
         Project project = projectService.getProjectAndVerifyMembership(projectId, username);
@@ -131,6 +183,9 @@ public class BlackboardService {
 
         if (element.getImageUrl() != null) {
             imageStorageService.delete(elementId);
+        }
+        if (element.getPdfUrl() != null) {
+            pdfStorageService.delete(elementId);
         }
         elementRepository.delete(element);
     }
@@ -166,7 +221,8 @@ public class BlackboardService {
 
         return BlackboardDto.from(board);
     }
-        private static final int DEFAULT_SIZE = 6;
+
+    private static final int DEFAULT_SIZE = 6;
 
     @Transactional
     public BlackboardDto shrinkToFit(Long projectId, String username) {
@@ -210,12 +266,12 @@ public class BlackboardService {
     private int[] expandToMinimum(int min, int max, int minSize) {
         int currentSize = max - min + 1;
         if (currentSize >= minSize) {
-            return new int[]{min, max};
+            return new int[] { min, max };
         }
         int deficit = minSize - currentSize;
         int padBefore = deficit / 2;
         int padAfter = deficit - padBefore;
-        return new int[]{min - padBefore, max + padAfter};
+        return new int[] { min - padBefore, max + padAfter };
     }
 
     // --- internal helpers ---
@@ -268,7 +324,7 @@ public class BlackboardService {
         }
 
         for (BlackboardElement other : board.getElements()) {
-            if(other.getRow() == null || other.getCol() == null) {
+            if (other.getRow() == null || other.getCol() == null) {
                 continue; // shelf elements don't count
             }
             if (excludeElementId != null && other.getId().equals(excludeElementId)) {

@@ -72,37 +72,7 @@ public class WorkGroupService {
 
         workGroupRepository.save(workGroup);
     }
-//TODO: remove this method of including someone, move to invitation based.
-    /**
-     * Adds a user to the group directly.
-     * NOTE: this is a placeholder for a future invitation flow — when that's built,
-     * this method's internals should change to create a pending WorkGroupInvitation
-     * and notify the target user instead of adding them immediately. The controller
-     * endpoint and request/response shape can stay the same.
-     */
-    @Transactional
-    public WorkGroupResponse addMember(Long workGroupId, AddMemberRequest request, String requesterUsername) {
-        User requester = getUserOrThrow(requesterUsername);
-        WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-                .orElseThrow(() -> new NotFoundException("Group not found"));
 
-        requireLeader(workGroup, requester);
-
-        User newMember = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new NotFoundException(
-                        "No user found with username: " + request.username()));
-
-        boolean alreadyMember = workGroup.getUsers().stream()
-                .anyMatch(u -> u.getId().equals(newMember.getId()));
-        if (alreadyMember) {
-            throw new ConflictException("User is already a member of this group");
-        }
-
-        workGroup.getUsers().add(newMember);
-        workGroupRepository.save(workGroup);
-
-        return toResponse(workGroup, requester);
-    }
 ///Version con aceptar ivitacion
     @Transactional
     public void addMember(WorkGroup workGroup, User newMember) {

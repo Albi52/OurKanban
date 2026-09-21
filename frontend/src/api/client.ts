@@ -61,8 +61,8 @@ export function apiPatch<TResponse>(path: string, body: unknown): Promise<TRespo
   return request<TResponse>(path, 'PATCH', body)
 }
 
-export function apiDelete<TResponse>(path: string): Promise<TResponse> {
-  return request<TResponse>(path, 'DELETE')
+export function apiDelete<TResponse>(path: string, body?: unknown): Promise<TResponse> {
+  return request<TResponse>(path, 'DELETE', body)
 }
 
 export async function apiUpload<TResponse>(path: string, file: File): Promise<TResponse> {

@@ -113,6 +113,7 @@ public class WorkGroupJoinService {
         joinRequest.setCreatedAt(java.time.LocalDateTime.now());
         workGroupJoinRequestRepository.save(joinRequest);
         emailService.sendJoinRequestEmail(user.getEmail(), workGroup.getName(), invitor.getUsername());
+        
     }
 
     private User getUserOrThrow(String username) {
@@ -123,6 +124,7 @@ public class WorkGroupJoinService {
     private WorkGroupJoinResponse toResponse(WorkGroupJoin wg, User currentUser) {
 
         return new WorkGroupJoinResponse(
+                wg.getWorkGroup().getId(),
                 wg.getWorkGroup().getName(),
                 wg.getUser().getUsername(),
                 wg.getUser().getProfilePicture());
