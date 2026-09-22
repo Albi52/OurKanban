@@ -1,4 +1,4 @@
-import type { EventDto, TaskDto, TaskMessage } from "@/components/webSockets/useStomp";
+import type { EventDto, EventMessage, TaskDto, TaskMessage } from "@/components/webSockets/useStomp";
 import { TOKEN_STORAGE_KEY } from "@/constants";
 import { Client, type IFrame } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -62,6 +62,13 @@ class StompService {
                         const errorMessage = JSON.parse(msg.body);
                         this.errorListeners.forEach((listener) => listener(errorMessage));
                     });
+                    this.client?.subscribe("/user/queue/errors", (msg) => {
+                        const parsed = JSON.parse(msg.body);
+                        const errorMessage = typeof parsed === "string"
+                            ? parsed
+                            : parsed?.message || "El servidor rechazó la acción.";
+                        this.errorListeners.forEach((listener) => listener(errorMessage));
+                    });
                 }
                 
 
@@ -88,8 +95,17 @@ class StompService {
     }
 
     sendTaskMessage(message: TaskMessage): boolean {
+        return this.sendBoardMessage("Task", message);
+        
+    }
+
+    sendEventMessage(message: EventMessage): boolean {
+        return this.sendBoardMessage("Event", message);
+    }
+
+    private sendBoardMessage(type: "Task" | "Event", data: TaskMessage | EventMessage): boolean {
         if (!this.client?.connected) {
-            console.warn("No STOMP connection available to send task message");
+            console.warn(`No STOMP connection available to send ${type.toLowerCase()} message`);
             return false;
         }
 
@@ -97,13 +113,13 @@ class StompService {
             this.client.publish({
                 destination: "/app/board",
                 body: JSON.stringify({
-                    type: "Task",
-                    data: message,
+                    type,
+                    data,
                 }),
             });
             return true;
         } catch (err) {
-            console.error("Failed to publish task message:", err);
+            console.error(`Failed to publish ${type.toLowerCase()} message:`, err);
             return false;
         }
     }

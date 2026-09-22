@@ -2,9 +2,10 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getProject } from '@api/homeManagement/projectAPI'
 import { getColumns } from '@api/board/columnAPI'
+import { getEvents } from '@api/board/eventAPI'
 import { getMyWorkGroups } from '@/api/homeManagement/workGroupAPI'
 import { getMe } from '@/api/account/authAPI'
-import { useStomp, type TaskDto } from '../components/webSockets/useStomp'
+import { useStomp, type EventDto, type TaskDto } from '../components/webSockets/useStomp'
 
 import type { Member, ProjectSummary } from '@app-types/workgroup'
 import type { BoardColumn } from '@app-types/board'
@@ -19,6 +20,7 @@ import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
 import { useAuth } from '@context/AuthContext'
 import stompService from '@/components/webSockets/StompService'
+import { toast } from 'sonner'
 
 if (typeof window !== 'undefined' && !(window as any).global) {
   ;(window as any).global = window
@@ -34,6 +36,7 @@ export default function BoardPage() {
   const [columns, setColumns] = useState<BoardColumn[]>([])
   const [groupMembers, setGroupMembers] = useState<Member[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
+  const [events, setEvents] = useState<Task[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -50,9 +53,13 @@ export default function BoardPage() {
   const [editEnd, setEditEnd] = useState('')
   const [editPriority, setEditPriority] = useState<string>('medium')
   const [editAssigneeId, setEditAssigneeId] = useState<number | undefined>(undefined)
+  const [eventDraftDate, setEventDraftDate] = useState<string | null>(null)
+  const [eventDraftTitle, setEventDraftTitle] = useState('')
 
   const {
+    sendEventMessage,
     sendTaskMessage,
+    subscribeEventMessages,
     subscribeTaskMessages,
     subscribeErrors,
   } = useStomp()
@@ -65,14 +72,15 @@ export default function BoardPage() {
     }
   }, [token, projectId])
 
-  const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
+  const selectedTask = [...tasks, ...events].find((t) => t.id === selectedTaskId) || null
   const mainBoardRef = useRef<HTMLDivElement>(null)
 
   // Captura el error devuelto por WebSocket y sincroniza los datos
   useEffect(() => {
     const unsubscribe = subscribeErrors((msg: string) => {
       setErrorMessage(msg || 'Error del servidor')
-      loadData()
+      toast.error(msg || 'El servidor rechazó la acción.')
+      void loadData()
     })
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe()
@@ -90,6 +98,39 @@ export default function BoardPage() {
     window.addEventListener('pointerdown', handlePointerDownOutside)
     return () => window.removeEventListener('pointerdown', handlePointerDownOutside)
   }, [errorMessage])
+
+  const handleWebSocketEventMessage = useCallback((rawDto: EventDto) => {
+    if (!rawDto || rawDto.id == null) return
+    setEvents((previous) => {
+      if (rawDto.action === 'DELETE') {
+        return previous.filter((event) => event.id !== String(rawDto.id))
+      }
+      const mapped: Task = {
+        id: String(rawDto.id),
+        columnId: -1,
+        title: String(rawDto.text || ''),
+        description: 'Calendar event',
+        startDate: rawDto.date ? String(rawDto.date).slice(0, 10) : '',
+        endDate: rawDto.date ? String(rawDto.date).slice(0, 10) : '',
+        priority: 'low',
+        author: {
+          id: Number(rawDto.authorId || 0),
+          username: String(rawDto.authorName || 'User'),
+          profilePicture: null,
+        },
+        type: 'event',
+        moverName: rawDto.moverName,
+        positionX: rawDto.positionX,
+        positionY: rawDto.positionY,
+      }
+      const index = previous.findIndex((event) => event.id === mapped.id)
+      if (index < 0) return [...previous, mapped]
+      const next = [...previous]
+      next[index] = mapped
+      return next
+    })
+    setEventDraftDate(null)
+  }, [])
 
   const handleWebSocketTaskMessage = useCallback((rawDto: TaskDto) => {
     if (!rawDto || rawDto.id == null) return
@@ -143,16 +184,17 @@ export default function BoardPage() {
       return [...prev, mappedTask]
     })
   }, [])
-
+  
   async function loadData() {
     setLoading(true)
     setError(null)
     try {
-      const [projData, colsData, meData, userGroups] = await Promise.all([
+      const [projData, colsData, meData, userGroups, eventsData] = await Promise.all([
         getProject(projectId).catch(() => null),
         getColumns(projectId).catch(() => []),
         getMe().catch(() => null),
         getMyWorkGroups().catch(() => []),
+        getEvents(projectId).catch(() => []),
       ])
 
       if (!projData) {
@@ -201,12 +243,35 @@ export default function BoardPage() {
 
       setTasks(extractedTasks)
 
+      setEvents(
+        (Array.isArray(eventsData) ? eventsData : []).map(
+          (event: EventDto): Task => ({
+            id: String(event.id),
+            columnId: -1,
+            title: String(event.text || ''),
+            description: 'Calendar event',
+            startDate: event.date ? String(event.date).slice(0, 10) : '',
+            endDate: event.date ? String(event.date).slice(0, 10) : '',
+            priority: 'low',
+            author: {
+              id: Number(event.authorId || 0),
+              username: String(event.authorName || 'User'),
+              profilePicture: null,
+            },
+            type: 'event',
+            moverName: event.moverName,
+            positionX: event.positionX,
+            positionY: event.positionY,
+          }),
+        ),
+      )
+
       const userGroupsList = Array.isArray(userGroups) ? userGroups : []
       const currentGroup = userGroupsList.find((g) => g && g.id === projData.workGroupId)
       const members = currentGroup?.members || []
       setGroupMembers(members)
 
-      const currentMember = meData ? members.find((m) => m.username === meData.username) : null
+      const currentMember = meData ? members.find((me: { username: any }) => me.username === meData.username) : null
 
       setCurrentUser({
         id: currentMember?.id || 0,
@@ -240,6 +305,13 @@ export default function BoardPage() {
   }, [subscribeTaskMessages, handleWebSocketTaskMessage])
 
   useEffect(() => {
+    const unsubscribe = subscribeEventMessages(handleWebSocketEventMessage)
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
+  }, [subscribeEventMessages, handleWebSocketEventMessage])
+
+  useEffect(() => {
     if (selectedTask) {
       setEditTitle(selectedTask.title)
       setEditDesc(selectedTask.description)
@@ -271,6 +343,17 @@ export default function BoardPage() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [selectedTaskId])
+
+  function handleCreateEvent() {
+    if (!eventDraftDate || !eventDraftTitle.trim()) return
+    sendEventMessage({
+      action: 'CREATE',
+      projectId,
+      text: eventDraftTitle.trim(),
+      date: `${eventDraftDate}T00:00:00`,
+      type: 'Meeting',
+    })
+  }
 
   function handleCreateTask(
     columnId: number,
@@ -306,6 +389,12 @@ export default function BoardPage() {
   }
 
   function handleDeleteTask(taskId: string) {
+    const event = events.find((item) => item.id === taskId)
+    if (event) {
+      sendEventMessage({ action: 'DELETE', projectId, eventId: Number(taskId) })
+      if (selectedTaskId === taskId) setSelectedTaskId(null)
+      return
+    }
     sendTaskMessage({
       action: 'DELETE',
       projectId,
@@ -314,8 +403,42 @@ export default function BoardPage() {
     if (selectedTaskId === taskId) setSelectedTaskId(null)
   }
 
+  function handleUpdateCalendarTask(updatedTask: Task) {
+    if (updatedTask.type === 'event') {
+      sendEventMessage({
+        action: 'MOVE',
+        projectId,
+        eventId: Number(updatedTask.id),
+        date: `${updatedTask.startDate}T00:00:00`,
+        positionX: updatedTask.positionX ?? 0,
+        positionY: updatedTask.positionY ?? 0,
+      })
+      return
+    }
+
+    sendTaskMessage({
+      action: 'UPDATE',
+      projectId,
+      taskId: Number(updatedTask.id),
+      columnId: updatedTask.columnId,
+      dateStart: updatedTask.startDate || undefined,
+      dateEnd: updatedTask.endDate || undefined,
+    })
+  }
+
   function handleSaveEdit() {
     if (!selectedTask) return
+    if (selectedTask.type === 'event') {
+      sendEventMessage({
+        action: 'UPDATE',
+        projectId,
+        eventId: Number(selectedTask.id),
+        text: editTitle.trim(),
+        date: `${editStart}T00:00:00`,
+      })
+      setIsEditing(false)
+      return
+    }
     sendTaskMessage({
       action: 'UPDATE',
       projectId,
@@ -394,7 +517,7 @@ export default function BoardPage() {
                 <KanbanView
                   project={project}
                   columns={columns}
-                  tasks={tasks}
+                  tasks={[...tasks, ...events]}
                   currentUser={currentUserAsMember}
                   groupMembers={groupMembers}
                   selectedTaskId={selectedTaskId}
@@ -414,6 +537,12 @@ export default function BoardPage() {
                   selectedTaskId={selectedTaskId}
                   onSelectTaskId={setSelectedTaskId}
                   onDeleteTask={handleDeleteTask}
+                  onUpdateTask={handleUpdateCalendarTask}
+                  onCreateEvent={(date) => {
+                    setEventDraftDate(date)
+                    setEventDraftTitle('')
+                    setSelectedTaskId(null)
+                  }}
                 />
               </TabsContent>
 
@@ -422,7 +551,7 @@ export default function BoardPage() {
                   <KanbanView
                     project={project}
                     columns={columns}
-                    tasks={tasks}
+                    tasks={[...tasks, ...events]  }
                     currentUser={currentUserAsMember}
                     groupMembers={groupMembers}
                     selectedTaskId={selectedTaskId}
@@ -441,6 +570,12 @@ export default function BoardPage() {
                     selectedTaskId={selectedTaskId}
                     onSelectTaskId={setSelectedTaskId}
                     onDeleteTask={handleDeleteTask}
+                    onUpdateTask={handleUpdateCalendarTask}
+                    onCreateEvent={(date) => {
+                      setEventDraftDate(date)
+                      setEventDraftTitle('')
+                      setSelectedTaskId(null)
+                    }}
                   />
                 </div>
               </TabsContent>
@@ -448,6 +583,38 @@ export default function BoardPage() {
                 <BlackboardView project={project} currentUser={currentUserAsMember} />
               </TabsContent>
             </div>
+            
+            {eventDraftDate && !selectedTask && (
+              <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-purple-500/50 bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
+                <div>
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-purple-300">New Event</span>
+                    <button onClick={() => setEventDraftDate(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">Title</label>
+                      <Input
+                        value={eventDraftTitle}
+                        onChange={(e) => setEventDraftTitle(e.target.value)}
+                        autoFocus
+                        placeholder="Event title"
+                        className="mt-1 border-border bg-zinc-900 text-foreground-secondary"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">Date</label>
+                      <Input type="date" value={eventDraftDate} onChange={(e) => setEventDraftDate(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={handleCreateEvent} disabled={!eventDraftTitle.trim()} className="w-full bg-purple-700 text-white hover:bg-purple-600">
+                  Create event
+                </Button>
+              </div>
+            )}
 
             {selectedTask && (
               <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-border bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">

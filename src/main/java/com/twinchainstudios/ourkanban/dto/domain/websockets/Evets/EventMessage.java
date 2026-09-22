@@ -14,6 +14,8 @@ public class EventMessage {
     public String text;
     public LocalDateTime date;
     public EventType type; 
+    public Integer positionX; // para MOVE
+    public Integer positionY; // para MOVE
 
     public EventMessage() {}
 }

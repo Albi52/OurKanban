@@ -7,7 +7,6 @@ import {
   Plus,
 } from 'lucide-react'
 import { Button } from '@components/shared/ui/button'
-import { Input } from '@components/shared/ui/input'
 import type { Task } from './KanbanView'
 import type { Member, ProjectSummary } from '../../types/workgroup'
 
@@ -19,7 +18,7 @@ interface Props {
   onSelectTaskId: (taskId: string | null) => void
   onDeleteTask?: (taskId: string) => void
   onUpdateTask?: (updatedTask: Task) => void
-  onCreateTask?: (newTask: Task) => void
+  onCreateEvent?: (date: string) => void
 }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -43,11 +42,9 @@ export function CalendarView({
   onSelectTaskId,
   onDeleteTask,
   onUpdateTask,
-  onCreateTask,
+  onCreateEvent,
 }: Props) {
   const [currentDate, setCurrentDate] = useState(() => new Date())
-  const [addingEventDate, setAddingEventDate] = useState<string | null>(null)
-  const [newEventTitle, setNewEventTitle] = useState('')
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -121,6 +118,32 @@ export function CalendarView({
     return new Date(y, m - 1, d)
   }
 
+  function handleDragStart(task: Task, e: React.DragEvent) {
+    if (task.moverName && task.moverName !== currentUser.username) {
+      e.preventDefault()
+      return
+    }
+
+    e.dataTransfer.setData('taskId', task.id)
+
+    if (task.type === 'event' && onUpdateTask) {
+      onUpdateTask({
+        ...task,
+        positionX: e.clientX,
+        positionY: e.clientY,
+      })
+    }
+  }
+  function handleDragMove(task: Task, e: React.DragEvent) {
+    if (task.type !== 'event' || !onUpdateTask) return
+
+    onUpdateTask({
+      ...task,
+      positionX: e.clientX,
+      positionY: e.clientY,
+    })
+  }
+
   function handleDropOnDay(targetDateStr: string, e: React.DragEvent) {
     e.preventDefault()
     const taskId = e.dataTransfer.getData('taskId')
@@ -137,6 +160,8 @@ export function CalendarView({
         ...task,
         startDate: targetDateStr,
         endDate: targetDateStr,
+        positionX: 0,
+        positionY: 0,
       })
       return
     }
@@ -156,25 +181,6 @@ export function CalendarView({
       startDate: formatDateString(targetStart),
       endDate: formatDateString(newEnd),
     })
-  }
-
-  function handleCreateEvent(dateStr: string) {
-    if (!newEventTitle.trim() || !onCreateTask) return
-
-    onCreateTask({
-      id: '', // Dejado en blanco para que el servidor lo asigne
-      columnId: -1,
-      title: newEventTitle.trim(),
-      description: 'Single day calendar event',
-      startDate: dateStr,
-      endDate: dateStr,
-      priority: 'low',
-      author: currentUser,
-      type: 'event',
-    })
-
-    setNewEventTitle('')
-    setAddingEventDate(null)
   }
 
   // Asignar colores según la prioridad
@@ -276,30 +282,15 @@ export function CalendarView({
                             {item.day}
                           </span>
 
-                          <button
-                            onClick={() => setAddingEventDate(item.dateStr)}
-                            className="text-muted-foreground-subtle hover:text-foreground-secondary p-0.5 rounded"
-                            title="Add Event"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
                         </div>
-
-                        {addingEventDate === item.dateStr && (
-                          <div className="mt-1 z-20">
-                            <Input
-                              value={newEventTitle}
-                              onChange={(e) => setNewEventTitle(e.target.value)}
-                              placeholder="Event title..."
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleCreateEvent(item.dateStr)
-                                if (e.key === 'Escape') setAddingEventDate(null)
-                              }}
-                              className="h-6 text-[10px] bg-zinc-900 border-border-hover text-foreground-secondary p-1"
-                            />
-                          </div>
-                        )}
+                        <button
+                          onClick={() => onCreateEvent?.(item.dateStr)}
+                          className="mt-auto flex w-full items-center justify-center gap-1 rounded border border-purple-500/50 bg-purple-950/40 py-0.5 text-[10px] text-purple-300 hover:bg-purple-900/70 hover:text-purple-100"
+                          title="Add Event"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Event
+                        </button>
                       </div>
                     )
                   })}
@@ -330,11 +321,10 @@ export function CalendarView({
                     return (
                       <div
                         key={task.id || taskIdx}
-                        draggable
+                        draggable={!task.moverName || task.moverName === currentUser.username}
                         data-task-item="true"
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('taskId', task.id)
-                        }}
+                        onDragStart={(e) => handleDragStart(task, e)}
+                        onDrag={(e) => handleDragMove(task, e)}
                         onClick={() => onSelectTaskId(task.id)}
                         className="relative h-6 pointer-events-auto cursor-pointer active:cursor-grabbing"
                         style={{
@@ -345,6 +335,8 @@ export function CalendarView({
                         {isEvent ? (
                           <div
                             className={`group flex h-full items-center justify-between rounded-full border border-purple-500/60 bg-purple-950/80 px-2.5 text-xs text-purple-200 shadow-sm transition hover:bg-purple-900/90 ${
+                              task.moverName && task.moverName !== currentUser.username ? 'cursor-not-allowed opacity-60 ring-1 ring-amber-500/60' : ''
+                            } ${
                               isSelected ? 'ring-2 ring-purple-300 ring-offset-1 ring-offset-zinc-950 font-bold' : ''
                             }`}
                           >
@@ -353,6 +345,14 @@ export function CalendarView({
                               <span className="truncate font-medium" title={task.title}>
                                 {task.title}
                               </span>
+                              {task.moverName && task.moverName !== currentUser.username && (
+                                <span
+                                  className="ml-1 shrink-0 text-[10px] text-amber-300"
+                                  title={`Moviendo por ${task.moverName}`}
+                                >
+                                  {task.moverName} moviendo
+                                </span>
+                              )}
                             </div>
 
                             {canModify && onDeleteTask && (
@@ -402,6 +402,29 @@ export function CalendarView({
                     )
                   })}
                 </div>
+                {tasks
+                  .filter(
+                    (task) =>
+                      task.type === 'event' &&
+                      task.moverName &&
+                      task.moverName !== currentUser.username &&
+                      ((task.positionX ?? 0) !== 0 || (task.positionY ?? 0) !== 0),
+                  )
+                  .map((task) => (
+                    <div
+                      key={`live-event-${task.id}`}
+                      className="pointer-events-none fixed z-[1000] w-64 -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-amber-500/80 bg-zinc-950/95 p-3 shadow-2xl shadow-amber-500/20 ring-2 ring-amber-500/40"
+                      style={{
+                        left: `${task.positionX}px`,
+                        top: `${task.positionY}px`,
+                      }}
+                    >
+                      <span className="text-[11px] font-semibold text-amber-300">
+                        {task.moverName} está moviendo
+                      </span>
+                      <p className="truncate text-sm font-semibold text-foreground-secondary">{task.title}</p>
+                    </div>
+                  ))}
               </div>
             )
           })}

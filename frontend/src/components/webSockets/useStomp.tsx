@@ -3,6 +3,7 @@ import stompService from "./StompService";
 
 export type BoardMessageType = 'Task' | 'Column' | 'Event'
 export type TaskAction = 'CREATE' | 'MOVE' | 'UPDATE' | 'DELETE'
+export type EventAction = 'CREATE' | 'MOVE' | 'UPDATE' | 'DELETE'
 
 export type TaskMessage = {
   action: TaskAction
@@ -45,6 +46,21 @@ export type EventDto = {
   projectId?: number
   authorId?: number
   authorName?: string
+  action?: EventAction
+  moverName?: string
+  positionX?: number
+  positionY?: number
+}
+
+export type EventMessage = {
+  action: EventAction
+  eventId?: number | null
+  projectId: number
+  text?: string | null
+  date?: string | null
+  type?: string | null
+  positionX?: number
+  positionY?: number
 }
 
 export type BoardResponse = TaskDto | EventDto
@@ -70,6 +86,8 @@ export function useStomp() {
 
         sendTaskMessage: stompService.sendTaskMessage.bind(stompService),
 
+        sendEventMessage: stompService.sendEventMessage.bind(stompService),
+        
         subscribeTaskMessages: stompService.subscribeTask.bind(stompService),
 
         subscribeEventMessages: stompService.subscribeEvent.bind(stompService),

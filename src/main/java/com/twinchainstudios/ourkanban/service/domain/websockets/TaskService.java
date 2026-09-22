@@ -6,7 +6,7 @@ import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskMessage;
 import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
-import com.twinchainstudios.ourkanban.model.domain.PermissionCodes;
+// import com.twinchainstudios.ourkanban.model.domain.PermissionCodes;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
 import com.twinchainstudios.ourkanban.model.domain.Task;
@@ -45,29 +45,29 @@ public class TaskService {
     public TaskDto handleMessage(TaskMessage msg, UserPrincipal userPrincipal) {
         if (msg.action == null)
             throw new IllegalArgumentException("action required");
-        Project p;
+        
 
         User user = userRepository.findById(userPrincipal.getId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
         Long userId = user.getId();
 
         if (msg.projectId != null) {
-            p = projectRepository.findById(msg.projectId)
+            @SuppressWarnings("unused")
+            Project p = projectRepository.findById(msg.projectId)
                     .orElseThrow(() -> new NotFoundException("Project not found"));
 
-            ProjectMember proyectMember = p.getMembers().stream()
-                    .filter(m -> m.getUser().getId().equals(userId))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException("User not found in project"));
+            // ProjectMember proyectMember = p.getMembers().stream()
+            //         .filter(m -> m.getUser().getId().equals(userId))
+            //         .findFirst()
+            //         .orElseThrow(() -> new NotFoundException("User not found in project"));
                     
-            @SuppressWarnings("null")
-            Long assigneeId = p.getTasks().stream()
-                    .filter(t -> t.getId().equals(msg.taskId))
-                    .findFirst()
-                    .map(Task::getAssignee)
-                    .map(ProjectMember::getId)
-                    .orElse(null);
-
+            // @SuppressWarnings("null")
+            // Long assigneeId = p.getTasks().stream()
+            //         .filter(t -> t.getId().equals(msg.taskId))
+            //         .findFirst()
+            //         .map(Task::getAssignee)
+            //         .map(ProjectMember::getId)
+            //         .orElse(null);
             switch (msg.action.toUpperCase()) {
                 case "CREATE":
                     // if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
@@ -215,7 +215,9 @@ public class TaskService {
     private TaskDto deleteTask(TaskMessage msg) {
         Task t = getLockedTask(msg.taskId);
         taskRepository.delete(t);
-        return toDto(t);
+        TaskDto deleted = toDto(t);
+        deleted.columnId = -1L;
+        return deleted;
     }
 
     private Task getLockedTask(Long taskId) {

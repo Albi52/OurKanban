@@ -3,7 +3,11 @@ package com.twinchainstudios.ourkanban.controller.domain;
 import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectCapsuleResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CreateProjectRequest;
 import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateProjectRequest;
+import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventDto;
 import com.twinchainstudios.ourkanban.service.domain.ProjectService;
+import com.twinchainstudios.ourkanban.service.domain.websockets.EventService;
+
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,9 +18,11 @@ import jakarta.validation.Valid;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final EventService eventService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, EventService eventService) {
         this.projectService = projectService;
+        this.eventService = eventService;
     }
 
     @PostMapping("/workgroups/{workGroupId}/projects")
@@ -50,5 +56,12 @@ public class ProjectController {
             @PathVariable Long projectId,
             Authentication authentication) {
         return ResponseEntity.ok(projectService.getProject(projectId, authentication.getName()));
+    }
+
+    @GetMapping("/projects/{projectId}/events")
+    public ResponseEntity<List<EventDto>> getEvents(
+            @PathVariable Long projectId,
+            Authentication authentication) {
+        return ResponseEntity.ok(eventService.getProjectEvents(projectId, authentication.getName()));
     }
 }

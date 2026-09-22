@@ -75,7 +75,7 @@ public class WebSocketController {
                     messagingTemplate.convertAndSendToUser(
                         principal.getName(),
                         
-                        "/topic/projects/errors",
+                        "/topic/queue/errors",
                         "No tienes permisos para realizar cambios en esta tarea o ha ocurrido un error."
                     );
                 }
@@ -95,7 +95,7 @@ public class WebSocketController {
                     // Envía el error únicamente al usuario que ejecutó la acción
                     messagingTemplate.convertAndSendToUser(
                         principal.getName(),
-                        "/queue/errors",
+                        "/topic/queue/errors",
                         "No tienes permisos para realizar cambios en este evento o ha ocurrido un error."
                     );
                 }

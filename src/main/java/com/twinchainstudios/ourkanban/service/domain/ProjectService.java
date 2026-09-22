@@ -6,7 +6,6 @@ import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateProjectRequest;
 import com.twinchainstudios.ourkanban.exception.*;
 import com.twinchainstudios.ourkanban.model.auth.User;
 import com.twinchainstudios.ourkanban.model.domain.Project;
-import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
 import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
