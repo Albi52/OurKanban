@@ -70,48 +70,48 @@ public class TaskService {
 
             switch (msg.action.toUpperCase()) {
                 case "CREATE":
-                    if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_CREATE)))) 
-                    {
+                    // if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                    //         .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_CREATE)))) 
+                    // {
                         return createTask(msg, userId);
                         // throw new ForbiddenOperationException("User does not have permission to create tasks");
-                    } 
-                    else {
-                        throw new IllegalArgumentException("User does not have permission to create tasks");
-                    }
+                    // } 
+                    // else {
+                    //     throw new IllegalArgumentException("User does not have permission to create tasks");
+                    // }
                 case "MOVE":
-                    if (
-                         proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                             .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| 
-                        userId == assigneeId
-                    )
-                    {
+                    // if (
+                    //      proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                    //          .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| 
+                    //     userId == assigneeId
+                    // )
+                    // {
                         return moveTask(msg, userId);
-                    }
-                    else {
-                        throw new IllegalArgumentException("User does not have permission to move tasks");
-                    }
+                    // }
+                    // else {
+                    //     throw new IllegalArgumentException("User does not have permission to move tasks");
+                    // }
                 case "UPDATE":
 
-                    if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| 
-                        userId == assigneeId)
-                    {
+                    // if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                    //         .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_EDIT)))|| 
+                    //     userId == assigneeId)
+                    // {
                     
                         return updateTask(msg);
-                    } 
-                    else {
-                        throw new IllegalArgumentException("User does not have permission to update tasks");
-                    }
+                    // } 
+                    // else {
+                    //     throw new IllegalArgumentException("User does not have permission to update tasks");
+                    // }
                 case "DELETE":
-                    if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
-                            .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_DELETE)))) 
-                    {
+                    // if (!proyectMember.getRoles().stream().noneMatch(r -> r.getPermissions().stream()
+                    //         .anyMatch(perm -> perm.getCode().equals(PermissionCodes.TASK_DELETE)))) 
+                    // {
                         return deleteTask(msg);
-                    }
-                    else {
-                        throw new IllegalArgumentException("User does not have permission to delete tasks");
-                    }
+                    // }
+                    // else {
+                    //     throw new IllegalArgumentException("User does not have permission to delete tasks");
+                    // }
                 default:
                     throw new IllegalArgumentException("Unknown action: " + msg.action);
             }
