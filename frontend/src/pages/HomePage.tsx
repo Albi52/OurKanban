@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { TopBar } from '@components/shared/TopBar'
 import { WorkingGroupSection } from '@components/homeManagement/workgroups/WorkingGroupSection'
 import { AccountSidebar } from '@components/account/accountSettings/AccountSidebar'
@@ -16,7 +17,9 @@ import { getGroupRecency, getProjectRecency } from '@lib/recentActivity'
 
 const HomePage: React.FC = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [groups, setGroups] = useState<WorkGroup[]>([])
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [createInGroup, setCreateInGroup] = useState<WorkGroup | null>(null)
   const [createGroupOpen, setCreateGroupOpen] = useState(false)
@@ -24,6 +27,7 @@ const HomePage: React.FC = () => {
 
   async function refresh() {
     setLoading(true)
+    setError(null)
     try {
       const data = await getMyWorkGroups()
       const username = user?.username ?? ''
@@ -39,7 +43,9 @@ const HomePage: React.FC = () => {
 
       setGroups(sorted)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to load groups')
+const msg = err instanceof Error ? err.message : 'Failed to load groups'
+      toast.error(msg)
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -48,6 +54,20 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     refresh()
   }, [])
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4 text-center px-6">
+        <p className="text-destructive font-semibold">{error}</p>
+        <Button 
+          onClick={() => navigate('/')} // Redirige a la Landing Page
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          Back to landing page
+        </Button>
+      </div>
+    )
+  }
 
   if (!user) return null
 

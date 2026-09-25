@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from '@api/client'
+import { apiDelete, apiGet, apiPost } from '@api/client'
 import type { BoardColumn } from '@app-types/board'
 
 export function getColumns(projectId: number): Promise<BoardColumn[]> {
@@ -7,4 +7,8 @@ export function getColumns(projectId: number): Promise<BoardColumn[]> {
 
 export function addColumn(projectId: number, name: string): Promise<BoardColumn> {
   return apiPost<BoardColumn>(`/projects/${projectId}/columns`, { name })
+}
+
+export function deleteColumn(projectId: Number, columnIndex: Number ){
+  return apiDelete<void>(`/projects/${projectId}/columns/${columnIndex}`)
 }

@@ -34,4 +34,13 @@ public class DashboardColumnController {
             Authentication authentication) {
         return ResponseEntity.ok(dashboardColumnService.addColumn(projectId, request, authentication.getName()));
     }
+
+    @DeleteMapping("{columnIndex}") 
+    public ResponseEntity<Void> deleteColumn(@PathVariable Long projectId,
+            @PathVariable int columnIndex,
+            Authentication authentication){
+
+                dashboardColumnService.deleteColumn(projectId, columnIndex, authentication.getName());
+                return ResponseEntity.noContent().build();
+            }
 }

@@ -10,7 +10,7 @@ import {
   type DroppableStateSnapshot,
   type DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
-import { addColumn } from '@api/board/columnAPI'
+import { addColumn, deleteColumn } from '@api/board/columnAPI'
 import type { Member, ProjectSummary } from '../../types/workgroup'
 import type { BoardColumn } from '../../types/board'
 import { Button } from '@components/shared/ui/button'
@@ -222,6 +222,8 @@ export function KanbanView({
   function handleRemoveColumn(columnId: number) {
     setBoardColumns((current) => current.filter((column) => column.id !== columnId))
     onTasksChange(tasks.filter((task) => task.columnId !== columnId))
+    deleteColumn(project.id, columnId)
+    //onColumnsChanged()
   }
 
   function handleCreateTask(columnId: number, taskData: Omit<Task, 'id' | 'columnId' | 'author'>) {

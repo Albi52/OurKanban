@@ -4,6 +4,8 @@ import com.twinchainstudios.ourkanban.dto.domain.projects.ColumnResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CreateColumnRequest;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.exception.ConflictException;
+
+import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;
@@ -22,8 +24,8 @@ public class DashboardColumnService {
     private final DashboardColumnRepository dashboardColumnRepository;
 
     public DashboardColumnService(ProjectService projectService,
-                                  TaskService taskService,
-                                  DashboardColumnRepository dashboardColumnRepository) {
+            TaskService taskService,
+            DashboardColumnRepository dashboardColumnRepository) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.dashboardColumnRepository = dashboardColumnRepository;
@@ -55,6 +57,22 @@ public class DashboardColumnService {
         return toResponse(column);
     }
 
+    @Transactional
+    public void deleteColumn(Long projectId, int columnIndex, String username) {
+        Project project = projectService.getProjectAndVerifyMembership(projectId, username);
+        List<DashboardColumn> list= dashboardColumnRepository.findByProjectIdOrderByPosition(projectId);
+        if(columnIndex > list.size()){
+            throw new ForbiddenOperationException("A column with that name already exists in this project");
+            
+        }
+        DashboardColumn column = list.get(columnIndex-1);
+
+        dashboardColumnRepository.delete(column);
+
+
+        return;
+    }
+
     private int calculateNextPosition(Long projectId) {
         return dashboardColumnRepository.findByProjectIdOrderByPosition(projectId).size();
     }
@@ -64,7 +82,8 @@ public class DashboardColumnService {
                 .map(taskService::toDto)
                 .toArray(TaskDto[]::new);
 
-        ColumnResponse columnResponse = new ColumnResponse(column.getId(), column.getName(), column.getPosition(), column.getTasks().size(), tasks);
+        ColumnResponse columnResponse = new ColumnResponse(column.getId(), column.getName(), column.getPosition(),
+                column.getTasks().size(), tasks);
         return columnResponse;
     }
 }
