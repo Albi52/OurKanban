@@ -57,11 +57,4 @@ public class ProjectController {
             Authentication authentication) {
         return ResponseEntity.ok(projectService.getProject(projectId, authentication.getName()));
     }
-
-    @GetMapping("/projects/{projectId}/events")
-    public ResponseEntity<List<EventDto>> getEvents(
-            @PathVariable Long projectId,
-            Authentication authentication) {
-        return ResponseEntity.ok(eventService.getProjectEvents(projectId, authentication.getName()));
-    }
 }

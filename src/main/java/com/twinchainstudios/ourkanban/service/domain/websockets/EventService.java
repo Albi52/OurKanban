@@ -1,9 +1,13 @@
 package com.twinchainstudios.ourkanban.service.domain.websockets;
 
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
+import com.twinchainstudios.ourkanban.dto.domain.projects.CalendarResponse;
+import com.twinchainstudios.ourkanban.dto.domain.projects.ColumnResponse;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventMessage;
+import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Event;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
@@ -24,7 +28,7 @@ import com.twinchainstudios.ourkanban.exception.NotFoundException;
 @Service
 public class EventService {
 
-    private final EventRepository EventRepository;
+    private final EventRepository eventRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
@@ -35,7 +39,7 @@ public class EventService {
                         ProjectMemberRepository memberRepository
                     ) 
     {
-        this.EventRepository = EventRepository;
+        this.eventRepository = EventRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
     }
@@ -89,18 +93,18 @@ public class EventService {
                     .orElseThrow(() -> new NotFoundException("Project not found"));
             event.setProject(p);
         }
-        Event saved = EventRepository.save(event);
+        Event saved = eventRepository.save(event);
 
         return toDto(saved, "CREATED");
     }
 
     private EventDto moveEvent(EventMessage msg, Long userId) {
-        Event event = EventRepository.findById(msg.eventId)
+        Event event = eventRepository.findById(msg.eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
         if (msg.date != null) {
             event.setDate(msg.date);
         }
-        Event saved = EventRepository.save(event);
+        Event saved = eventRepository.save(event);
         String moverName = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"))
                 .getUsername();
@@ -109,20 +113,20 @@ public class EventService {
     }
 
     private EventDto updateEvent(EventMessage msg) {
-        Event event = EventRepository.findById(msg.eventId)
+        Event event = eventRepository.findById(msg.eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
         if (msg.text != null) event.setText(msg.text);
         if (msg.date != null) event.setDate(msg.date);
         if (msg.type != null) event.setType(msg.type);
-        Event saved = EventRepository.save(event);
+        Event saved = eventRepository.save(event);
         return toDto(saved, "UPDATED");
     }
 
     private EventDto deleteEvent(EventMessage msg) {
         if (msg.eventId == null) throw new IllegalArgumentException("EventId required for delete");
-        Event event = EventRepository.findById(msg.eventId)
+        Event event = eventRepository.findById(msg.eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
-        EventRepository.deleteById(msg.eventId);
+        eventRepository.deleteById(msg.eventId);
 
         return toDto(event, "DELETED");
     }
@@ -166,16 +170,20 @@ public class EventService {
     }  
 
     @Transactional(readOnly = true)
-    public List<EventDto> getProjectEvents(Long projectId, String username) {
+    public List<CalendarResponse> getProjectEvents(Long projectId, String username) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
         project.getMembers().stream()
                 .filter(member -> member.getUser().getUsername().equals(username))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("User not found in project"));
-        return EventRepository.findAll().stream()
+        List<EventDto> events = eventRepository.findAll().stream()
                 .filter(event -> event.getProject() != null && projectId.equals(event.getProject().getId()))
                 .map(event -> toDto(event, null))
                 .collect(Collectors.toList());
+
+        return List.of(new CalendarResponse(projectId.intValue(), events.size(), events.toArray(new EventDto[0])));
     }
+
+
 }

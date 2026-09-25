@@ -14,7 +14,7 @@ import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
 import { KanbanView, type Task, type Priority } from '@components/board/KanbanView'
 import { BlackboardView } from '@components/board/blackboard/BlackboardView'
-import { CalendarView } from '@components/board/CalendarView'
+import { CalendarView, type CalendarEvent } from '@components/board/CalendarView'
 import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X, AlertTriangle } from 'lucide-react'
 import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
@@ -36,13 +36,13 @@ export default function BoardPage() {
   const [columns, setColumns] = useState<BoardColumn[]>([])
   const [groupMembers, setGroupMembers] = useState<Member[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
-  const [events, setEvents] = useState<Task[]>([])
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [selectedItemType, setSelectedItemType] = useState<'task' | 'event' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [currentUser, setCurrentUser] = useState<ProjectMember | null>(null)
 
-  // Estado y referencia para el cartelito de error
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const errorBoxRef = useRef<HTMLDivElement>(null)
 
@@ -72,10 +72,10 @@ export default function BoardPage() {
     }
   }, [token, projectId])
 
-  const selectedTask = [...tasks, ...events].find((t) => t.id === selectedTaskId) || null
+  const selectedTask = selectedItemType === 'task' ? tasks.find((t) => t.id === selectedItemId) || null : null
+  const selectedEvent = selectedItemType === 'event' ? events.find((e) => e.id === selectedItemId) || null : null
   const mainBoardRef = useRef<HTMLDivElement>(null)
 
-  // Captura el error devuelto por WebSocket y sincroniza los datos
   useEffect(() => {
     const unsubscribe = subscribeErrors((msg: string) => {
       setErrorMessage(msg || 'Error del servidor')
@@ -87,7 +87,6 @@ export default function BoardPage() {
     }
   }, [subscribeErrors])
 
-  // Cierra el cartel al hacer clic fuera
   useEffect(() => {
     function handlePointerDownOutside(e: PointerEvent) {
       if (!errorMessage) return
@@ -105,14 +104,11 @@ export default function BoardPage() {
       if (rawDto.action === 'DELETE') {
         return previous.filter((event) => event.id !== String(rawDto.id))
       }
-      const mapped: Task = {
+      const mapped: CalendarEvent = {
         id: String(rawDto.id),
-        columnId: -1,
         title: String(rawDto.text || ''),
-        description: 'Calendar event',
         startDate: rawDto.date ? String(rawDto.date).slice(0, 10) : '',
         endDate: rawDto.date ? String(rawDto.date).slice(0, 10) : '',
-        priority: 'low',
         author: {
           id: Number(rawDto.authorId || 0),
           username: String(rawDto.authorName || 'User'),
@@ -184,7 +180,7 @@ export default function BoardPage() {
       return [...prev, mappedTask]
     })
   }, [])
-  
+
   async function loadData() {
     setLoading(true)
     setError(null)
@@ -245,14 +241,11 @@ export default function BoardPage() {
 
       setEvents(
         (Array.isArray(eventsData) ? eventsData : []).map(
-          (event: EventDto): Task => ({
+          (event: EventDto): CalendarEvent => ({
             id: String(event.id),
-            columnId: -1,
             title: String(event.text || ''),
-            description: 'Calendar event',
             startDate: event.date ? String(event.date).slice(0, 10) : '',
             endDate: event.date ? String(event.date).slice(0, 10) : '',
-            priority: 'low',
             author: {
               id: Number(event.authorId || 0),
               username: String(event.authorName || 'User'),
@@ -320,12 +313,20 @@ export default function BoardPage() {
       setEditPriority(selectedTask.priority || 'medium')
       setEditAssigneeId(selectedTask.assignee?.id)
       setIsEditing(false)
+    } else if (selectedEvent) {
+      setEditTitle(selectedEvent.title)
+      setEditDesc('')
+      setEditStart(selectedEvent.startDate)
+      setEditEnd(selectedEvent.endDate)
+      setEditPriority('low')
+      setEditAssigneeId(undefined)
+      setIsEditing(false)
     }
-  }, [selectedTaskId, selectedTask])
+  }, [selectedItemId, selectedItemType, selectedTask, selectedEvent])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!selectedTaskId) return
+      if (!selectedItemId) return
       const target = event.target as HTMLElement
 
       if (
@@ -337,12 +338,13 @@ export default function BoardPage() {
         return
       }
 
-      setSelectedTaskId(null)
+      setSelectedItemId(null)
+      setSelectedItemType(null)
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [selectedTaskId])
+  }, [selectedItemId])
 
   function handleCreateEvent() {
     if (!eventDraftDate || !eventDraftTitle.trim()) return
@@ -389,33 +391,30 @@ export default function BoardPage() {
   }
 
   function handleDeleteTask(taskId: string) {
-    const event = events.find((item) => item.id === taskId)
-    if (event) {
-      sendEventMessage({ action: 'DELETE', projectId, eventId: Number(taskId) })
-      if (selectedTaskId === taskId) setSelectedTaskId(null)
-      return
-    }
     sendTaskMessage({
       action: 'DELETE',
       projectId,
       taskId: Number(taskId),
     })
-    if (selectedTaskId === taskId) setSelectedTaskId(null)
+    if (selectedItemId === taskId && selectedItemType === 'task') {
+      setSelectedItemId(null)
+      setSelectedItemType(null)
+    }
+  }
+
+  function handleDeleteEvent(eventId: string) {
+    sendEventMessage({
+      action: 'DELETE',
+      projectId,
+      eventId: Number(eventId),
+    })
+    if (selectedItemId === eventId && selectedItemType === 'event') {
+      setSelectedItemId(null)
+      setSelectedItemType(null)
+    }
   }
 
   function handleUpdateCalendarTask(updatedTask: Task) {
-    if (updatedTask.type === 'event') {
-      sendEventMessage({
-        action: 'MOVE',
-        projectId,
-        eventId: Number(updatedTask.id),
-        date: `${updatedTask.startDate}T00:00:00`,
-        positionX: updatedTask.positionX ?? 0,
-        positionY: updatedTask.positionY ?? 0,
-      })
-      return
-    }
-
     sendTaskMessage({
       action: 'UPDATE',
       projectId,
@@ -426,32 +425,45 @@ export default function BoardPage() {
     })
   }
 
+  function handleUpdateCalendarEvent(updatedEvent: CalendarEvent) {
+    sendEventMessage({
+      action: 'MOVE',
+      projectId,
+      eventId: Number(updatedEvent.id),
+      date: `${updatedEvent.startDate}T00:00:00`,
+      positionX: updatedEvent.positionX ?? 0,
+      positionY: updatedEvent.positionY ?? 0,
+    })
+  }
+
   function handleSaveEdit() {
-    if (!selectedTask) return
-    if (selectedTask.type === 'event') {
+    if (selectedItemType === 'event' && selectedEvent) {
       sendEventMessage({
         action: 'UPDATE',
         projectId,
-        eventId: Number(selectedTask.id),
+        eventId: Number(selectedEvent.id),
         text: editTitle.trim(),
         date: `${editStart}T00:00:00`,
       })
       setIsEditing(false)
       return
     }
-    sendTaskMessage({
-      action: 'UPDATE',
-      projectId,
-      taskId: Number(selectedTask.id),
-      columnId: selectedTask.columnId,
-      title: editTitle.trim(),
-      description: editDesc.trim(),
-      priority: editPriority.toUpperCase(),
-      assigneeId: editAssigneeId,
-      dateStart: editStart || undefined,
-      dateEnd: editEnd || undefined,
-    })
-    setIsEditing(false)
+
+    if (selectedItemType === 'task' && selectedTask) {
+      sendTaskMessage({
+        action: 'UPDATE',
+        projectId,
+        taskId: Number(selectedTask.id),
+        columnId: selectedTask.columnId,
+        title: editTitle.trim(),
+        description: editDesc.trim(),
+        priority: editPriority.toUpperCase(),
+        assigneeId: editAssigneeId,
+        dateStart: editStart || undefined,
+        dateEnd: editEnd || undefined,
+      })
+      setIsEditing(false)
+    }
   }
 
   if (error) {
@@ -479,7 +491,10 @@ export default function BoardPage() {
     profilePicture: currentUser.profilePicture,
   }
 
-  const canModifySelected = project.isLeader || (selectedTask && selectedTask.author?.id === currentUser.id)
+  const canModifySelected =
+    project.isLeader ||
+    (selectedItemType === 'task' && selectedTask && selectedTask.author?.id === currentUser.id) ||
+    (selectedItemType === 'event' && selectedEvent && selectedEvent.author?.id === currentUser.id)
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground relative">
@@ -517,11 +532,14 @@ export default function BoardPage() {
                 <KanbanView
                   project={project}
                   columns={columns}
-                  tasks={[...tasks, ...events]}
+                  tasks={tasks}
                   currentUser={currentUserAsMember}
                   groupMembers={groupMembers}
-                  selectedTaskId={selectedTaskId}
-                  onSelectTaskId={setSelectedTaskId}
+                  selectedTaskId={selectedItemType === 'task' ? selectedItemId : null}
+                  onSelectTaskId={(id) => {
+                    setSelectedItemId(id)
+                    setSelectedItemType(id ? 'task' : null)
+                  }}
                   onTasksChange={setTasks}
                   onColumnsChanged={loadData}
                   onCreateTask={handleCreateTask}
@@ -533,15 +551,23 @@ export default function BoardPage() {
                 <CalendarView
                   project={project}
                   tasks={tasks}
+                  events={events}
                   currentUser={currentUserAsMember}
-                  selectedTaskId={selectedTaskId}
-                  onSelectTaskId={setSelectedTaskId}
+                  selectedItemId={selectedItemId}
+                  selectedItemType={selectedItemType}
+                  onSelectItem={(id, type) => {
+                    setSelectedItemId(id)
+                    setSelectedItemType(type)
+                  }}
                   onDeleteTask={handleDeleteTask}
+                  onDeleteEvent={handleDeleteEvent}
                   onUpdateTask={handleUpdateCalendarTask}
+                  onUpdateEvent={handleUpdateCalendarEvent}
                   onCreateEvent={(date) => {
                     setEventDraftDate(date)
                     setEventDraftTitle('')
-                    setSelectedTaskId(null)
+                    setSelectedItemId(null)
+                    setSelectedItemType(null)
                   }}
                 />
               </TabsContent>
@@ -551,11 +577,14 @@ export default function BoardPage() {
                   <KanbanView
                     project={project}
                     columns={columns}
-                    tasks={[...tasks, ...events]  }
+                    tasks={tasks}
                     currentUser={currentUserAsMember}
                     groupMembers={groupMembers}
-                    selectedTaskId={selectedTaskId}
-                    onSelectTaskId={setSelectedTaskId}
+                    selectedTaskId={selectedItemType === 'task' ? selectedItemId : null}
+                    onSelectTaskId={(id) => {
+                      setSelectedItemId(id)
+                      setSelectedItemType(id ? 'task' : null)
+                    }}
                     onTasksChange={setTasks}
                     onColumnsChanged={loadData}
                     onCreateTask={handleCreateTask}
@@ -566,15 +595,23 @@ export default function BoardPage() {
                   <CalendarView
                     project={project}
                     tasks={tasks}
+                    events={events}
                     currentUser={currentUserAsMember}
-                    selectedTaskId={selectedTaskId}
-                    onSelectTaskId={setSelectedTaskId}
+                    selectedItemId={selectedItemId}
+                    selectedItemType={selectedItemType}
+                    onSelectItem={(id, type) => {
+                      setSelectedItemId(id)
+                      setSelectedItemType(type)
+                    }}
                     onDeleteTask={handleDeleteTask}
+                    onDeleteEvent={handleDeleteEvent}
                     onUpdateTask={handleUpdateCalendarTask}
+                    onUpdateEvent={handleUpdateCalendarEvent}
                     onCreateEvent={(date) => {
                       setEventDraftDate(date)
                       setEventDraftTitle('')
-                      setSelectedTaskId(null)
+                      setSelectedItemId(null)
+                      setSelectedItemType(null)
                     }}
                   />
                 </div>
@@ -584,7 +621,7 @@ export default function BoardPage() {
               </TabsContent>
             </div>
             
-            {eventDraftDate && !selectedTask && (
+            {eventDraftDate && !selectedTask && !selectedEvent && (
               <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-purple-500/50 bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
                 <div>
                   <div className="flex items-center justify-between border-b border-border pb-3">
@@ -616,12 +653,12 @@ export default function BoardPage() {
               </div>
             )}
 
-            {selectedTask && (
+            {(selectedTask || selectedEvent) && (
               <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-border bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
                 <div>
                   <div className="flex items-center justify-between border-b border-border pb-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {selectedTask.type === 'event' ? 'Event Info' : 'Task Info'}
+                      {selectedEvent ? 'Event Info' : 'Task Info'}
                     </span>
                     <div className="flex items-center gap-1">
                       {canModifySelected && !isEditing && (
@@ -629,7 +666,7 @@ export default function BoardPage() {
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                       )}
-                      <button onClick={() => setSelectedTaskId(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                      <button onClick={() => { setSelectedItemId(null); setSelectedItemType(null); }} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -641,65 +678,71 @@ export default function BoardPage() {
                         <label className="font-medium text-muted-foreground">Title</label>
                         <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
                       </div>
-                      <div>
-                        <label className="font-medium text-muted-foreground">Description</label>
-                        <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="mt-1 min-h-[90px] w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500" />
-                      </div>
-
-                      <div>
-                        <label className="font-medium text-muted-foreground block mb-1">Priority</label>
-                        <div className="grid grid-cols-3 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setEditPriority('low')}
-                            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
-                              editPriority === 'low'
-                                ? 'bg-emerald-950 border-emerald-500 text-success'
-                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" /> Low
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditPriority('medium')}
-                            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
-                              editPriority === 'medium'
-                                ? 'bg-amber-950 border-amber-500 text-amber-300'
-                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-amber-500" /> Medium
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditPriority('high')}
-                            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
-                              editPriority === 'high'
-                                ? 'bg-red-950 border-destructive text-red-300'
-                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-destructive" /> High
-                          </button>
+                      {selectedTask && (
+                        <div>
+                          <label className="font-medium text-muted-foreground">Description</label>
+                          <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="mt-1 min-h-[90px] w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500" />
                         </div>
-                      </div>
+                      )}
 
-                      <div>
-                        <label className="font-medium text-muted-foreground block mb-1">Assignee</label>
-                        <select
-                          value={editAssigneeId || ''}
-                          onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
-                          className="w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500"
-                        >
-                          <option value="">Unassigned</option>
-                          {groupMembers.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.username} {m.id === currentUser.id ? '(You)' : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      {selectedTask && (
+                        <div>
+                          <label className="font-medium text-muted-foreground block mb-1">Priority</label>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setEditPriority('low')}
+                              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
+                                editPriority === 'low'
+                                  ? 'bg-emerald-950 border-emerald-500 text-success'
+                                  : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
+                              }`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Low
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditPriority('medium')}
+                              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
+                                editPriority === 'medium'
+                                  ? 'bg-amber-950 border-amber-500 text-amber-300'
+                                  : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
+                              }`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-amber-500" /> Medium
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditPriority('high')}
+                              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
+                                editPriority === 'high'
+                                  ? 'bg-red-950 border-destructive text-red-300'
+                                  : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
+                              }`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-destructive" /> High
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTask && (
+                        <div>
+                          <label className="font-medium text-muted-foreground block mb-1">Assignee</label>
+                          <select
+                            value={editAssigneeId || ''}
+                            onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
+                            className="w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500"
+                          >
+                            <option value="">Unassigned</option>
+                            {groupMembers.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.username} {m.id === currentUser.id ? '(You)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
@@ -709,12 +752,12 @@ export default function BoardPage() {
                             value={editStart}
                             onChange={(e) => {
                               setEditStart(e.target.value)
-                              if (selectedTask.type === 'event') setEditEnd(e.target.value)
+                              if (selectedEvent) setEditEnd(e.target.value)
                             }}
                             className="mt-1 border-border bg-zinc-900 text-foreground-secondary"
                           />
                         </div>
-                        {selectedTask.type !== 'event' && (
+                        {selectedTask && (
                           <div>
                             <label className="font-medium text-muted-foreground">End Date</label>
                             <Input type="date" value={editEnd} onChange={(e) => setEditEnd(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
@@ -729,42 +772,60 @@ export default function BoardPage() {
                     </div>
                   ) : (
                     <div className="mt-4 space-y-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full ${
-                              selectedTask.priority === 'high'
-                                ? 'bg-destructive'
-                                : selectedTask.priority === 'medium'
-                                  ? 'bg-amber-500'
-                                  : 'bg-emerald-500'
-                            }`}
-                          />
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {selectedTask.priority || 'medium'} priority
-                          </span>
+                      {selectedTask && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`h-2.5 w-2.5 rounded-full ${
+                                selectedTask.priority === 'high'
+                                  ? 'bg-destructive'
+                                  : selectedTask.priority === 'medium'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
+                              }`}
+                            />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {selectedTask.priority || 'medium'} priority
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold text-foreground-secondary">{selectedTask.title}</h3>
+                          <p className="mt-2 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                            {selectedTask.description || <span className="italic text-muted-foreground-subtle">No description provided.</span>}
+                          </p>
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground-secondary">{selectedTask.title}</h3>
-                        <p className="mt-2 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                          {selectedTask.description || <span className="italic text-muted-foreground-subtle">No description provided.</span>}
-                        </p>
-                      </div>
+                      )}
+
+                      {selectedEvent && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="h-2.5 w-2.5 rounded-full bg-purple-400" />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-300">
+                              Event
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold text-foreground-secondary">{selectedEvent.title}</h3>
+                        </div>
+                      )}
 
                       <div className="space-y-2 rounded-xl border border-border bg-zinc-900/50 p-3 text-xs">
                         <div>
                           <span className="font-medium text-muted-foreground block">Author:</span>
-                          <span className="text-foreground-secondary">{selectedTask.author?.username || 'Unknown'}</span>
+                          <span className="text-foreground-secondary">
+                            {selectedTask?.author?.username || selectedEvent?.author?.username || 'Unknown'}
+                          </span>
                         </div>
-                        <div>
-                          <span className="font-medium text-muted-foreground block">Assignee:</span>
-                          <span className="text-foreground-secondary font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
-                        </div>
+                        {selectedTask && (
+                          <div>
+                            <span className="font-medium text-muted-foreground block">Assignee:</span>
+                            <span className="text-foreground-secondary font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between pt-2 border-t border-border/60">
                           <div>
                             <span className="font-medium text-muted-foreground block">Start:</span>
-                            <span className="text-foreground-secondary">{selectedTask.startDate || '-'}</span>
+                            <span className="text-foreground-secondary">{selectedTask?.startDate || selectedEvent?.startDate || '-'}</span>
                           </div>
-                          {selectedTask.type !== 'event' && (
+                          {selectedTask && (
                             <div>
                               <span className="font-medium text-muted-foreground block">End:</span>
                               <span className="text-foreground-secondary">{selectedTask.endDate || '-'}</span>
@@ -778,9 +839,16 @@ export default function BoardPage() {
 
                 {!isEditing && canModifySelected && (
                   <div className="pt-4 border-t border-border mt-4">
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
-                      <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete {selectedTask.type === 'event' ? 'Event' : 'Task'}
-                    </Button>
+                    {selectedTask && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
+                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete Task
+                      </Button>
+                    )}
+                    {selectedEvent && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteEvent(selectedEvent.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
+                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete Event
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -789,7 +857,6 @@ export default function BoardPage() {
         </Tabs>
       </div>
 
-      {/* Cartelito flotante de error */}
       {errorMessage && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
           <div
