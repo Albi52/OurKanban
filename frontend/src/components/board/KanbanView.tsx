@@ -265,7 +265,7 @@ export function KanbanView({
                     >
                       <BoardColumnView
                         column={column}
-                        project={project}
+                        //project={project}
                         currentUser={currentUser}
                         groupMembers={groupMembers}
                         tasks={tasks
@@ -366,7 +366,7 @@ export function KanbanView({
 
 function BoardColumnView({
   column,
-  project,
+ // project,
   currentUser,
   groupMembers = [],
   tasks,
@@ -378,7 +378,7 @@ function BoardColumnView({
   dragHandleProps,
 }: {
   column: BoardColumn
-  project: ProjectSummary
+ // project: ProjectSummary
   currentUser: Member
   groupMembers: Member[]
   tasks: Task[]
