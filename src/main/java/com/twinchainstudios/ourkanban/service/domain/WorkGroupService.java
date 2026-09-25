@@ -21,10 +21,12 @@ public class WorkGroupService {
 
     private final WorkGroupRepository workGroupRepository;
     private final UserRepository userRepository;
+    private final ProjectMemberService projectMemberService;
 
-    public WorkGroupService(WorkGroupRepository workGroupRepository, UserRepository userRepository) {
+    public WorkGroupService(WorkGroupRepository workGroupRepository, UserRepository userRepository, ProjectMemberService projectMemberService) {
         this.workGroupRepository = workGroupRepository;
         this.userRepository = userRepository;
+        this.projectMemberService = projectMemberService;
     }
 
     @Transactional(readOnly = true)
@@ -84,6 +86,8 @@ public class WorkGroupService {
         }
 
         workGroup.getUsers().add(newMember);
+
+        projectMemberService.addUserToAllProjects(workGroup, newMember);
         workGroupRepository.save(workGroup);
 
         return;
