@@ -2,9 +2,10 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getProject } from '@api/homeManagement/projectAPI'
 import { getColumns } from '@api/board/columnAPI'
+import { getEvents } from '@api/board/eventAPI'
 import { getMyWorkGroups } from '@/api/homeManagement/workGroupAPI'
 import { getMe } from '@/api/account/authAPI'
-import { useStomp } from "../components/webSockets/useStomp";
+import { useStomp, type EventDto, type TaskDto } from '../components/webSockets/useStomp'
 
 import type { Member, ProjectSummary } from '@app-types/workgroup'
 import type { BoardColumn } from '@app-types/board'
@@ -12,15 +13,15 @@ import { TopBar } from '@components/shared/TopBar'
 import { Button } from '@components/shared/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/shared/ui/tabs'
 import { KanbanView, type Task, type Priority } from '@components/board/KanbanView'
-import { BlackboardView } from '@/components/board/blackboard/BlackboardView'
-import { CalendarView } from '@components/board/CalendarView' 
-import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X } from 'lucide-react'
+import { BlackboardView } from '@components/board/blackboard/BlackboardView'
+import { CalendarView, type CalendarEvent } from '@components/board/CalendarView'
+import { Layout, CalendarDays, Columns, LayoutGrid, Pencil, Trash2, X, AlertTriangle } from 'lucide-react'
 import { Input } from '@components/shared/ui/input'
 import type { ProjectMember } from '@/types/projectMember'
 import { useAuth } from '@context/AuthContext'
 import stompService from '@/components/webSockets/StompService'
+import { toast } from 'sonner'
 
-// Asegurar la presencia de 'global' para compatibilidad de SockJS
 if (typeof window !== 'undefined' && !(window as any).global) {
   ;(window as any).global = window
 }
@@ -29,33 +30,41 @@ export default function BoardPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const projectId = Number(id) || 0
-    const { token } = useAuth()
-
-  console.log("🔍 DEBUG BoardPage - ID del proyecto:", projectId, "Tipo:", typeof projectId)
+  const { token } = useAuth()
 
   const [project, setProject] = useState<ProjectSummary | null>(null)
   const [columns, setColumns] = useState<BoardColumn[]>([])
   const [groupMembers, setGroupMembers] = useState<Member[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [selectedItemType, setSelectedItemType] = useState<'task' | 'event' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [currentUser, setCurrentUser] = useState<ProjectMember | null>(null)
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const errorBoxRef = useRef<HTMLDivElement>(null)
 
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editStart, setEditStart] = useState('')
   const [editEnd, setEditEnd] = useState('')
-  const [editPriority, setEditPriority] = useState<String>('medium')
+  const [editPriority, setEditPriority] = useState<string>('medium')
   const [editAssigneeId, setEditAssigneeId] = useState<number | undefined>(undefined)
-  const {
-  //  connected,
-    sendTaskMessage,
-    subscribeTaskMessages
-} = useStomp();
+  const [eventDraftDate, setEventDraftDate] = useState<string | null>(null)
+  const [eventDraftTitle, setEventDraftTitle] = useState('')
 
- useEffect(() => {
+  const {
+    sendEventMessage,
+    sendTaskMessage,
+    subscribeEventMessages,
+    subscribeTaskMessages,
+    subscribeErrors,
+  } = useStomp()
+
+  useEffect(() => {
     if (!token) return
     stompService.connect(token, projectId)
     return () => {
@@ -63,35 +72,92 @@ export default function BoardPage() {
     }
   }, [token, projectId])
 
-
-  const selectedTask = tasks.find((t) => t.id === selectedTaskId) || null
+  const selectedTask = selectedItemType === 'task' ? tasks.find((t) => t.id === selectedItemId) || null : null
+  const selectedEvent = selectedItemType === 'event' ? events.find((e) => e.id === selectedItemId) || null : null
   const mainBoardRef = useRef<HTMLDivElement>(null)
 
-  // Callback defensivo para procesar las respuestas de WebSocket (TaskDto / EventDto)
-  const handleWebSocketTaskMessage = useCallback((rawDto: any) => {
-    if (!rawDto || typeof rawDto !== 'object') return;
+  useEffect(() => {
+    const unsubscribe = subscribeErrors((msg: string) => {
+      setErrorMessage(msg || 'Error del servidor')
+      toast.error(msg || 'El servidor rechazó la acción.')
+      void loadData()
+    })
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
+  }, [subscribeErrors])
 
-    const id = rawDto.id
-    if (id === undefined || id === null) return;
+  useEffect(() => {
+    function handlePointerDownOutside(e: PointerEvent) {
+      if (!errorMessage) return
+      if (errorBoxRef.current && !errorBoxRef.current.contains(e.target as Node)) {
+        setErrorMessage(null)
+      }
+    }
+    window.addEventListener('pointerdown', handlePointerDownOutside)
+    return () => window.removeEventListener('pointerdown', handlePointerDownOutside)
+  }, [errorMessage])
 
-    setTasks((prev) => {
-      // Si contiene la propiedad 'text', sabemos que se trata de un EventDto
-      //const isEvent = 'text' in rawDto
-      let mappedTask: Task
-      
-      mappedTask = {
+  const handleWebSocketEventMessage = useCallback((rawDto: EventDto) => {
+    if (!rawDto || rawDto.id == null) return
+    setEvents((previous) => {
+      if (rawDto.action === 'DELETE') {
+        return previous.filter((event) => event.id !== String(rawDto.id))
+      }
+      const mapped: CalendarEvent = {
         id: String(rawDto.id),
-        columnId: rawDto.columnId != null ? Number(rawDto.columnId) : -1,
-        title: String(rawDto.title || ''),
-        description: String(rawDto.description || ''),
-        startDate: rawDto.startDate ? String(rawDto.startDate) : '',
-        endDate: rawDto.endDate ? String(rawDto.endDate) : '',
-        priority: rawDto.priority ? (String(rawDto.priority).toLowerCase() as Priority) : 'medium',
+        title: String(rawDto.text || ''),
+        startDate: rawDto.date ? String(rawDto.date).slice(0, 10) : '',
+        endDate: rawDto.date ? String(rawDto.date).slice(0, 10) : '',
         author: {
           id: Number(rawDto.authorId || 0),
           username: String(rawDto.authorName || 'User'),
           profilePicture: null,
         },
+        type: 'event',
+        moverName: rawDto.moverName,
+        positionX: rawDto.positionX,
+        positionY: rawDto.positionY,
+      }
+      const index = previous.findIndex((event) => event.id === mapped.id)
+      if (index < 0) return [...previous, mapped]
+      const next = [...previous]
+      next[index] = mapped
+      return next
+    })
+    setEventDraftDate(null)
+  }, [])
+
+  const handleWebSocketTaskMessage = useCallback((rawDto: TaskDto) => {
+    if (!rawDto || rawDto.id == null) return
+
+    setTasks((prev) => {
+      if (rawDto.columnId != null && Number(rawDto.columnId) < 0) {
+        return prev.filter((t) => String(t.id) !== String(rawDto.id))
+      }
+
+      const existingIndex = prev.findIndex((t) => String(t.id) === String(rawDto.id))
+      const existingTask = existingIndex !== -1 ? prev[existingIndex] : undefined
+
+      const hasValidMove = Boolean(
+        rawDto.moverName && (rawDto.positionX !== 0 || rawDto.positionY !== 0)
+      )
+
+      const mappedTask: Task = {
+        id: String(rawDto.id),
+        columnId: rawDto.columnId != null ? Number(rawDto.columnId) : (existingTask?.columnId ?? -1),
+        title: rawDto.title !== undefined ? String(rawDto.title) : (existingTask?.title ?? ''),
+        description: rawDto.description !== undefined ? String(rawDto.description) : (existingTask?.description ?? ''),
+        startDate: rawDto.startDate ? String(rawDto.startDate) : (existingTask?.startDate ?? ''),
+        endDate: rawDto.endDate ? String(rawDto.endDate) : (existingTask?.endDate ?? ''),
+        priority: rawDto.priority ? (String(rawDto.priority).toLowerCase() as Priority) : (existingTask?.priority ?? 'medium'),
+        author: rawDto.authorId
+          ? {
+              id: Number(rawDto.authorId),
+              username: String(rawDto.authorName || 'User'),
+              profilePicture: null,
+            }
+          : (existingTask?.author ?? { id: 0, username: 'User', profilePicture: null }),
         assignee: rawDto.assigneeId
           ? {
               id: Number(rawDto.assigneeId),
@@ -100,11 +166,10 @@ export default function BoardPage() {
             }
           : undefined,
         type: 'task',
-      }      
-
-      const existingIndex = prev.findIndex(
-        (t) => String(t.id) === String(mappedTask.id) && t.type === mappedTask.type
-      )
+        positionX: hasValidMove ? rawDto.positionX : 0,
+        positionY: hasValidMove ? rawDto.positionY : 0,
+        moverName: hasValidMove ? rawDto.moverName : undefined,
+      }
 
       if (existingIndex !== -1) {
         const updated = [...prev]
@@ -112,19 +177,20 @@ export default function BoardPage() {
         return updated
       }
 
-      return [...prev, mappedTask];
+      return [...prev, mappedTask]
     })
-  }, []);
+  }, [])
 
   async function loadData() {
     setLoading(true)
     setError(null)
     try {
-      const [projData, colsData, meData, userGroups] = await Promise.all([
+      const [projData, colsData, meData, userGroups, eventsData] = await Promise.all([
         getProject(projectId).catch(() => null),
         getColumns(projectId).catch(() => []),
         getMe().catch(() => null),
         getMyWorkGroups().catch(() => []),
+        getEvents(projectId).catch(() => []),
       ])
 
       if (!projData) {
@@ -132,14 +198,73 @@ export default function BoardPage() {
       }
 
       setProject(projData)
-      setColumns(Array.isArray(colsData) ? colsData : [])
+
+      const colsList: BoardColumn[] = Array.isArray(colsData) ? colsData : []
+      setColumns(colsList)
+
+      const extractedTasks: Task[] = []
+      colsList.forEach((col: BoardColumn) => {
+        if (Array.isArray(col.tasks)) {
+          col.tasks.forEach((t: TaskDto) => {
+            if (!t || t.id == null) return
+
+            extractedTasks.push({
+              id: String(t.id),
+              columnId: t.columnId != null ? Number(t.columnId) : Number(col.id),
+              title: String(t.title || ''),
+              description: String(t.description || ''),
+              startDate: t.startDate ? String(t.startDate) : '',
+              endDate: t.endDate ? String(t.endDate) : '',
+              priority: (t.priority ? String(t.priority).toLowerCase() : 'medium') as Priority,
+              author: {
+                id: Number(t.authorId || 0),
+                username: String(t.authorName || 'User'),
+                profilePicture: null,
+              },
+              assignee: t.assigneeId
+                ? {
+                    id: Number(t.assigneeId),
+                    username: String(t.assigneeName || ''),
+                    profilePicture: null,
+                  }
+                : undefined,
+              type: 'task',
+              positionX: t.positionX,
+              positionY: t.positionY,
+              moverName: t.moverName,
+            })
+          })
+        }
+      })
+
+      setTasks(extractedTasks)
+
+      setEvents(
+        (Array.isArray(eventsData) ? eventsData : []).map(
+          (event: EventDto): CalendarEvent => ({
+            id: String(event.id),
+            title: String(event.text || ''),
+            startDate: event.date ? String(event.date).slice(0, 10) : '',
+            endDate: event.date ? String(event.date).slice(0, 10) : '',
+            author: {
+              id: Number(event.authorId || 0),
+              username: String(event.authorName || 'User'),
+              profilePicture: null,
+            },
+            type: 'event',
+            moverName: event.moverName,
+            positionX: event.positionX,
+            positionY: event.positionY,
+          }),
+        ),
+      )
 
       const userGroupsList = Array.isArray(userGroups) ? userGroups : []
       const currentGroup = userGroupsList.find((g) => g && g.id === projData.workGroupId)
       const members = currentGroup?.members || []
       setGroupMembers(members)
 
-      const currentMember = meData ? members.find((m) => m.username === meData.username) : null
+      const currentMember = meData ? members.find((me: { username: any }) => me.username === meData.username) : null
 
       setCurrentUser({
         id: currentMember?.id || 0,
@@ -154,8 +279,6 @@ export default function BoardPage() {
     } finally {
       setLoading(false)
     }
-
-    subscribeTaskMessages(handleWebSocketTaskMessage)
   }
 
   useEffect(() => {
@@ -168,6 +291,20 @@ export default function BoardPage() {
   }, [projectId])
 
   useEffect(() => {
+    const unsubscribe = subscribeTaskMessages(handleWebSocketTaskMessage)
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
+  }, [subscribeTaskMessages, handleWebSocketTaskMessage])
+
+  useEffect(() => {
+    const unsubscribe = subscribeEventMessages(handleWebSocketEventMessage)
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
+  }, [subscribeEventMessages, handleWebSocketEventMessage])
+
+  useEffect(() => {
     if (selectedTask) {
       setEditTitle(selectedTask.title)
       setEditDesc(selectedTask.description)
@@ -176,50 +313,20 @@ export default function BoardPage() {
       setEditPriority(selectedTask.priority || 'medium')
       setEditAssigneeId(selectedTask.assignee?.id)
       setIsEditing(false)
+    } else if (selectedEvent) {
+      setEditTitle(selectedEvent.title)
+      setEditDesc('')
+      setEditStart(selectedEvent.startDate)
+      setEditEnd(selectedEvent.endDate)
+      setEditPriority('low')
+      setEditAssigneeId(undefined)
+      setIsEditing(false)
     }
-  }, [selectedTaskId, selectedTask])
+  }, [selectedItemId, selectedItemType, selectedTask, selectedEvent])
 
-  useEffect(() => {
-
-    const unsubscribe = subscribeTaskMessages(dto => {
-
-        if (dto.projectId !== projectId)
-            return;
-          const task: Task = {
-            id: String(dto.id),
-            columnId: dto.columnId ?? 0,
-            title: dto.title ?? "",
-            description: dto.description ?? "",
-            startDate: dto.startDate ?? "",
-            endDate: dto.endDate ?? "",
-            priority: (dto.priority?.toLowerCase() ?? "medium") as Priority,
-            author: {
-                id: dto.authorId ?? 0,
-                username: dto.authorName ?? "",
-                profilePicture: null
-            },
-            assignee: dto.assigneeId
-                ? {
-                    id: dto.assigneeId,
-                    username: dto.assigneeName ?? "",
-                    profilePicture: null
-                }
-                : undefined,
-          type: "task"
-        };  
-
-        setTasks(current => [task, ...current.filter(t => t.id !== task.id)]);
-
-    });
-
-    return unsubscribe;
-
-}, [projectId, subscribeTaskMessages]);
-
-  // Deseleccionar al hacer clic fuera del panel lateral o tarjeta
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!selectedTaskId) return
+      if (!selectedItemId) return
       const target = event.target as HTMLElement
 
       if (
@@ -231,17 +338,29 @@ export default function BoardPage() {
         return
       }
 
-      setSelectedTaskId(null)
+      setSelectedItemId(null)
+      setSelectedItemType(null)
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [selectedTaskId])
+  }, [selectedItemId])
+
+  function handleCreateEvent() {
+    if (!eventDraftDate || !eventDraftTitle.trim()) return
+    sendEventMessage({
+      action: 'CREATE',
+      projectId,
+      text: eventDraftTitle.trim(),
+      date: `${eventDraftDate}T00:00:00`,
+      type: 'Meeting',
+    })
+  }
 
   function handleCreateTask(
-    columnId: number, 
+    columnId: number,
     taskData: Omit<Task, 'id' | 'columnId' | 'author'>
-    ){
+  ) {
     sendTaskMessage({
       action: 'CREATE',
       projectId: projectId,
@@ -255,31 +374,96 @@ export default function BoardPage() {
     })
   }
 
+  function handleMoveTask(
+    taskId: string,
+    newColumnId: number,
+    positionX: number,
+    positionY: number
+  ): boolean {
+    return sendTaskMessage({
+      action: 'MOVE',
+      projectId,
+      taskId: Number(taskId),
+      columnId: newColumnId,
+      positionX,
+      positionY,
+    })
+  }
+
   function handleDeleteTask(taskId: string) {
     sendTaskMessage({
       action: 'DELETE',
       projectId,
       taskId: Number(taskId),
     })
-    setTasks((current) => current.filter((task) => task.id !== taskId))
-    if (selectedTaskId === taskId) setSelectedTaskId(null)
+    if (selectedItemId === taskId && selectedItemType === 'task') {
+      setSelectedItemId(null)
+      setSelectedItemType(null)
+    }
   }
 
-  function handleSaveEdit() {
-    if (!selectedTask) return
+  function handleDeleteEvent(eventId: string) {
+    sendEventMessage({
+      action: 'DELETE',
+      projectId,
+      eventId: Number(eventId),
+    })
+    if (selectedItemId === eventId && selectedItemType === 'event') {
+      setSelectedItemId(null)
+      setSelectedItemType(null)
+    }
+  }
+
+  function handleUpdateCalendarTask(updatedTask: Task) {
     sendTaskMessage({
       action: 'UPDATE',
       projectId,
-      taskId: Number(selectedTask.id),
-      columnId: selectedTask.columnId,
-      title: editTitle.trim(),
-      description: editDesc.trim(),
-      priority: editPriority.toUpperCase(),
-      assigneeId: editAssigneeId,
-      dateStart: editStart || undefined,
-      dateEnd: editEnd || undefined,
+      taskId: Number(updatedTask.id),
+      columnId: updatedTask.columnId,
+      dateStart: updatedTask.startDate || undefined,
+      dateEnd: updatedTask.endDate || undefined,
     })
-    setIsEditing(false)
+  }
+
+  function handleUpdateCalendarEvent(updatedEvent: CalendarEvent) {
+    sendEventMessage({
+      action: 'MOVE',
+      projectId,
+      eventId: Number(updatedEvent.id),
+      date: `${updatedEvent.startDate}T00:00:00`,
+      positionX: updatedEvent.positionX ?? 0,
+      positionY: updatedEvent.positionY ?? 0,
+    })
+  }
+
+  function handleSaveEdit() {
+    if (selectedItemType === 'event' && selectedEvent) {
+      sendEventMessage({
+        action: 'UPDATE',
+        projectId,
+        eventId: Number(selectedEvent.id),
+        text: editTitle.trim(),
+        date: `${editStart}T00:00:00`,
+      })
+      setIsEditing(false)
+      return
+    }
+
+    if (selectedItemType === 'task' && selectedTask) {
+      sendTaskMessage({
+        action: 'UPDATE',
+        projectId,
+        taskId: Number(selectedTask.id),
+        columnId: selectedTask.columnId,
+        title: editTitle.trim(),
+        description: editDesc.trim(),
+        priority: editPriority.toUpperCase(),
+        assigneeId: editAssigneeId,
+        dateStart: editStart || undefined,
+        dateEnd: editEnd || undefined,
+      })
+      setIsEditing(false)
+    }
   }
 
   if (error) {
@@ -307,10 +491,13 @@ export default function BoardPage() {
     profilePicture: currentUser.profilePicture,
   }
 
-  const canModifySelected = project.isLeader || (selectedTask && selectedTask.author?.id === currentUser.id)
+  const canModifySelected =
+    project.isLeader ||
+    (selectedItemType === 'task' && selectedTask && selectedTask.author?.id === currentUser.id) ||
+    (selectedItemType === 'event' && selectedEvent && selectedEvent.author?.id === currentUser.id)
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative">
       <TopBar />
 
       <div ref={mainBoardRef} className="flex flex-1 flex-col mx-auto w-full max-w-[1800px] px-6 py-6 md:px-10 overflow-hidden">
@@ -348,11 +535,15 @@ export default function BoardPage() {
                   tasks={tasks}
                   currentUser={currentUserAsMember}
                   groupMembers={groupMembers}
-                  selectedTaskId={selectedTaskId}
-                  onSelectTaskId={setSelectedTaskId}
+                  selectedTaskId={selectedItemType === 'task' ? selectedItemId : null}
+                  onSelectTaskId={(id) => {
+                    setSelectedItemId(id)
+                    setSelectedItemType(id ? 'task' : null)
+                  }}
                   onTasksChange={setTasks}
                   onColumnsChanged={loadData}
                   onCreateTask={handleCreateTask}
+                  onMoveTask={handleMoveTask}
                 />
               </TabsContent>
 
@@ -360,10 +551,24 @@ export default function BoardPage() {
                 <CalendarView
                   project={project}
                   tasks={tasks}
+                  events={events}
                   currentUser={currentUserAsMember}
-                  selectedTaskId={selectedTaskId}
-                  onSelectTaskId={setSelectedTaskId}
+                  selectedItemId={selectedItemId}
+                  selectedItemType={selectedItemType}
+                  onSelectItem={(id, type) => {
+                    setSelectedItemId(id)
+                    setSelectedItemType(type)
+                  }}
                   onDeleteTask={handleDeleteTask}
+                  onDeleteEvent={handleDeleteEvent}
+                  onUpdateTask={handleUpdateCalendarTask}
+                  onUpdateEvent={handleUpdateCalendarEvent}
+                  onCreateEvent={(date) => {
+                    setEventDraftDate(date)
+                    setEventDraftTitle('')
+                    setSelectedItemId(null)
+                    setSelectedItemType(null)
+                  }}
                 />
               </TabsContent>
 
@@ -375,44 +580,93 @@ export default function BoardPage() {
                     tasks={tasks}
                     currentUser={currentUserAsMember}
                     groupMembers={groupMembers}
-                    selectedTaskId={selectedTaskId}
-                    onSelectTaskId={setSelectedTaskId}
+                    selectedTaskId={selectedItemType === 'task' ? selectedItemId : null}
+                    onSelectTaskId={(id) => {
+                      setSelectedItemId(id)
+                      setSelectedItemType(id ? 'task' : null)
+                    }}
                     onTasksChange={setTasks}
                     onColumnsChanged={loadData}
                     onCreateTask={handleCreateTask}
+                    onMoveTask={handleMoveTask}
                   />
                 </div>
                 <div className="flex-1 flex flex-col min-w-0 pl-2">
                   <CalendarView
                     project={project}
                     tasks={tasks}
+                    events={events}
                     currentUser={currentUserAsMember}
-                    selectedTaskId={selectedTaskId}
-                    onSelectTaskId={setSelectedTaskId}
+                    selectedItemId={selectedItemId}
+                    selectedItemType={selectedItemType}
+                    onSelectItem={(id, type) => {
+                      setSelectedItemId(id)
+                      setSelectedItemType(type)
+                    }}
                     onDeleteTask={handleDeleteTask}
+                    onDeleteEvent={handleDeleteEvent}
+                    onUpdateTask={handleUpdateCalendarTask}
+                    onUpdateEvent={handleUpdateCalendarEvent}
+                    onCreateEvent={(date) => {
+                      setEventDraftDate(date)
+                      setEventDraftTitle('')
+                      setSelectedItemId(null)
+                      setSelectedItemType(null)
+                    }}
                   />
                 </div>
               </TabsContent>
               <TabsContent value="blackboard" className="m-0 flex-1 flex flex-col min-h-0">
                 <BlackboardView project={project} currentUser={currentUserAsMember} />
-             </TabsContent>
+              </TabsContent>
             </div>
+            
+            {eventDraftDate && !selectedTask && !selectedEvent && (
+              <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-purple-500/50 bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
+                <div>
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-purple-300">New Event</span>
+                    <button onClick={() => setEventDraftDate(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">Title</label>
+                      <Input
+                        value={eventDraftTitle}
+                        onChange={(e) => setEventDraftTitle(e.target.value)}
+                        autoFocus
+                        placeholder="Event title"
+                        className="mt-1 border-border bg-zinc-900 text-foreground-secondary"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">Date</label>
+                      <Input type="date" value={eventDraftDate} onChange={(e) => setEventDraftDate(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={handleCreateEvent} disabled={!eventDraftTitle.trim()} className="w-full bg-purple-700 text-white hover:bg-purple-600">
+                  Create event
+                </Button>
+              </div>
+            )}
 
-            {/* Panel lateral para ver / editar tarea o evento */}
-            {selectedTask && (
+            {(selectedTask || selectedEvent) && (
               <div data-task-sidebar="true" className="w-80 shrink-0 h-full rounded-xl border border-border bg-background p-5 flex flex-col justify-between overflow-y-auto z-10">
                 <div>
                   <div className="flex items-center justify-between border-b border-border pb-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {selectedTask.type === 'event' ? 'Event Info' : 'Task Info'}
+                      {selectedEvent ? 'Event Info' : 'Task Info'}
                     </span>
                     <div className="flex items-center gap-1">
                       {canModifySelected && !isEditing && (
-                        <button onClick={() => setIsEditing(true)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary" title="Edit Item">
+                        <button onClick={() => setIsEditing(true)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground" title="Edit Item">
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                       )}
-                      <button onClick={() => setSelectedTaskId(null)} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:text-foreground-secondary">
+                      <button onClick={() => { setSelectedItemId(null); setSelectedItemType(null); }} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -424,65 +678,71 @@ export default function BoardPage() {
                         <label className="font-medium text-muted-foreground">Title</label>
                         <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
                       </div>
-                      <div>
-                        <label className="font-medium text-muted-foreground">Description</label>
-                        <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="mt-1 min-h-[90px] w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500" />
-                      </div>
-
-                      <div>
-                        <label className="font-medium text-muted-foreground block mb-1">Priority</label>
-                        <div className="grid grid-cols-3 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setEditPriority('low')}
-                            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
-                              editPriority === 'low'
-                                ? 'bg-emerald-950 border-emerald-500 text-success'
-                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" /> Low
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditPriority('medium')}
-                            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
-                              editPriority === 'medium'
-                                ? 'bg-amber-950 border-amber-500 text-amber-300'
-                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-amber-500" /> Medium
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditPriority('high')}
-                            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
-                              editPriority === 'high'
-                                ? 'bg-red-950 border-destructive text-red-300'
-                                : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
-                            }`}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-destructive" /> High
-                          </button>
+                      {selectedTask && (
+                        <div>
+                          <label className="font-medium text-muted-foreground">Description</label>
+                          <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="mt-1 min-h-[90px] w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500" />
                         </div>
-                      </div>
+                      )}
 
-                      <div>
-                        <label className="font-medium text-muted-foreground block mb-1">Assignee</label>
-                        <select
-                          value={editAssigneeId || ''}
-                          onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
-                          className="w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500"
-                        >
-                          <option value="">Unassigned</option>
-                          {groupMembers.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.username} {m.id === currentUser.id ? '(You)' : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      {selectedTask && (
+                        <div>
+                          <label className="font-medium text-muted-foreground block mb-1">Priority</label>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setEditPriority('low')}
+                              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
+                                editPriority === 'low'
+                                  ? 'bg-emerald-950 border-emerald-500 text-success'
+                                  : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
+                              }`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Low
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditPriority('medium')}
+                              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
+                                editPriority === 'medium'
+                                  ? 'bg-amber-950 border-amber-500 text-amber-300'
+                                  : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
+                              }`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-amber-500" /> Medium
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditPriority('high')}
+                              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition ${
+                                editPriority === 'high'
+                                  ? 'bg-red-950 border-destructive text-red-300'
+                                  : 'bg-zinc-900 border-border text-muted-foreground hover:bg-zinc-800'
+                              }`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-destructive" /> High
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTask && (
+                        <div>
+                          <label className="font-medium text-muted-foreground block mb-1">Assignee</label>
+                          <select
+                            value={editAssigneeId || ''}
+                            onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
+                            className="w-full rounded-md border border-border bg-zinc-900 p-2 text-xs text-foreground-secondary focus:outline-none focus:ring-1 focus:ring-zinc-500"
+                          >
+                            <option value="">Unassigned</option>
+                            {groupMembers.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.username} {m.id === currentUser.id ? '(You)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
@@ -492,12 +752,12 @@ export default function BoardPage() {
                             value={editStart}
                             onChange={(e) => {
                               setEditStart(e.target.value)
-                              if (selectedTask.type === 'event') setEditEnd(e.target.value)
+                              if (selectedEvent) setEditEnd(e.target.value)
                             }}
                             className="mt-1 border-border bg-zinc-900 text-foreground-secondary"
                           />
                         </div>
-                        {selectedTask.type !== 'event' && (
+                        {selectedTask && (
                           <div>
                             <label className="font-medium text-muted-foreground">End Date</label>
                             <Input type="date" value={editEnd} onChange={(e) => setEditEnd(e.target.value)} className="mt-1 border-border bg-zinc-900 text-foreground-secondary" />
@@ -507,47 +767,65 @@ export default function BoardPage() {
 
                       <div className="mt-4 flex gap-2">
                         <Button size="sm" onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Save</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground">Cancel</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="text-muted-foreground hover:bg-accent hover:text-accent-foreground">Cancel</Button>
                       </div>
                     </div>
                   ) : (
                     <div className="mt-4 space-y-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full ${
-                              selectedTask.priority === 'high'
-                                ? 'bg-destructive'
-                                : selectedTask.priority === 'medium'
-                                  ? 'bg-amber-500'
-                                  : 'bg-emerald-500'
-                            }`}
-                          />
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {selectedTask.priority || 'medium'} priority
-                          </span>
+                      {selectedTask && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`h-2.5 w-2.5 rounded-full ${
+                                selectedTask.priority === 'high'
+                                  ? 'bg-destructive'
+                                  : selectedTask.priority === 'medium'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
+                              }`}
+                            />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {selectedTask.priority || 'medium'} priority
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold text-foreground-secondary">{selectedTask.title}</h3>
+                          <p className="mt-2 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                            {selectedTask.description || <span className="italic text-muted-foreground-subtle">No description provided.</span>}
+                          </p>
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground-secondary">{selectedTask.title}</h3>
-                        <p className="mt-2 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                          {selectedTask.description || <span className="italic text-muted-foreground-subtle">No description provided.</span>}
-                        </p>
-                      </div>
+                      )}
+
+                      {selectedEvent && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="h-2.5 w-2.5 rounded-full bg-purple-400" />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-300">
+                              Event
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold text-foreground-secondary">{selectedEvent.title}</h3>
+                        </div>
+                      )}
 
                       <div className="space-y-2 rounded-xl border border-border bg-zinc-900/50 p-3 text-xs">
                         <div>
                           <span className="font-medium text-muted-foreground block">Author:</span>
-                          <span className="text-foreground-secondary">{selectedTask.author?.username || 'Unknown'}</span>
+                          <span className="text-foreground-secondary">
+                            {selectedTask?.author?.username || selectedEvent?.author?.username || 'Unknown'}
+                          </span>
                         </div>
-                        <div>
-                          <span className="font-medium text-muted-foreground block">Assignee:</span>
-                          <span className="text-foreground-secondary font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
-                        </div>
+                        {selectedTask && (
+                          <div>
+                            <span className="font-medium text-muted-foreground block">Assignee:</span>
+                            <span className="text-foreground-secondary font-medium">{selectedTask.assignee?.username || 'Unassigned'}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between pt-2 border-t border-border/60">
                           <div>
                             <span className="font-medium text-muted-foreground block">Start:</span>
-                            <span className="text-foreground-secondary">{selectedTask.startDate || '-'}</span>
+                            <span className="text-foreground-secondary">{selectedTask?.startDate || selectedEvent?.startDate || '-'}</span>
                           </div>
-                          {selectedTask.type !== 'event' && (
+                          {selectedTask && (
                             <div>
                               <span className="font-medium text-muted-foreground block">End:</span>
                               <span className="text-foreground-secondary">{selectedTask.endDate || '-'}</span>
@@ -561,9 +839,16 @@ export default function BoardPage() {
 
                 {!isEditing && canModifySelected && (
                   <div className="pt-4 border-t border-border mt-4">
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
-                      <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete {selectedTask.type === 'event' ? 'Event' : 'Task'}
-                    </Button>
+                    {selectedTask && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
+                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete Task
+                      </Button>
+                    )}
+                    {selectedEvent && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteEvent(selectedEvent.id)} className="w-full text-destructive hover:bg-red-950/30 hover:text-red-300">
+                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete Event
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -571,6 +856,39 @@ export default function BoardPage() {
           </div>
         </Tabs>
       </div>
+
+      {errorMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div
+            ref={errorBoxRef}
+            className="w-full max-w-sm rounded-xl border border-red-500/50 bg-zinc-950 p-5 shadow-2xl shadow-black/80 ring-1 ring-red-500/30 animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-red-950/80 p-2 text-red-400 shrink-0 border border-red-800/60">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm text-foreground tracking-wide">
+                  NO SE PUEDE EDITAR:
+                </p>
+                <p className="mt-1 text-xs text-red-300 break-words leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <Button
+                size="sm"
+                onClick={() => setErrorMessage(null)}
+                className="bg-red-600/90 text-white hover:bg-red-600 px-4 py-1 text-xs font-semibold rounded-md transition"
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

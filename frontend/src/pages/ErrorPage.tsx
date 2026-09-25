@@ -77,7 +77,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
             size="lg"
             variant="outline"
             onClick={handleRetry}
-            className="h-12 rounded-full border-border-hover bg-transparent px-6 text-base text-foreground-secondary hover:bg-accent hover:text-accent-foreground hover:text-foreground sm:px-8"
+            className="h-12 rounded-full border-border-hover bg-transparent px-6 text-base text-foreground-secondary hover:bg-accent hover:text-accent-foreground sm:px-8"
             data-testid="error-retry-btn"
           >
             <RefreshCw className="mr-2 h-4 w-4" />

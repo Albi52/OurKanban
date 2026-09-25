@@ -3,6 +3,8 @@ package com.twinchainstudios.ourkanban.model.domain;
 
 import java.util.*;
 
+import com.twinchainstudios.ourkanban.repository.domain.PermissionRepository;
+
 import jakarta.persistence.*;
 
 
@@ -25,11 +27,17 @@ public class Role {
         name = "role_permissions",
         joinColumns = @JoinColumn(name = "role_id"),
         inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
+    ) 
     private Set<Permission> permissions = new HashSet<>();
 
     @ManyToMany(mappedBy = "roles")
     private Set<ProjectMember> members = new HashSet<>();
+
+    public Role(String name, Project project) {
+        this.name = name;
+        this.project = project;
+        
+    }
 
     public Long getId() {
         return id;
@@ -59,8 +67,15 @@ public class Role {
         return permissions;
     }
 
-    public void setPermissions(Set<Permission> permissions) {
-        this.permissions = permissions;
+    public void setPermissions(Set<String> permissions, PermissionRepository permissionRepository) {
+        Set<Permission> permissionEntities = new HashSet<>();
+        for (String code : permissions) {
+            Permission permission = permissionRepository.findByCode(code).orElse(null);
+            if (permission != null) {
+                permissionEntities.add(permission);
+            }
+        }
+        this.permissions = permissionEntities;
     }
 
     public Set<ProjectMember> getMembers() {

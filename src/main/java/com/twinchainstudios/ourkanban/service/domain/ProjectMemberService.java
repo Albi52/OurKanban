@@ -5,10 +5,13 @@ import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateDisplayNameReque
 import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
 import com.twinchainstudios.ourkanban.exception.NotFoundException;
 import com.twinchainstudios.ourkanban.model.auth.User;
+import com.twinchainstudios.ourkanban.model.domain.PermissionCodes;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;
+import com.twinchainstudios.ourkanban.model.domain.Role;
 import com.twinchainstudios.ourkanban.model.domain.WorkGroup;
 import com.twinchainstudios.ourkanban.repository.auth.UserRepository;
+import com.twinchainstudios.ourkanban.repository.domain.PermissionRepository;
 import com.twinchainstudios.ourkanban.repository.domain.ProjectMemberRepository;
 
 import org.springframework.stereotype.Service;
@@ -33,11 +36,14 @@ public class ProjectMemberService {
 
     private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
+    private final PermissionRepository permissionRepository;
 
     public ProjectMemberService(ProjectMemberRepository projectMemberRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PermissionRepository permissionRepository) {
         this.projectMemberRepository = projectMemberRepository;
         this.userRepository = userRepository;
+        this.permissionRepository = permissionRepository;
     }
 
     /**
@@ -49,6 +55,32 @@ public class ProjectMemberService {
         for (User user : workGroupUsers) {
             createIfMissing(project, user);
         }
+    }
+    public void createDefaultRoles(Project project, User creator) {
+        Role adminRole = new Role("Admin", project);
+        adminRole.setPermissions(PermissionCodes.getAllPermissionCodes(), permissionRepository);
+
+        project.getRoles().add(adminRole);
+
+        Role memberRole = new Role("Member", project);
+        memberRole.setPermissions(PermissionCodes.getEditPermissionCodes(), permissionRepository);
+
+        project.getRoles().add(memberRole);
+
+        // ProjectMember creatorMember = project.getMembers().stream()
+        //         .filter(m -> m.getUser().getId().equals(creator.getId()))
+        //         .findFirst().orElse(null);
+        // if(creatorMember == null) {
+        //     for (ProjectMember member : project.getMembers()) {
+        //         member.getRoles().add(adminRole);                
+        //     }
+        // }
+        // else {
+        //     for (ProjectMember member : project.getMembers()) {
+        //         member.getRoles().add(memberRole);
+        //     }
+        //     creatorMember.getRoles().add(adminRole);
+        // }
     }
 
     /**

@@ -28,10 +28,20 @@ public class TaskDto {
 
     public TaskDto() {}
 
-    public TaskDto(Long id, String title, String description, String priority, 
-        Long columnId, Long projectId, 
-        Long assigneeId, String assigneeName, Long authorId, String authorName,
-        int positionX, int positionY, LocalDate startDate, LocalDate endDate,
+    public TaskDto(Long id, 
+        String title, 
+        String description, 
+        String priority, 
+        Long columnId, 
+        Long projectId, 
+        Long assigneeId, 
+        String assigneeName, 
+        Long authorId, 
+        String authorName,
+        int positionX, 
+        int positionY, 
+        LocalDate startDate, 
+        LocalDate endDate,
         String moverName
     ) {
         this.id = id;

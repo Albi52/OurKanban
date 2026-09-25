@@ -2,6 +2,7 @@ package com.twinchainstudios.ourkanban.service.domain;
 
 import com.twinchainstudios.ourkanban.dto.domain.projects.ColumnResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CreateColumnRequest;
+import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.exception.ConflictException;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Project;
@@ -9,6 +10,7 @@ import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepositor
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.twinchainstudios.ourkanban.service.domain.websockets.TaskService;
 
 import java.util.List;
 
@@ -16,11 +18,14 @@ import java.util.List;
 public class DashboardColumnService {
 
     private final ProjectService projectService;
+    private final TaskService taskService;
     private final DashboardColumnRepository dashboardColumnRepository;
 
     public DashboardColumnService(ProjectService projectService,
+                                  TaskService taskService,
                                   DashboardColumnRepository dashboardColumnRepository) {
         this.projectService = projectService;
+        this.taskService = taskService;
         this.dashboardColumnRepository = dashboardColumnRepository;
     }
 
@@ -55,6 +60,11 @@ public class DashboardColumnService {
     }
 
     private ColumnResponse toResponse(DashboardColumn column) {
-        return new ColumnResponse(column.getId(), column.getName(), column.getPosition());
+        TaskDto[] tasks = column.getTasks().stream()
+                .map(taskService::toDto)
+                .toArray(TaskDto[]::new);
+
+        ColumnResponse columnResponse = new ColumnResponse(column.getId(), column.getName(), column.getPosition(), column.getTasks().size(), tasks);
+        return columnResponse;
     }
 }

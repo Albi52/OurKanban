@@ -51,7 +51,7 @@ public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectReque
 
     Project project = new Project();
     project.setName(request.name());
-    project.setWorkGroup(workGroup);
+    project.setWorkGroup(workGroup);    
 
     try {
         projectRepository.save(project);
@@ -61,6 +61,8 @@ public ProjectCapsuleResponse createProject(Long workGroupId, CreateProjectReque
 
     createDefaultColumns(project);
     projectMemberService.createDefaultMembers(project, workGroup.getUsers()); // ← new line
+    //El usuario creador tiene por defecto los permisos de administrador en el proyecto, por lo que no es necesario agregarlo a la lista de miembros.
+    // projectMemberService.createDefaultRoles(project, user); // ← new line
 
     return new ProjectCapsuleResponse(project.getId(), project.getName(), workGroup.getId(), true);
 }
