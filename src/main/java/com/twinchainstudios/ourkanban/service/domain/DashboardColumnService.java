@@ -58,14 +58,13 @@ public class DashboardColumnService {
     }
 
     @Transactional
-    public void deleteColumn(Long projectId, int columnIndex, String username) {
+    public void deleteColumn(Long projectId, Long columnIndex, String username) {
         Project project = projectService.getProjectAndVerifyMembership(projectId, username);
-        List<DashboardColumn> list= dashboardColumnRepository.findByProjectIdOrderByPosition(projectId);
-        if(columnIndex > list.size()){
-            throw new ForbiddenOperationException("A column with that name already exists in this project");
+ 
+        DashboardColumn column = dashboardColumnRepository.findById(columnIndex).orElseThrow();
+        if(column.getProject()== project){
             
         }
-        DashboardColumn column = list.get(columnIndex-1);
 
         dashboardColumnRepository.delete(column);
 

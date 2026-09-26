@@ -37,7 +37,7 @@ public class DashboardColumnController {
 
     @DeleteMapping("{columnIndex}") 
     public ResponseEntity<Void> deleteColumn(@PathVariable Long projectId,
-            @PathVariable int columnIndex,
+            @PathVariable Long columnIndex,
             Authentication authentication){
 
                 dashboardColumnService.deleteColumn(projectId, columnIndex, authentication.getName());
