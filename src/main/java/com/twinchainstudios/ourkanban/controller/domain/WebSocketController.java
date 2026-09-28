@@ -54,7 +54,7 @@ public class WebSocketController {
             return;
         }
 
-        Long userId = userPrincipal.getId();
+        // Long userId = userPrincipal.getId();
 
         if (msg == null || msg.type == null) {
             return;

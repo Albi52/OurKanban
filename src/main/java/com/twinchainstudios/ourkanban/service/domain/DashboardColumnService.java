@@ -5,7 +5,6 @@ import com.twinchainstudios.ourkanban.dto.domain.projects.CreateColumnRequest;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.exception.ConflictException;
 
-import com.twinchainstudios.ourkanban.exception.ForbiddenOperationException;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;

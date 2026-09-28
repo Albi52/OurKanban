@@ -1,6 +1,8 @@
 package com.twinchainstudios.ourkanban.service.domain;
 
+import com.twinchainstudios.ourkanban.dto.domain.projects.ProjectMemberResponse;
 import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectCapsuleResponse;
+import com.twinchainstudios.ourkanban.dto.domain.groups.ProjectDetailsResponse;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CreateProjectRequest;
 import com.twinchainstudios.ourkanban.dto.domain.projects.UpdateProjectRequest;
 import com.twinchainstudios.ourkanban.exception.*;
@@ -12,6 +14,8 @@ import com.twinchainstudios.ourkanban.repository.domain.ProjectRepository;
 import com.twinchainstudios.ourkanban.repository.domain.WorkGroupRepository;
 import com.twinchainstudios.ourkanban.repository.domain.DashboardColumnRepository;
 import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
+
+import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -121,22 +125,34 @@ public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest
     }
 
     return project;
-}
-
-@Transactional(readOnly = true)
-public ProjectCapsuleResponse getProject(Long projectId, String username) {
-    Project project = getProjectAndVerifyMembership(projectId, username);
-    return new ProjectCapsuleResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
-
-}
-private void createDefaultColumns(Project project) {
-    String[] defaults = { "TODO", "IN PROGRESS", "DONE" };
-    for (int i = 0; i < defaults.length; i++) {
-        DashboardColumn column = new DashboardColumn();
-        column.setName(defaults[i]);
-        column.setPosition(i);
-        column.setProject(project);
-        dashboardColumnRepository.save(column);
     }
-}
+
+    @Transactional(readOnly = true)
+    public ProjectCapsuleResponse getProject(Long projectId, String username) {
+        Project project = getProjectAndVerifyMembership(projectId, username);
+        return new ProjectCapsuleResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true);
+
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectDetailsResponse getProjectDetails(Long projectId, String username) {
+        Project project = getProjectAndVerifyMembership(projectId, username);
+        List<ProjectMemberResponse> members = projectMemberService.getMembers(projectId);
+
+
+
+        return new ProjectDetailsResponse(project.getId(), project.getName(), project.getWorkGroup().getId(), true, members);
+
+    }
+
+    private void createDefaultColumns(Project project) {
+        String[] defaults = { "TODO", "IN PROGRESS", "DONE" };
+        for (int i = 0; i < defaults.length; i++) {
+            DashboardColumn column = new DashboardColumn();
+            column.setName(defaults[i]);
+            column.setPosition(i);
+            column.setProject(project);
+            dashboardColumnRepository.save(column);
+        }
+    }
 }

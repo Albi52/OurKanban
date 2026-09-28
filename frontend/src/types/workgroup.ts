@@ -4,6 +4,11 @@ export interface ProjectSummary {
   workGroupId: number
   isLeader: boolean
 }
+
+export interface ProjectDetails extends ProjectSummary {
+  members: Member[]
+}
+
 export interface Member {
   id: number
   username: string
