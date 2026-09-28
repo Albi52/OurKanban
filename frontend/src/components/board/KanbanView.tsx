@@ -419,7 +419,7 @@ function BoardColumnView({
       return
     }
 
-    const chosenAssignee = groupMembers.find((m) => m.id === assigneeId)
+    const chosenAssignee = groupMembers.find((m) => m.id === (assigneeId ? assigneeId - 1 : undefined))
 
     setBusy(true)
     onAddTask(column.id, {
