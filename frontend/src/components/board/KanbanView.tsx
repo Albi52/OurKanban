@@ -539,7 +539,7 @@ function BoardColumnView({
                         {task.assignee && (
                           <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-medium text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-full w-max border border-indigo-800/40">
                             <UserIcon className="h-3 w-3 text-indigo-400" />
-                            <span className="truncate">{task.assignee.username}</span>
+                            <span className="truncate">{task.assignee.username} {task.assignee.id}</span>
                           </div>
                         )}
 
@@ -644,7 +644,7 @@ function BoardColumnView({
                       </option>
                       {groupMembers.map((member) => (
                         <option key={member.id} value={member.id}>
-                          {member.username} {member.id === currentUser.id ? '(You)' : ''}
+                          {member.username} {member.id}{member.id === currentUser.id ? '(You)' : ''}
                         </option>
                       ))}
                     </select>
