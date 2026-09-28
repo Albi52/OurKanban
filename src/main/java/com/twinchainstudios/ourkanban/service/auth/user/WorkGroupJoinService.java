@@ -96,25 +96,38 @@ public class WorkGroupJoinService {
         joinRequest.setStatus(JoinRequestStatus.CANCELED);
         workGroupJoinRequestRepository.save(joinRequest);
     }
+@Transactional
+public void sendJoinRequest(Long workGroupId, String invitedUsername, String invitorUsername) {
+    User user = getUserOrThrow(invitedUsername);
+    WorkGroup workGroup = workGroupRepository.findById(workGroupId)
+            .orElseThrow(() -> new NotFoundException("Work group not found"));
+    User invitor = getUserOrThrow(invitorUsername);
+    workGroupService.requireLeader(workGroup, invitor);
 
-    @Transactional
-    public void sendJoinRequest(Long workGroupId, String invitedUsername, String invitorUsername) {
-        User user = getUserOrThrow(invitedUsername);
-        WorkGroup workGroup = workGroupRepository.findById(workGroupId)
-                .orElseThrow(() -> new NotFoundException("Work group not found"));
-        User invitor = getUserOrThrow(invitorUsername);
-        workGroupService.requireLeader(workGroup, invitor);
-
-        WorkGroupJoin joinRequest = new WorkGroupJoin();
-        joinRequest.setUser(user);
-        joinRequest.setWorkGroup(workGroup);
-        joinRequest.setInvitedBy(invitor);
-        joinRequest.setStatus(JoinRequestStatus.PENDING);
-        joinRequest.setCreatedAt(java.time.LocalDateTime.now());
-        workGroupJoinRequestRepository.save(joinRequest);
-        emailService.sendJoinRequestEmail(user.getEmail(), workGroup.getName(), invitor.getUsername());
-        
+    boolean alreadyMember = workGroup.getUsers().stream()
+            .anyMatch(u -> u.getId().equals(user.getId()));
+    if (alreadyMember) {
+        throw new ConflictException("User is already a member of this group");
     }
+
+    WorkGroupJoin joinRequest = workGroupJoinRequestRepository
+            .findByUserAndWorkGroup(user, workGroup)
+            .orElseGet(WorkGroupJoin::new);
+
+    if (joinRequest.getStatus() == JoinRequestStatus.PENDING) {
+        throw new ConflictException("There is already a pending invitation for this user");
+    }
+
+    joinRequest.setUser(user);
+    joinRequest.setWorkGroup(workGroup);
+    joinRequest.setInvitedBy(invitor);
+    joinRequest.setStatus(JoinRequestStatus.PENDING);
+    joinRequest.setCreatedAt(java.time.LocalDateTime.now());
+    joinRequest.setRespondedAt(null);
+    workGroupJoinRequestRepository.save(joinRequest);
+
+    emailService.sendJoinRequestEmail(user.getEmail(), workGroup.getName(), invitor.getUsername());
+}
 
     private User getUserOrThrow(String username) {
         return userRepository.findByUsername(username)
