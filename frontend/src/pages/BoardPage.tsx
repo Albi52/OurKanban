@@ -1,13 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getProject } from '@api/homeManagement/projectAPI'
+import { getProjectDetails } from '@api/homeManagement/projectAPI'
 import { getColumns } from '@api/board/columnAPI'
 import { getEvents } from '@api/board/eventAPI'
-import { getMyWorkGroups } from '@/api/homeManagement/workGroupAPI'
 import { getMe } from '@/api/account/authAPI'
 import { useStomp, type EventDto, type TaskDto } from '../components/webSockets/useStomp'
 
-import type { Member, ProjectSummary } from '@app-types/workgroup'
+import type { Member, ProjectDetails } from '@app-types/workgroup'
 import type { BoardColumn } from '@app-types/board'
 import { TopBar } from '@components/shared/TopBar'
 import { Button } from '@components/shared/ui/button'
@@ -32,7 +31,7 @@ export default function BoardPage() {
   const projectId = Number(id) || 0
   const { token } = useAuth()
 
-  const [project, setProject] = useState<ProjectSummary | null>(null)
+  const [project, setProject] = useState<ProjectDetails | null>(null)
   const [columns, setColumns] = useState<BoardColumn[]>([])
   const [groupMembers, setGroupMembers] = useState<Member[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
@@ -185,11 +184,10 @@ export default function BoardPage() {
     setLoading(true)
     setError(null)
     try {
-      const [projData, colsData, meData, userGroups, eventsData] = await Promise.all([
-        getProject(projectId).catch(() => null),
+      const [projData, colsData, meData, eventsData] = await Promise.all([
+        getProjectDetails(projectId).catch(() => null),
         getColumns(projectId).catch(() => []),
         getMe().catch(() => null),
-        getMyWorkGroups().catch(() => []),
         getEvents(projectId).catch(() => []),
       ])
 
@@ -259,9 +257,9 @@ export default function BoardPage() {
         ),
       )
 
-      const userGroupsList = Array.isArray(userGroups) ? userGroups : []
-      const currentGroup = userGroupsList.find((g) => g && g.id === projData.workGroupId)
-      const members = currentGroup?.members || []
+      //const userGroupsList = Array.isArray(userGroups) ? userGroups : []
+      //const currentGroup = userGroupsList.find((g) => g && g.id === projData.workGroupId)
+      const members = projData.members || []
       setGroupMembers(members)
 
       const currentMember = meData ? members.find((me: { username: any }) => me.username === meData.username) : null

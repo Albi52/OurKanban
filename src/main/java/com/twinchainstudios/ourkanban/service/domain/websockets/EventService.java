@@ -2,12 +2,9 @@ package com.twinchainstudios.ourkanban.service.domain.websockets;
 
 import com.twinchainstudios.ourkanban.dto.auth.UserPrincipal;
 import com.twinchainstudios.ourkanban.dto.domain.projects.CalendarResponse;
-import com.twinchainstudios.ourkanban.dto.domain.projects.ColumnResponse;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventDto;
 import com.twinchainstudios.ourkanban.dto.domain.websockets.Evets.EventMessage;
-import com.twinchainstudios.ourkanban.dto.domain.websockets.Tasks.TaskDto;
 import com.twinchainstudios.ourkanban.model.auth.User;
-import com.twinchainstudios.ourkanban.model.domain.DashboardColumn;
 import com.twinchainstudios.ourkanban.model.domain.Event;
 import com.twinchainstudios.ourkanban.model.domain.Project;
 import com.twinchainstudios.ourkanban.model.domain.ProjectMember;

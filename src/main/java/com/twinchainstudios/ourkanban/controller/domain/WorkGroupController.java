@@ -1,6 +1,5 @@
 package com.twinchainstudios.ourkanban.controller.domain;
 
-import com.twinchainstudios.ourkanban.dto.domain.groups.AddMemberRequest;
 import com.twinchainstudios.ourkanban.dto.domain.groups.CreateWorkGroupRequest;
 import com.twinchainstudios.ourkanban.dto.domain.groups.WorkGroupResponse;
 import com.twinchainstudios.ourkanban.service.domain.WorkGroupService;
