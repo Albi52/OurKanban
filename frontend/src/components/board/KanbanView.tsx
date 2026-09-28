@@ -419,7 +419,7 @@ function BoardColumnView({
       return
     }
 
-    const chosenAssignee = groupMembers.find((m) => m.id === (assigneeId ? assigneeId - 1 : undefined))
+    const chosenAssignee = groupMembers.find((m) => m.id === (assigneeId ? assigneeId : undefined))
 
     setBusy(true)
     onAddTask(column.id, {
@@ -634,12 +634,14 @@ function BoardColumnView({
                       value={assigneeId || ''}
                       onChange={(e) =>
                         setAssigneeId(
-                          e.target.value ? Number(e.target.value) : undefined
+                          e.target.value? Number(e.target.value) : undefined
                         )
                       }
                       className="w-full rounded-md border border-border bg-zinc-900 p-1.5 text-xs text-foreground-secondary focus:outline-none"
                     >
-                      <option value="">Unassigned</option>
+                      <option key="unassigned" value="">
+                        Unassigned
+                      </option>
                       {groupMembers.map((member) => (
                         <option key={member.id} value={member.id}>
                           {member.username} {member.id === currentUser.id ? '(You)' : ''}
