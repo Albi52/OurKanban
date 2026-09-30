@@ -110,13 +110,14 @@ public void sendJoinRequest(Long workGroupId, String invitedUsername, String inv
         throw new ConflictException("User is already a member of this group");
     }
 
-    WorkGroupJoin joinRequest = workGroupJoinRequestRepository
-            .findByUserAndWorkGroup(user, workGroup)
-            .orElseGet(WorkGroupJoin::new);
+    var existing = workGroupJoinRequestRepository.findByUserAndWorkGroup(user, workGroup);
 
-    if (joinRequest.getStatus() == JoinRequestStatus.PENDING) {
+    if (existing.isPresent() && existing.get().getStatus() == JoinRequestStatus.PENDING) {
         throw new ConflictException("There is already a pending invitation for this user");
     }
+
+    WorkGroupJoin joinRequest = existing.orElseGet(WorkGroupJoin::new);
+ 
 
     joinRequest.setUser(user);
     joinRequest.setWorkGroup(workGroup);
