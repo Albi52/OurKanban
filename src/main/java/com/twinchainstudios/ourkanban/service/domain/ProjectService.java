@@ -146,7 +146,7 @@ public ProjectCapsuleResponse renameProject(Long projectId, UpdateProjectRequest
     }
 
     private void createDefaultColumns(Project project) {
-        String[] defaults = { "TODO", "IN PROGRESS", "DONE" };
+        String[] defaults = { "TO-DO", "IN PROGRESS", "DONE" };
         for (int i = 0; i < defaults.length; i++) {
             DashboardColumn column = new DashboardColumn();
             column.setName(defaults[i]);
