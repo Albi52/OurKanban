@@ -49,7 +49,6 @@ export function CalendarWeekRow({
   onDeleteTask,
   onDeleteEvent,
   onCreateEvent,
-  handleDragStartTask,
   handleDragStartEvent,
   handleDragMoveEvent,
   handleDropOnDay,
@@ -218,48 +217,64 @@ export function CalendarWeekRow({
           const isEnd = taskEnd <= weekEnd
           const colorClass = getTaskColorClass(task.priority)
           const isSelected = task.id === selectedItemId && selectedItemType === 'task'
-          const canModify = project?.isLeader || task.author?.id === currentUser.id
+          const isAssignedToMe = task.assignee?.id === currentUser.id
 
           return (
             <div
               key={task.id || taskIdx}
-              draggable={!task.moverName || task.moverName === currentUser.username}
               data-task-item="true"
-              onDragStart={(e) => handleDragStartTask(task, e)}
-              onClick={() => onSelectItem(task.id, 'task')}
-              className="relative h-6 pointer-events-auto cursor-pointer active:cursor-grabbing max-w-full"
+              className="relative h-7 pointer-events-auto max-w-full"
               style={{
                 marginLeft: `${leftPercent}%`,
                 width: `${widthPercent}%`,
               }}
             >
               <div
-                className={`group flex h-full items-center justify-between border px-2 text-xs transition overflow-hidden text-white ${colorClass} ${
+                draggable
+                onDragStart={(e) => {
+                  e.stopPropagation()
+                  e.dataTransfer.setData('type', 'task')
+                  e.dataTransfer.setData('id', task.id)
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onSelectItem(task.id, 'task')
+                }}
+                className={`relative flex h-full items-center justify-between border bg-background px-2 text-xs transition overflow-hidden text-foreground-secondary cursor-pointer active:cursor-grabbing ${colorClass} ${
                   isStart ? 'rounded-l-md' : 'rounded-l-none border-l-0'
                 } ${isEnd ? 'rounded-r-md' : 'rounded-r-none border-r-0'} ${
-                  isSelected ? 'ring-2 ring-zinc-100 ring-offset-1 ring-offset-zinc-950 font-bold' : ''
+                  isAssignedToMe ? 'ring-2 ring-indigo-500/80 shadow-md shadow-indigo-950/50' : ''
+                } ${
+                  isSelected ? 'ring-2 ring-zinc-100 ring-offset-1 ring-offset-zinc-950 font-bold' : 'border-border'
                 }`}
               >
-                <span className="truncate font-medium text-white" title={task.title}>
+                {/* Borde izquierdo para cambiar la fecha de inicio */}
+                <div
+                  draggable
+                  onDragStart={(e) => {
+                    e.stopPropagation()
+                    e.dataTransfer.setData('type', 'task-left')
+                    e.dataTransfer.setData('id', task.id)
+                  }}
+                  className="absolute left-0 top-0 bottom-0 w-2.5 cursor-w-resize hover:bg-white/40 z-20"
+                  title="Arrastra para cambiar la fecha de inicio"
+                />
+
+                <span className="truncate font-medium mx-2 pointer-events-none" title={task.title}>
                   {task.title}
                 </span>
 
-                {canModify && onDeleteTask && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDeleteTask(task.id)
-                      if (selectedItemId === task.id && selectedItemType === 'task') {
-                        onSelectItem(null, null)
-                      }
-                    }}
-                    className="ml-1 hidden rounded p-0.5 opacity-80 hover:opacity-100 group-hover:block shrink-0 text-white"
-                    aria-label={`Delete ${task.title}`}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                )}
+                {/* Borde derecho para cambiar la fecha de fin */}
+                <div
+                  draggable
+                  onDragStart={(e) => {
+                    e.stopPropagation()
+                    e.dataTransfer.setData('type', 'task-right')
+                    e.dataTransfer.setData('id', task.id)
+                  }}
+                  className="absolute right-0 top-0 bottom-0 w-2.5 cursor-e-resize hover:bg-white/40 z-20"
+                  title="Arrastra para cambiar la fecha de fin"
+                />
               </div>
             </div>
           )

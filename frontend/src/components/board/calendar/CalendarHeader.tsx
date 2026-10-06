@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '@components/shared/ui/button'
+import { ProjectActionsHeader } from '../ProjectActionsHeader'
 
 interface CalendarHeaderProps {
   monthName: string
@@ -17,7 +18,7 @@ export function CalendarHeader({
   onNextMonth,
 }: CalendarHeaderProps) {
   return (
-    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
       <div className="flex items-center gap-3">
         <CalendarIcon className="h-5 w-5 text-muted-foreground" />
         <h2 className="font-heading text-xl font-medium tracking-tight text-foreground-secondary">

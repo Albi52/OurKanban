@@ -3,6 +3,7 @@ import type { Task } from './KanbanView'
 import type { Member, ProjectSummary } from '../../types/workgroup'
 import { CalendarHeader } from './calendar/CalendarHeader'
 import { CalendarWeekRow } from './calendar/CalendarWeekRow'
+import { ProjectActionsHeader } from './ProjectActionsHeader'
 
 export interface CalendarEvent {
   id: string
@@ -177,12 +178,40 @@ export function CalendarView({
     const id = e.dataTransfer.getData('id')
     if (!id) return
 
+    if (type === 'task-left') {
+      const task = tasks.find((t) => t.id === id)
+      if (!task || !onUpdateTask) return
+
+      const canModify = project?.isLeader || task.author?.id === currentUser.id
+      if (!canModify) return
+
+      onUpdateTask({
+        ...task,
+        startDate: targetDateStr, // Modifica solo el inicio al estirar el borde izquierdo
+      })
+      return
+    }
+
+    if (type === 'task-right') {
+      const task = tasks.find((t) => t.id === id)
+      if (!task || !onUpdateTask) return
+
+      const canModify = project?.isLeader || task.author?.id === currentUser.id
+      if (!canModify) return
+
+      onUpdateTask({
+        ...task,
+        endDate: targetDateStr, // Modifica solo el fin al estirar el borde derecho
+      })
+      return
+    }
+
     if (type === 'event') {
       const eventItem = events.find((ev) => ev.id === id)
       if (!eventItem || !onUpdateEvent) return
 
-      const canModify = project?.isLeader || eventItem.author?.id === currentUser.id
-      if (!canModify) return
+      // const canModify = project?.isLeader || eventItem.author?.id === currentUser.id
+      // if (!canModify) return
 
       onUpdateEvent({
         ...eventItem,
@@ -222,18 +251,27 @@ export function CalendarView({
   function getTaskColorClass(priority?: string) {
     switch (priority) {
       case 'high':
-        return 'bg-red-950/80 border-red-700/80 text-white hover:bg-red-900'
+        return 'border-t-4 border-t-red-500'
       case 'medium':
-        return 'bg-amber-950/80 border-amber-700/80 text-white hover:bg-amber-900'
+        return 'border-t-4 border-t-amber-500'
       case 'low':
       default:
-        return 'bg-emerald-950/80 border-emerald-700/80 text-white hover:bg-emerald-900'
+        return 'border-t-4 border-t-emerald-500'
     }
   }
 
   return (
     <div className="flex h-full flex-1 overflow-hidden" data-testid="calendar-view">
-      <div className="flex flex-1 flex-col h-full rounded-xl border border-border bg-card/40 p-4 md:p-6 min-w-0">
+      <div className="flex flex-1 flex-col h-full rounded-xl border border-border bg-card/40 p-4 md:p-6 min-w-0 gap-4">
+        
+        {/* Cabecera superior idéntica al Kanban: "TABLERO CALENDARIO" y botones de acción */}
+        <div className="flex items-center justify-between shrink-0 px-1">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            TABLERO CALENDARIO
+          </span>
+          <ProjectActionsHeader />
+        </div>
+
         <CalendarHeader
           monthName={MONTH_NAMES[month]}
           year={year}
@@ -265,8 +303,6 @@ export function CalendarView({
               onDeleteTask={onDeleteTask}
               onDeleteEvent={onDeleteEvent}
               onCreateEvent={onCreateEvent}
-              onUpdateEvent={onUpdateEvent}
-              onUpdateTask={onUpdateTask}
               handleDragStartTask={handleDragStartTask}
               handleDragStartEvent={handleDragStartEvent}
               handleDragMoveEvent={handleDragMoveEvent}

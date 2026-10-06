@@ -202,6 +202,9 @@ public class TaskService {
                     .orElseThrow(() -> new NotFoundException("Assignee not found"));
             t.setAssignee(m);
         }
+        else if (msg.assigneeId == null) {
+            t.setAssignee(null);
+        }
 
         if (msg.dateStart != null)
             t.setStartDate(msg.dateStart);

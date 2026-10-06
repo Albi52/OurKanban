@@ -36,11 +36,13 @@ function getInitials(name?: string) {
 
 export function BoardColumnView({
   column,
+  project,
   currentUser,
   groupMembers = [],
   tasks,
   selectedTaskId,
   onAddTask,
+  onDeleteTask,
   onSelectTask,
   onRemoveColumn,
   canRemoveColumn,
@@ -142,6 +144,7 @@ export function BoardColumnView({
                 const isSelected = task.id === selectedTaskId
                 const isAssignedToMe = task.assignee?.id === currentUser.id
                 const isBeingMovedByOther = Boolean(task.moverName && task.moverName !== currentUser.username)
+                const canDelete = project.isLeader || task.author?.id === currentUser.id
 
                 const priorityBorder =
                   task.priority === 'high'
@@ -164,17 +167,17 @@ export function BoardColumnView({
                         {...taskProvided.dragHandleProps}
                         data-task-item="true"
                         onClick={() => !isBeingMovedByOther && onSelectTask(task)}
-                        className={`group relative rounded-2xl border bg-background p-4 transition ${
+                        className={`group/card relative rounded-2xl border bg-background px-3 py-2 transition-all duration-200 overflow-hidden ${
                           isBeingMovedByOther
-                            ? 'opacity-40 cursor-not-allowed border-amber-500/50 ring-2 ring-amber-500/30'
-                            : 'cursor-pointer hover:border-border-hover'
+                            ? 'opacity-70 cursor-not-allowed border-amber-500/50 ring-2 ring-amber-500/30'
+                            : 'cursor-pointer hover:border-border-hover hover:p-4'
                         } ${priorityBorder} ${
                           isAssignedToMe
                             ? 'ring-2 ring-indigo-500/80 shadow-md shadow-indigo-950/50'
                             : ''
                         } ${
                           isSelected
-                            ? 'border-input ring-2 ring-zinc-500/40 shadow-lg shadow-black/80'
+                            ? 'border-input ring-2 ring-zinc-500/40 shadow-lg shadow-black/80 p-4'
                             : 'border-border'
                         } ${taskSnapshot.isDragging ? 'shadow-lg shadow-black/60 ring-1 ring-zinc-700' : ''}`}
                       >
@@ -187,33 +190,50 @@ export function BoardColumnView({
                           </span>
                         )}
 
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-semibold text-foreground-secondary">{task.title}</p>
-                            <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2">
-                              {task.description || (
-                                <span className="italic text-muted-foreground-subtle">No description</span>
-                              )}
-                            </p>
+                        {/* Vista compacta por defecto: Título, Asignado y botón de eliminar al hacer hover */}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-foreground-secondary truncate text-xs">{task.title}</p>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            {task.assignee && (
+                              <div className="flex items-center gap-1 text-[10px] font-medium text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-full border border-indigo-800/40">
+                                <UserIcon className="h-2.5 w-2.5 text-indigo-400" />
+                                <span className="truncate max-w-[80px]">{task.assignee.username}</span>
+                              </div>
+                            )}
+
+                            {canDelete && (
+                              <button
+                                type="button"
+                                className="rounded-full p-1 text-muted-foreground opacity-0 transition group-hover/card:opacity-100 hover:bg-accent hover:text-accent-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onDeleteTask(task.id)
+                                }}
+                                aria-label={`Delete ${task.title}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
                           </div>
                         </div>
 
-                        {task.assignee && (
-                          <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-medium text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-full w-max border border-indigo-800/40">
-                            <UserIcon className="h-3 w-3 text-indigo-400" />
-                            <span className="truncate">{task.assignee.username}</span>
-                          </div>
-                        )}
+                        {/* Contenido desplegable en hover */}
+                        <div className="hidden group-hover/card:block transition-all duration-200 mt-2 pt-2 border-t border-border/60">
+                          <p className="text-xs leading-5 text-muted-foreground line-clamp-2">
+                            {task.description || (
+                              <span className="italic text-muted-foreground-subtle">No description</span>
+                            )}
+                          </p>
 
-                        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground border-t border-border pt-2">
-                          <span>
-                            <span className="font-medium text-muted-foreground">Start:</span>{' '}
-                            {task.startDate || '-'}
-                          </span>
-                          <span>
-                            <span className="font-medium text-muted-foreground">End:</span>{' '}
-                            {task.endDate || '-'}
-                          </span>
+                          <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground pt-1">
+                            <span>
+                              <span className="font-medium text-muted-foreground">Start:</span> {task.startDate || '-'}
+                            </span>
+                            <span>
+                              <span className="font-medium text-muted-foreground">End:</span> {task.endDate || '-'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}
